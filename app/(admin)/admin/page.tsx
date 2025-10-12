@@ -7,7 +7,7 @@ import { Users, CheckCircle, XCircle, Clock } from "lucide-react"
 export default async function AdminDashboard() {
   const session = await auth()
 
-  if (!session?.user?.weddingId) {
+  if (!session?.user?.coupleId) {
     return (
       <div className="text-center py-20">
         <p className="text-muted-foreground">No wedding associated with your account.</p>
@@ -15,8 +15,8 @@ export default async function AdminDashboard() {
     )
   }
 
-  const wedding = await prisma.wedding.findUnique({
-    where: { id: session.user.weddingId },
+  const wedding = await prisma.couple.findUnique({
+    where: { id: session.user.coupleId },
     include: {
       _count: {
         select: {

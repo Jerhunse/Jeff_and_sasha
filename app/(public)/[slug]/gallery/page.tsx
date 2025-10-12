@@ -8,7 +8,7 @@ interface GalleryPageProps {
 }
 
 async function getGalleryData(slug: string) {
-  const wedding = await prisma.wedding.findUnique({
+  const wedding = await prisma.couple.findUnique({
     where: { slug },
     include: {
       gallery: {

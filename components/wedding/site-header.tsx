@@ -15,11 +15,13 @@ export function SiteHeader({ weddingSlug, partner1Name, partner2Name, weddingDat
   const navItems = [
     { href: `/${weddingSlug}`, label: "Home" },
     { href: `/${weddingSlug}/story`, label: "Our Story" },
+    { href: `/${weddingSlug}/party`, label: "Wedding Party" },
     { href: `/${weddingSlug}/schedule`, label: "Schedule" },
     { href: `/${weddingSlug}/travel`, label: "Travel" },
     { href: `/${weddingSlug}/registry`, label: "Registry" },
-    { href: `/${weddingSlug}/faq`, label: "FAQ" },
     { href: `/${weddingSlug}/gallery`, label: "Gallery" },
+    { href: `/${weddingSlug}/faq`, label: "FAQ" },
+    { href: `/${weddingSlug}/contact`, label: "Contact" },
   ]
 
   return (

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { SiteHeader } from "@/components/wedding/site-header"
+import { Metadata } from "next"
 
 interface WeddingLayoutProps {
   children: React.ReactNode
@@ -8,7 +9,7 @@ interface WeddingLayoutProps {
 }
 
 async function getWedding(slug: string) {
-  const wedding = await prisma.wedding.findUnique({
+  const wedding = await prisma.couple.findUnique({
     where: { slug },
     select: {
       id: true,
@@ -19,6 +20,10 @@ async function getWedding(slug: string) {
       isPublished: true,
       primaryColor: true,
       secondaryColor: true,
+      heroImageUrl: true,
+      venueName: true,
+      venueCity: true,
+      venueState: true,
     },
   })
 
@@ -27,6 +32,68 @@ async function getWedding(slug: string) {
   }
 
   return wedding
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>
+}): Promise<Metadata> {
+  const { slug } = await params
+  const wedding = await getWedding(slug)
+
+  if (!wedding) {
+    return {
+      title: "Wedding Not Found",
+    }
+  }
+
+  const title = `${wedding.partner1Name} & ${wedding.partner2Name}'s Wedding`
+  const description = `Join us in celebrating the wedding of ${wedding.partner1Name} and ${wedding.partner2Name} on ${new Date(
+    wedding.weddingDate
+  ).toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  })}${wedding.venueName ? ` at ${wedding.venueName}` : ""}${
+    wedding.venueCity ? `, ${wedding.venueCity}` : ""
+  }${wedding.venueState ? `, ${wedding.venueState}` : ""}.`
+
+  const ogImage = wedding.heroImageUrl || "/og-default-wedding.jpg"
+  const url = `${process.env.NEXT_PUBLIC_BASE_URL || ""}/${slug}`
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      url,
+      images: [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          alt: title,
+        },
+      ],
+      siteName: "Wedding Platform",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [ogImage],
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
+    alternates: {
+      canonical: url,
+    },
+  }
 }
 
 export default async function WeddingLayout({ children, params }: WeddingLayoutProps) {

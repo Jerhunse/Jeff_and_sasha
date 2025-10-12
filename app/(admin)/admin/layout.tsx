@@ -8,7 +8,8 @@ import {
   Calendar, 
   FileText, 
   Settings,
-  Heart
+  Heart,
+  Mail
 } from "lucide-react"
 
 interface AdminLayoutProps {
@@ -30,6 +31,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
   const navItems = [
     { href: "/admin", label: "Dashboard", icon: Home },
     { href: "/admin/guests", label: "Guests", icon: Users },
+    { href: "/admin/invitations", label: "Invitations", icon: Mail },
     { href: "/admin/events", label: "Events", icon: Calendar },
     { href: "/admin/pages", label: "Pages", icon: FileText },
     { href: "/admin/settings", label: "Settings", icon: Settings },

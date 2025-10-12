@@ -9,11 +9,11 @@ interface SchedulePageProps {
 }
 
 async function getScheduleData(slug: string) {
-  const wedding = await prisma.wedding.findUnique({
+  const wedding = await prisma.couple.findUnique({
     where: { slug },
     include: {
       events: {
-        where: { isPublic: true },
+        where: { visibility: "PUBLIC" },
         orderBy: { startTime: "asc" },
       },
     },

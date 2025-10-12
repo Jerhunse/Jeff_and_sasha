@@ -10,7 +10,7 @@ interface TravelPageProps {
 }
 
 async function getTravelData(slug: string) {
-  const wedding = await prisma.wedding.findUnique({
+  const wedding = await prisma.couple.findUnique({
     where: { slug },
     include: {
       hotels: {
@@ -73,26 +73,50 @@ export default async function TravelPage({ params }: TravelPageProps) {
                   </div>
                 </div>
               )}
+              
+              {/* Google Maps Embed */}
               {wedding.venueAddress && (
-                <Button asChild variant="outline">
-                  <a
-                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                      [
-                        wedding.venueAddress,
-                        wedding.venueCity,
-                        wedding.venueState,
-                        wedding.venueZip,
-                      ]
-                        .filter(Boolean)
-                        .join(", ")
-                    )}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <MapPin className="h-4 w-4 mr-2" />
-                    Get Directions
-                  </a>
-                </Button>
+                <div className="space-y-4">
+                  <div className="aspect-video w-full rounded-lg overflow-hidden border">
+                    <iframe
+                      width="100%"
+                      height="100%"
+                      style={{ border: 0 }}
+                      loading="lazy"
+                      allowFullScreen
+                      referrerPolicy="no-referrer-when-downgrade"
+                      src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}&q=${encodeURIComponent(
+                        [
+                          wedding.venueAddress,
+                          wedding.venueCity,
+                          wedding.venueState,
+                          wedding.venueZip,
+                        ]
+                          .filter(Boolean)
+                          .join(", ")
+                      )}`}
+                    />
+                  </div>
+                  <Button asChild variant="outline" className="w-full">
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                        [
+                          wedding.venueAddress,
+                          wedding.venueCity,
+                          wedding.venueState,
+                          wedding.venueZip,
+                        ]
+                          .filter(Boolean)
+                          .join(", ")
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <MapPin className="h-4 w-4 mr-2" />
+                      Open in Google Maps
+                    </a>
+                  </Button>
+                </div>
               )}
             </CardContent>
           </Card>

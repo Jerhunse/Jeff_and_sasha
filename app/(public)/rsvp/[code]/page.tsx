@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Heart } from "lucide-react"
+import { RsvpForm } from "@/components/rsvp/rsvp-form"
 
 interface RsvpPageProps {
   params: Promise<{ code: string }>
@@ -10,17 +11,9 @@ interface RsvpPageProps {
 
 async function getGuestByCode(code: string) {
   const guest = await prisma.guest.findUnique({
-    where: { inviteCode: code },
+    where: { inviteToken: code },
     include: {
-      wedding: {
-        select: {
-          partner1Name: true,
-          partner2Name: true,
-          weddingDate: true,
-          slug: true,
-          rsvpDeadline: true,
-        },
-      },
+      couple: true,
     },
   })
 
@@ -35,10 +28,10 @@ export default async function RsvpPage({ params }: RsvpPageProps) {
     notFound()
   }
 
-  const wedding = guest.wedding
+  const wedding = guest.couple
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-16 px-4 bg-gradient-to-br from-primary/10 via-secondary to-accent/10 bg-floral-pattern">
+    <div className="min-h-screen flex items-center justify-center py-16 px-4 bg-gradient-to-br from-primary/10 via-secondary to-accent/10">
       <div className="w-full max-w-2xl">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/20 mb-6">
@@ -59,57 +52,20 @@ export default async function RsvpPage({ params }: RsvpPageProps) {
           </p>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-serif text-2xl">
-              Welcome, {guest.firstName} {guest.lastName}!
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {guest.rsvpStatus === "ATTENDING" ? (
-              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6 text-center">
-                <Badge variant="default" className="mb-2">Confirmed</Badge>
-                <p className="font-medium">You've already RSVPed!</p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  We're so excited to celebrate with you!
-                </p>
-              </div>
-            ) : guest.rsvpStatus === "DECLINED" ? (
-              <div className="bg-muted border rounded-lg p-6 text-center">
-                <Badge variant="secondary" className="mb-2">Declined</Badge>
-                <p className="font-medium">You've declined this invitation</p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  We'll miss you! If your plans change, please reach out.
-                </p>
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-lg mb-6">
-                  RSVP form coming soon! We'll send you a link to respond to your invitation.
-                </p>
-                {wedding.rsvpDeadline && (
-                  <p className="text-sm text-muted-foreground">
-                    Please respond by{" "}
-                    {new Date(wedding.rsvpDeadline).toLocaleDateString()}
-                  </p>
-                )}
-              </div>
-            )}
+        <RsvpForm guest={guest} couple={wedding} />
 
-            <div className="border-t pt-6">
-              <p className="text-sm text-muted-foreground text-center">
-                Have questions? Visit our{" "}
-                <a
-                  href={`/${wedding.slug}`}
-                  className="text-primary hover:underline font-medium"
-                >
-                  wedding website
-                </a>{" "}
-                for more details.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="mt-6 text-center">
+          <p className="text-sm text-muted-foreground">
+            Have questions? Visit our{" "}
+            <a
+              href={`/${wedding.slug}`}
+              className="text-primary hover:underline font-medium"
+            >
+              wedding website
+            </a>{" "}
+            for more details.
+          </p>
+        </div>
       </div>
     </div>
   )

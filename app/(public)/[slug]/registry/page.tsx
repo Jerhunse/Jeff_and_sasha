@@ -2,18 +2,23 @@ import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Gift, ExternalLink } from "lucide-react"
+import { Gift, ExternalLink, DollarSign, Heart } from "lucide-react"
+import Link from "next/link"
 
 interface RegistryPageProps {
   params: Promise<{ slug: string }>
 }
 
 async function getRegistryData(slug: string) {
-  const wedding = await prisma.wedding.findUnique({
+  const wedding = await prisma.couple.findUnique({
     where: { slug },
     include: {
-      registry: {
+      registryLinks: {
         orderBy: { order: "asc" },
+      },
+      cashFunds: {
+        where: { isActive: true },
+        orderBy: { createdAt: "asc" },
       },
     },
   })
@@ -49,7 +54,98 @@ export default async function RegistryPage({ params }: RegistryPageProps) {
           </p>
         </div>
 
-        {wedding.registry.length === 0 ? (
+        {/* Cash Funds Section */}
+        {wedding.cashFunds.length > 0 && (
+          <div className="mb-12">
+            <div className="text-center mb-8">
+              <h2 className="font-serif text-3xl font-bold mb-2">Cash Funds</h2>
+              <p className="text-muted-foreground">
+                Help us create unforgettable memories
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              {wedding.cashFunds.map((fund) => {
+                const progressPercentage = fund.goalAmount
+                  ? Math.min((fund.currentAmount / fund.goalAmount) * 100, 100)
+                  : 0
+
+                return (
+                  <Card key={fund.id} className="card-hover overflow-hidden">
+                    {fund.imageUrl && (
+                      <div className="aspect-video w-full overflow-hidden bg-muted">
+                        <img
+                          src={fund.imageUrl}
+                          alt={fund.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                    <CardContent className="pt-6">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <h3 className="font-serif text-2xl font-bold mb-1">
+                            {fund.title}
+                          </h3>
+                          <p className="text-sm text-muted-foreground capitalize">
+                            {fund.category.toLowerCase().replace("_", " ")}
+                          </p>
+                        </div>
+                        <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/10">
+                          <Heart className="h-6 w-6 text-primary" />
+                        </div>
+                      </div>
+
+                      {fund.description && (
+                        <p className="text-sm mb-4">{fund.description}</p>
+                      )}
+
+                      {fund.goalAmount && (
+                        <div className="mb-4">
+                          <div className="flex justify-between text-sm mb-2">
+                            <span className="font-medium">
+                              ${fund.currentAmount.toFixed(0)} raised
+                            </span>
+                            <span className="text-muted-foreground">
+                              ${fund.goalAmount.toFixed(0)} goal
+                            </span>
+                          </div>
+                          <div className="w-full bg-muted rounded-full h-2">
+                            <div
+                              className="bg-primary h-2 rounded-full transition-all"
+                              style={{ width: `${progressPercentage}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      <Button asChild className="w-full">
+                        <Link href={`/${slug}/registry/contribute/${fund.id}`}>
+                          <DollarSign className="h-4 w-4 mr-2" />
+                          Contribute
+                        </Link>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Registry Items Section */}
+        {wedding.registryLinks.length > 0 && (
+          <div className="mb-8">
+            <div className="text-center mb-8">
+              <h2 className="font-serif text-3xl font-bold mb-2">Gift Registries</h2>
+              <p className="text-muted-foreground">
+                Browse our registry at these retailers
+              </p>
+            </div>
+          </div>
+        )}
+
+        {wedding.registry.length === 0 && wedding.cashFunds.length === 0 ? (
           <Card>
             <CardContent className="pt-8 text-center py-12">
               <p className="text-muted-foreground mb-4">
@@ -60,9 +156,9 @@ export default async function RegistryPage({ params }: RegistryPageProps) {
               </p>
             </CardContent>
           </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {wedding.registry.map((item) => (
+        ) : wedding.registryLinks.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {wedding.registryLinks.map((item) => (
               <Card key={item.id} className="card-hover overflow-hidden">
                 {item.imageUrl && (
                   <div className="aspect-video w-full overflow-hidden bg-muted">
@@ -91,16 +187,18 @@ export default async function RegistryPage({ params }: RegistryPageProps) {
               </Card>
             ))}
           </div>
-        )}
+        ) : null}
 
-        <Card className="mt-12 bg-primary/5 border-primary/20">
-          <CardContent className="pt-8 text-center">
-            <p className="text-sm">
-              <strong>Cash Gift Alternative:</strong> If you prefer to give a monetary gift,
-              we'll provide details closer to the wedding date.
-            </p>
-          </CardContent>
-        </Card>
+        {wedding.cashFunds.length === 0 && wedding.registry.length > 0 && (
+          <Card className="mt-12 bg-primary/5 border-primary/20">
+            <CardContent className="pt-8 text-center">
+              <p className="text-sm">
+                <strong>Cash Gift Alternative:</strong> If you prefer to give a monetary gift,
+                we'll provide details closer to the wedding date.
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   )

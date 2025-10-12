@@ -9,7 +9,7 @@ interface FaqPageProps {
 }
 
 async function getFaqData(slug: string) {
-  const wedding = await prisma.wedding.findUnique({
+  const wedding = await prisma.couple.findUnique({
     where: { slug },
     include: {
       faqs: {

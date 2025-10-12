@@ -4,19 +4,27 @@ import { HeroSection } from "@/components/wedding/hero-section"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { Calendar, MapPin, Gift, Book } from "lucide-react"
+import { Calendar, MapPin, Gift, Book, ExternalLink } from "lucide-react"
 
 interface HomePageProps {
   params: Promise<{ slug: string }>
 }
 
 async function getWeddingData(slug: string) {
-  const wedding = await prisma.wedding.findUnique({
+  const wedding = await prisma.couple.findUnique({
     where: { slug },
     include: {
       events: {
-        where: { isPublic: true },
+        where: { visibility: "PUBLIC" },
         orderBy: { startTime: "asc" },
+        take: 3,
+      },
+      registryLinks: {
+        orderBy: { order: "asc" },
+        take: 3,
+      },
+      cashFunds: {
+        orderBy: { createdAt: "desc" },
         take: 3,
       },
     },
@@ -64,9 +72,48 @@ export default async function WeddingHomePage({ params }: HomePageProps) {
     },
   ]
 
+  // Generate Schema.org structured data for the wedding event
+  const weddingSchema = {
+    "@context": "https://schema.org",
+    "@type": "Event",
+    name: `${wedding.partner1Name} & ${wedding.partner2Name}'s Wedding`,
+    description: `Join us in celebrating the wedding of ${wedding.partner1Name} and ${wedding.partner2Name}`,
+    startDate: new Date(wedding.weddingDate).toISOString(),
+    eventStatus: "https://schema.org/EventScheduled",
+    eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+    ...(wedding.venueName && {
+      location: {
+        "@type": "Place",
+        name: wedding.venueName,
+        ...(wedding.venueAddress && {
+          address: {
+            "@type": "PostalAddress",
+            streetAddress: wedding.venueAddress,
+            addressLocality: wedding.venueCity || undefined,
+            addressRegion: wedding.venueState || undefined,
+            postalCode: wedding.venueZip || undefined,
+          },
+        }),
+      },
+    }),
+    organizer: {
+      "@type": "Person",
+      name: `${wedding.partner1Name} & ${wedding.partner2Name}`,
+    },
+  }
+
   return (
-    <div className="flex flex-col gap-0">
-      <HeroSection
+    <>
+      {/* Schema.org JSON-LD */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(weddingSchema),
+        }}
+      />
+      
+      <div className="flex flex-col gap-0">
+        <HeroSection
         partner1Name={wedding.partner1Name}
         partner2Name={wedding.partner2Name}
         weddingDate={wedding.weddingDate}
@@ -149,6 +196,58 @@ export default async function WeddingHomePage({ params }: HomePageProps) {
         </section>
       )}
 
+      {/* Featured Registry Items */}
+      {wedding.registryLinks.length > 0 && (
+        <section className="py-16 bg-muted/30">
+          <div className="container">
+            <div className="text-center mb-12">
+              <h2 className="font-serif text-4xl font-bold mb-4">Registry</h2>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                Your presence is the greatest gift, but if you wish to honor us with
+                something special, we've registered at these locations.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              {wedding.registryLinks.map((item) => (
+                <Card key={item.id} className="card-hover overflow-hidden">
+                  {item.imageUrl && (
+                    <div className="aspect-video w-full overflow-hidden bg-muted">
+                      <img
+                        src={item.imageUrl}
+                        alt={item.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <CardContent className="pt-6">
+                    <h3 className="font-serif text-xl font-bold mb-2">{item.name}</h3>
+                    {item.storeName && (
+                      <p className="text-sm text-muted-foreground mb-3">
+                        {item.storeName}
+                      </p>
+                    )}
+                    {item.description && (
+                      <p className="text-sm mb-4 line-clamp-2">{item.description}</p>
+                    )}
+                    <Button asChild size="sm" className="w-full">
+                      <a href={item.url} target="_blank" rel="noopener noreferrer">
+                        View Registry
+                        <ExternalLink className="h-4 w-4 ml-2" />
+                      </a>
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            <div className="text-center">
+              <Button asChild variant="outline" size="lg">
+                <Link href={`/${slug}/registry`}>View All Registries</Link>
+              </Button>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* RSVP CTA Section */}
       <section className="py-20 bg-gradient-to-br from-primary/10 via-secondary to-accent/10 bg-floral-pattern">
         <div className="container text-center">
@@ -165,7 +264,8 @@ export default async function WeddingHomePage({ params }: HomePageProps) {
           </Button>
         </div>
       </section>
-    </div>
+      </div>
+    </>
   )
 }
 
