@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -18,9 +19,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Card } from "@/components/ui/card"
-import { Plus, Upload, Download, Tag as TagIcon, Users, FileSpreadsheet } from "lucide-react"
+import { Plus, Upload, Download, Tag as TagIcon, Users, FileSpreadsheet, Key } from "lucide-react"
 import { Tag, Household } from "@prisma/client"
-import { useState } from "react"
 import Link from "next/link"
 
 interface GuestActionsProps {
@@ -143,6 +143,42 @@ export function GuestActions({ weddingId, tags, households }: GuestActionsProps)
               <Users className="h-4 w-4 mr-2" />
               Manage Households ({households.length})
             </Link>
+          </Button>
+
+          <Button
+            variant="outline"
+            onClick={async () => {
+              if (
+                confirm(
+                  "Generate invite codes for all guests without codes? This will allow them to access the RSVP form."
+                )
+              ) {
+                try {
+                  const response = await fetch("/api/admin/guests/generate-invite-codes", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ all: true }),
+                  })
+
+                  const data = await response.json()
+
+                  if (data.success) {
+                    alert(
+                      `Successfully generated ${data.summary.success} invite code(s). ${data.summary.failed > 0 ? `${data.summary.failed} failed.` : ""}`
+                    )
+                    window.location.reload()
+                  } else {
+                    alert(`Error: ${data.error}`)
+                  }
+                } catch (error) {
+                  console.error("Error generating invite codes:", error)
+                  alert("Failed to generate invite codes. Please try again.")
+                }
+              }
+            }}
+          >
+            <Key className="h-4 w-4 mr-2" />
+            Generate Invite Codes
           </Button>
         </div>
       </div>
