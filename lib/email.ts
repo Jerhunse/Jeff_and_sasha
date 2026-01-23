@@ -1,7 +1,11 @@
 import { Resend } from "resend"
+import { sendSESEmail, isSESConfigured } from "./aws"
 
-if (!process.env.RESEND_API_KEY) {
-  console.warn("RESEND_API_KEY is not set. Email sending will be disabled.")
+// Email provider preference: "resend" | "ses" | "auto" (auto tries Resend first, falls back to SES)
+const EMAIL_PROVIDER = (process.env.EMAIL_PROVIDER || "auto") as "resend" | "ses" | "auto"
+
+if (!process.env.RESEND_API_KEY && EMAIL_PROVIDER !== "ses") {
+  console.warn("RESEND_API_KEY is not set. Email sending may be disabled or will use SES if configured.")
 }
 
 export const resend = process.env.RESEND_API_KEY
@@ -18,31 +22,73 @@ export interface SendEmailOptions {
 }
 
 export async function sendEmail(options: SendEmailOptions) {
-  if (!resend) {
-    console.error("Resend is not configured. Email not sent.")
-    return { success: false, error: "Email service not configured" }
+  // Determine which provider to use
+  const useResend = EMAIL_PROVIDER === "resend" || (EMAIL_PROVIDER === "auto" && resend)
+  const useSES = EMAIL_PROVIDER === "ses" || (EMAIL_PROVIDER === "auto" && !resend && isSESConfigured())
+
+  // Try Resend first (if configured and preferred)
+  if (useResend && resend) {
+    try {
+      const { data, error } = await resend.emails.send({
+        from: options.from || process.env.EMAIL_FROM || "noreply@wedding.app",
+        to: options.to,
+        subject: options.subject,
+        html: options.html,
+        text: options.text,
+        replyTo: options.replyTo,
+      })
+
+      if (error) {
+        console.error("Resend email send error:", error)
+        // Fall back to SES if Resend fails and SES is available
+        if (useSES && isSESConfigured()) {
+          console.log("Falling back to SES after Resend error")
+          return sendSESEmail({
+            to: options.to,
+            subject: options.subject,
+            html: options.html,
+            text: options.text,
+            from: options.from,
+            replyTo: options.replyTo ? [options.replyTo] : undefined,
+          })
+        }
+        return { success: false, error: error.message }
+      }
+
+      return { success: true, data }
+    } catch (error: any) {
+      console.error("Resend email send exception:", error)
+      // Fall back to SES if Resend fails and SES is available
+      if (useSES && isSESConfigured()) {
+        console.log("Falling back to SES after Resend exception")
+        return sendSESEmail({
+          to: options.to,
+          subject: options.subject,
+          html: options.html,
+          text: options.text,
+          from: options.from,
+          replyTo: options.replyTo ? [options.replyTo] : undefined,
+        })
+      }
+      return { success: false, error: error.message }
+    }
   }
 
-  try {
-    const { data, error } = await resend.emails.send({
-      from: options.from || process.env.EMAIL_FROM || "noreply@wedding.app",
+  // Use SES if configured
+  if (useSES && isSESConfigured()) {
+    return sendSESEmail({
       to: options.to,
       subject: options.subject,
       html: options.html,
       text: options.text,
-      replyTo: options.replyTo,
+      from: options.from,
+      replyTo: options.replyTo ? [options.replyTo] : undefined,
     })
-
-    if (error) {
-      console.error("Email send error:", error)
-      return { success: false, error: error.message }
-    }
-
-    return { success: true, data }
-  } catch (error: any) {
-    console.error("Email send exception:", error)
-    return { success: false, error: error.message }
   }
+
+  // No email service configured
+  console.error("No email service configured. Set RESEND_API_KEY or configure AWS SES.")
+  return { success: false, error: "Email service not configured" }
 }
 
 export interface InvitationEmailData {
@@ -374,5 +420,274 @@ export function generateInvitationSMS(data: {
   rsvpLink: string
 }): string {
   return `You're invited to ${data.partner1Name} & ${data.partner2Name}'s wedding on ${data.weddingDate}! Please RSVP: ${data.rsvpLink}`
+}
+
+export interface RSVPConfirmationEmailData {
+  guestFirstName: string
+  guestLastName: string
+  email: string
+  partner1Name: string
+  partner2Name: string
+  weddingDate: string
+  websiteUrl: string
+  rsvpLookupUrl: string
+  inviteCode?: string
+  rsvpDetails: {
+    status: string
+    mealChoice?: string | null
+    dietaryRestrictions?: string | null
+    songRequest?: string | null
+    busRequired?: boolean
+    busRoute?: string | null
+    plusOneCount?: number
+    plusOneNames?: string[]
+    message?: string | null
+  }
+  primaryColor: string
+  secondaryColor: string
+}
+
+export function generateRSVPConfirmationEmail(data: RSVPConfirmationEmailData): string {
+  const statusDisplay = data.rsvpDetails.status === "ATTENDING" 
+    ? "✓ Joyfully Accepts" 
+    : data.rsvpDetails.status === "DECLINED"
+    ? "✗ Regretfully Declines"
+    : "Maybe"
+  
+  const statusColor = data.rsvpDetails.status === "ATTENDING" ? "#10b981" : "#ef4444"
+  
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RSVP Confirmation</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Georgia, serif;
+      background-color: #f9f9f9;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: white;
+    }
+    .header {
+      background: linear-gradient(135deg, ${data.primaryColor} 0%, ${data.secondaryColor} 100%);
+      color: white;
+      padding: 40px 20px;
+      text-align: center;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 32px;
+      font-weight: 400;
+      letter-spacing: 2px;
+    }
+    .content {
+      padding: 40px 30px;
+    }
+    .greeting {
+      font-size: 18px;
+      color: #333;
+      margin-bottom: 20px;
+    }
+    .confirmation-badge {
+      display: inline-block;
+      padding: 12px 24px;
+      background-color: ${statusColor}15;
+      color: ${statusColor};
+      border: 2px solid ${statusColor};
+      border-radius: 50px;
+      font-size: 18px;
+      font-weight: 600;
+      margin: 20px 0;
+    }
+    .details-section {
+      margin: 30px 0;
+      padding: 20px;
+      background-color: #f9f9f9;
+      border-radius: 8px;
+    }
+    .details-section h3 {
+      margin: 0 0 15px 0;
+      font-size: 18px;
+      color: ${data.primaryColor};
+      border-bottom: 2px solid ${data.primaryColor};
+      padding-bottom: 8px;
+    }
+    .detail-row {
+      margin: 12px 0;
+      font-size: 16px;
+      color: #555;
+    }
+    .detail-label {
+      font-weight: 600;
+      color: #333;
+      display: inline-block;
+      min-width: 140px;
+    }
+    .lookup-section {
+      margin: 40px 0;
+      padding: 25px;
+      background: linear-gradient(135deg, ${data.primaryColor}10 0%, ${data.secondaryColor}10 100%);
+      border-left: 4px solid ${data.primaryColor};
+      border-radius: 8px;
+    }
+    .lookup-section h3 {
+      margin: 0 0 15px 0;
+      font-size: 18px;
+      color: ${data.primaryColor};
+    }
+    .lookup-section p {
+      margin: 10px 0;
+      font-size: 15px;
+      color: #555;
+      line-height: 1.6;
+    }
+    .button {
+      display: inline-block;
+      padding: 14px 32px;
+      background-color: ${data.primaryColor};
+      color: white;
+      text-decoration: none;
+      border-radius: 50px;
+      font-size: 16px;
+      font-weight: 600;
+      margin-top: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    .footer {
+      padding: 30px;
+      text-align: center;
+      font-size: 14px;
+      color: #888;
+      border-top: 1px solid #eee;
+    }
+    .divider {
+      width: 100px;
+      height: 2px;
+      background-color: ${data.primaryColor};
+      margin: 30px auto;
+    }
+    .no-info {
+      color: #999;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>RSVP Confirmation</h1>
+    </div>
+    
+    <div class="content">
+      <div class="greeting">
+        Dear ${data.guestFirstName} ${data.guestLastName},
+      </div>
+      
+      <p style="font-size: 18px; color: #555; line-height: 1.6;">
+        Thank you for your RSVP! We've received your response and are so excited to celebrate with you.
+      </p>
+      
+      <div style="text-align: center;">
+        <div class="confirmation-badge">${statusDisplay}</div>
+      </div>
+      
+      <div class="divider"></div>
+      
+      <div class="details-section">
+        <h3>Your RSVP Details</h3>
+        
+        <div class="detail-row">
+          <span class="detail-label">Status:</span>
+          <span>${statusDisplay}</span>
+        </div>
+        
+        ${data.rsvpDetails.mealChoice ? `
+        <div class="detail-row">
+          <span class="detail-label">Meal Choice:</span>
+          <span>${data.rsvpDetails.mealChoice}</span>
+        </div>
+        ` : ''}
+        
+        ${data.rsvpDetails.dietaryRestrictions ? `
+        <div class="detail-row">
+          <span class="detail-label">Dietary Restrictions:</span>
+          <span>${data.rsvpDetails.dietaryRestrictions}</span>
+        </div>
+        ` : ''}
+        
+        ${data.rsvpDetails.plusOneCount && data.rsvpDetails.plusOneCount > 0 ? `
+        <div class="detail-row">
+          <span class="detail-label">Additional Guests:</span>
+          <span>${data.rsvpDetails.plusOneCount} guest${data.rsvpDetails.plusOneCount > 1 ? 's' : ''}</span>
+        </div>
+        ${data.rsvpDetails.plusOneNames && data.rsvpDetails.plusOneNames.length > 0 ? `
+        <div class="detail-row" style="margin-left: 140px; margin-top: 5px;">
+          <span style="color: #777; font-size: 14px;">${data.rsvpDetails.plusOneNames.join(', ')}</span>
+        </div>
+        ` : ''}
+        ` : ''}
+        
+        ${data.rsvpDetails.busRequired ? `
+        <div class="detail-row">
+          <span class="detail-label">Bus Transportation:</span>
+          <span>Yes${data.rsvpDetails.busRoute ? ` - ${data.rsvpDetails.busRoute}` : ''}</span>
+        </div>
+        ` : ''}
+        
+        ${data.rsvpDetails.songRequest ? `
+        <div class="detail-row">
+          <span class="detail-label">Song Request:</span>
+          <span>${data.rsvpDetails.songRequest}</span>
+        </div>
+        ` : ''}
+        
+        ${data.rsvpDetails.message ? `
+        <div class="detail-row" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #ddd;">
+          <div style="font-weight: 600; color: #333; margin-bottom: 8px;">Your Message:</div>
+          <div style="color: #555; font-style: italic; line-height: 1.6;">${data.rsvpDetails.message}</div>
+        </div>
+        ` : ''}
+      </div>
+      
+      <div class="divider"></div>
+      
+      <div class="lookup-section">
+        <h3>📋 Need to Update Your RSVP?</h3>
+        <p>
+          You can view or update your RSVP at any time by visiting:
+        </p>
+        <p style="text-align: center; margin: 20px 0;">
+          <a href="${data.rsvpLookupUrl}" class="button">View/Update My RSVP</a>
+        </p>
+        <p style="font-size: 14px; color: #666; margin-top: 15px;">
+          ${data.inviteCode ? `Or use your invite code: <strong>${data.inviteCode}</strong>` : 'You can also look up your RSVP using your email address on the wedding website.'}
+        </p>
+      </div>
+      
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${data.websiteUrl}" style="color: ${data.primaryColor}; text-decoration: none; font-size: 16px; font-weight: 600;">
+          Visit Wedding Website →
+        </a>
+      </div>
+    </div>
+    
+    <div class="footer">
+      <p><strong>${data.partner1Name} & ${data.partner2Name}</strong></p>
+      <p style="margin-top: 10px;">${data.weddingDate}</p>
+      <p style="margin-top: 15px; font-size: 12px; color: #aaa;">
+        If you need to make changes to your RSVP, please use the link above or contact us directly.
+      </p>
+    </div>
+  </div>
+</body>
+</html>
+  `
 }
 

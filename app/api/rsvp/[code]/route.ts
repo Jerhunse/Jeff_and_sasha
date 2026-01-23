@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { sendEmail, generateRSVPConfirmationEmail } from "@/lib/email"
+import { supabase } from "@/lib/supabase"
 
 export async function POST(
   req: NextRequest,
@@ -31,11 +33,11 @@ export async function POST(
       busRequired,
       busRoute,
       message,
+      plusOneCount,
+      plusOneNames,
+      // Legacy support
       hasPlusOne,
       plusOneName,
-      plusOneEmail,
-      plusOneMealChoice,
-      plusOneDietary,
     } = body
 
     // Validate status
@@ -43,16 +45,30 @@ export async function POST(
       return NextResponse.json({ error: "Invalid status" }, { status: 400 })
     }
 
+    // Map form status values to Prisma enum values
+    // Form uses: ATTENDING, DECLINED, MAYBE
+    // Prisma enum: YES, NO, MAYBE
+    const statusMap: Record<string, "YES" | "NO" | "MAYBE"> = {
+      ATTENDING: "YES",
+      DECLINED: "NO",
+      MAYBE: "MAYBE",
+    }
+    const prismaStatus = statusMap[status] || "MAYBE"
+
+    // Handle legacy format or new format
+    const actualPlusOneCount = plusOneCount ?? (hasPlusOne ? 1 : 0)
+    const actualPlusOneNames = plusOneNames ?? (plusOneName ? [plusOneName] : [])
+
     // Check capacity if accepting
     if (status === "ATTENDING" && guest.couple.maxCapacity) {
-      const currentAttending = await prisma.guest.count({
+      const currentAttending = await prisma.rSVPResponse.count({
         where: {
           coupleId: guest.coupleId,
-          rsvpStatus: "ATTENDING",
+          status: "YES",
         },
       })
 
-      const additionalGuests = hasPlusOne ? 2 : 1
+      const additionalGuests = 1 + actualPlusOneCount // Main guest + plus ones
       if (currentAttending + additionalGuests > guest.couple.maxCapacity) {
         return NextResponse.json(
           { error: "Sorry, we've reached maximum capacity" },
@@ -62,65 +78,161 @@ export async function POST(
     }
 
     // Check plus one policy
-    if (hasPlusOne && !guest.allowPlusOne) {
+    if (actualPlusOneCount > 0 && !guest.allowPlusOne) {
       return NextResponse.json(
         { error: "Plus ones are not allowed for this guest" },
         { status: 400 }
       )
     }
 
-    if (hasPlusOne && !plusOneName) {
-      return NextResponse.json(
-        { error: "Plus one name is required" },
-        { status: 400 }
-      )
+    // Validate plus one names if count > 0
+    if (actualPlusOneCount > 0) {
+      if (actualPlusOneNames.length !== actualPlusOneCount) {
+        return NextResponse.json(
+          { error: `Please provide names for all ${actualPlusOneCount} guest${actualPlusOneCount > 1 ? 's' : ''}` },
+          { status: 400 }
+        )
+      }
+      const missingNames = actualPlusOneNames.filter((name: string) => !name?.trim())
+      if (missingNames.length > 0) {
+        return NextResponse.json(
+          { error: "Please provide names for all guests" },
+          { status: 400 }
+        )
+      }
     }
 
-    // Update guest
+    // Store plus one names as comma-separated string
+    const plusOneNameString = actualPlusOneCount > 0 
+      ? actualPlusOneNames.filter((n: string) => n?.trim()).join(", ")
+      : null
+
+    // Update guest basic info only (fields that exist on Guest model)
     await prisma.guest.update({
       where: { id: guest.id },
       data: {
-        rsvpStatus: status,
-        rsvpDate: new Date(),
         email: email || guest.email,
         phone: phone || guest.phone,
-        mealChoice: mealChoice || null,
-        dietaryRestrictions: dietaryRestrictions || null,
-        songRequest: songRequest || null,
-        busRequired: busRequired || false,
-        busRoute: busRoute || null,
-        plusOneUsed: hasPlusOne,
-        plusOneName: plusOneName || null,
-        plusOneEmail: plusOneEmail || null,
       },
     })
 
-    // Create RSVP response record
-    await prisma.rsvpResponse.create({
-      data: {
-        coupleId: guest.coupleId,
+    // Prepare RSVP answers JSON
+    const rsvpAnswers: Record<string, any> = {}
+    if (mealChoice) rsvpAnswers.mealChoice = mealChoice
+    if (dietaryRestrictions) rsvpAnswers.dietaryRestrictions = dietaryRestrictions
+    if (songRequest) rsvpAnswers.songRequest = songRequest
+    if (busRequired) rsvpAnswers.busRequired = busRequired
+    if (busRoute) rsvpAnswers.busRoute = busRoute
+
+    // Create or update RSVP response record
+    // Note: Prisma upsert doesn't support null in unique constraint where clauses
+    // So we use findFirst + create/update pattern for null eventId
+    const existingResponse = await prisma.rSVPResponse.findFirst({
+      where: {
         guestId: guest.id,
-        status,
-        message: message || null,
+        eventId: null, // General RSVP
       },
     })
 
-    // Create a virtual "guest" for the plus one if needed (storing in notes)
-    if (hasPlusOne && plusOneName) {
-      // Store plus one details in guest notes
+    const rsvpData = {
+      coupleId: guest.coupleId,
+      guestId: guest.id,
+      status: prismaStatus, // Use mapped Prisma enum value
+      message: message || null,
+      plusOneName: plusOneNameString,
+      answersJSON: Object.keys(rsvpAnswers).length > 0 ? JSON.stringify(rsvpAnswers) : null,
+    }
+
+    let createdOrUpdatedResponse
+    if (existingResponse) {
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/6974ce6d-9584-4f07-a5a2-5f3775ab8144',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/api/rsvp/[code]/route.ts:145',message:'Updating existing RSVP response',data:{responseId:existingResponse.id,status:prismaStatus,guestId:guest.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'G'})}).catch(()=>{});
+      // #endregion
+      createdOrUpdatedResponse = await prisma.rSVPResponse.update({
+        where: { id: existingResponse.id },
+        data: rsvpData,
+      })
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/6974ce6d-9584-4f07-a5a2-5f3775ab8144',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/api/rsvp/[code]/route.ts:150',message:'RSVP response updated successfully',data:{responseId:createdOrUpdatedResponse.id,status:createdOrUpdatedResponse.status},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'H'})}).catch(()=>{});
+      // #endregion
+    } else {
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/6974ce6d-9584-4f07-a5a2-5f3775ab8144',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/api/rsvp/[code]/route.ts:154',message:'Creating new RSVP response',data:{guestId:guest.id,status:prismaStatus,coupleId:guest.coupleId},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'I'})}).catch(()=>{});
+      // #endregion
+      createdOrUpdatedResponse = await prisma.rSVPResponse.create({
+        data: rsvpData,
+      })
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/6974ce6d-9584-4f07-a5a2-5f3775ab8144',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/api/rsvp/[code]/route.ts:159',message:'RSVP response created successfully',data:{responseId:createdOrUpdatedResponse.id,status:createdOrUpdatedResponse.status,guestId:createdOrUpdatedResponse.guestId},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'J'})}).catch(()=>{});
+      // #endregion
+    }
+
+    // Also save to Supabase rsvp table for compatibility
+    try {
+      const guestEmail = email || guest.email
+      if (guestEmail) {
+        // Parse plus one names if provided
+        const plusOneNamesArray = actualPlusOneNames.filter((n: string) => n?.trim())
+        const firstPlusOneName = plusOneNamesArray[0] || null
+        const plusOneNameParts = firstPlusOneName ? firstPlusOneName.split(" ") : []
+        const plusOneFirstName = plusOneNameParts[0] || null
+        const plusOneLastName = plusOneNameParts.slice(1).join(" ") || null
+
+        const supabaseRsvpData = {
+          email: guestEmail.toLowerCase().trim(),
+          first_name: guest.firstName,
+          last_name: guest.lastName,
+          phone: phone || guest.phone || null,
+          is_attending: status === "ATTENDING",
+          number_of_guests: 1 + actualPlusOneCount,
+          plus_one_first_name: plusOneFirstName,
+          plus_one_last_name: plusOneLastName,
+        }
+
+        // Try to insert, if duplicate email, update instead
+        const { error: insertError } = await supabase
+          .from("rsvp")
+          .insert([supabaseRsvpData])
+
+        if (insertError) {
+          // Check if it's a duplicate email error
+          if (
+            insertError.code === "23505" ||
+            insertError.message.includes("duplicate") ||
+            insertError.message.includes("unique")
+          ) {
+            // Update existing record instead
+            const { error: updateError } = await supabase
+              .from("rsvp")
+              .update(supabaseRsvpData)
+              .eq("email", guestEmail.toLowerCase().trim())
+
+            if (updateError) {
+              console.error("Failed to update Supabase RSVP:", updateError)
+            }
+          } else {
+            console.error("Failed to insert Supabase RSVP:", insertError)
+          }
+        }
+      }
+    } catch (supabaseError: any) {
+      // Log but don't fail the RSVP submission if Supabase write fails
+      console.error("Supabase RSVP sync error:", supabaseError)
+    }
+
+    // Store plus one details in guest notes if provided
+    if (actualPlusOneCount > 0 && actualPlusOneNames.length > 0) {
       const plusOneDetails = {
-        name: plusOneName,
-        email: plusOneEmail,
-        mealChoice: plusOneMealChoice,
-        dietaryRestrictions: plusOneDietary,
+        count: actualPlusOneCount,
+        names: actualPlusOneNames.filter((n: string) => n?.trim()),
       }
 
       await prisma.guest.update({
         where: { id: guest.id },
         data: {
           notes: guest.notes
-            ? `${guest.notes}\n\nPlus One: ${JSON.stringify(plusOneDetails, null, 2)}`
-            : `Plus One: ${JSON.stringify(plusOneDetails, null, 2)}`,
+            ? `${guest.notes}\n\nAdditional Guests: ${JSON.stringify(plusOneDetails, null, 2)}`
+            : `Additional Guests: ${JSON.stringify(plusOneDetails, null, 2)}`,
         },
       })
     }
@@ -129,8 +241,8 @@ export async function POST(
     await prisma.guestActivity.create({
       data: {
         guestId: guest.id,
-        type: "RSVP_CHANGED",
-        description: `RSVP status changed to ${status}`,
+        action: "UPDATED",
+        description: `RSVP status changed to ${status} (${prismaStatus})`,
       },
     })
 
@@ -144,6 +256,73 @@ export async function POST(
         status: "REPLIED",
       },
     })
+
+    // Send confirmation email
+    const guestEmail = email || guest.email
+    if (guestEmail) {
+      try {
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXTAUTH_URL || "http://localhost:3000"
+        
+        const websiteUrl = `${baseUrl}/${guest.couple.slug}`
+        const rsvpLookupUrl = `${baseUrl}/rsvp/${guest.couple.slug}`
+        
+        // Get plus one names from RSVP response
+        const rsvpResponse = await prisma.rSVPResponse.findUnique({
+          where: {
+            guestId_eventId: {
+              guestId: guest.id,
+              eventId: null,
+            },
+          },
+        })
+        const plusOneNames = rsvpResponse?.plusOneName
+          ? rsvpResponse.plusOneName.split(",").map((n: string) => n.trim())
+          : []
+        
+        // Parse RSVP answers
+        const rsvpAnswers = rsvpResponse?.answersJSON 
+          ? JSON.parse(rsvpResponse.answersJSON)
+          : {}
+        
+        const emailHtml = generateRSVPConfirmationEmail({
+          guestFirstName: guest.firstName,
+          guestLastName: guest.lastName,
+          email: guestEmail,
+          partner1Name: guest.couple.partner1Name,
+          partner2Name: guest.couple.partner2Name,
+          weddingDate: guest.couple.weddingDate.toLocaleDateString("en-US", {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+          }),
+          websiteUrl,
+          rsvpLookupUrl,
+          inviteCode: guest.inviteToken || undefined,
+          rsvpDetails: {
+            status, // Keep form status for email display
+            mealChoice: rsvpAnswers.mealChoice || null,
+            dietaryRestrictions: rsvpAnswers.dietaryRestrictions || null,
+            songRequest: rsvpAnswers.songRequest || null,
+            busRequired: rsvpAnswers.busRequired || false,
+            busRoute: rsvpAnswers.busRoute || null,
+            plusOneCount: actualPlusOneCount,
+            plusOneNames,
+            message,
+          },
+          primaryColor: guest.couple.primaryColor || "#8B5CF6",
+          secondaryColor: guest.couple.secondaryColor || "#EC4899",
+        })
+
+        await sendEmail({
+          to: guestEmail,
+          subject: `RSVP Confirmation - ${guest.couple.partner1Name} & ${guest.couple.partner2Name}'s Wedding`,
+          html: emailHtml,
+        })
+      } catch (emailError: any) {
+        // Log email error but don't fail the RSVP submission
+        console.error("Failed to send RSVP confirmation email:", emailError)
+      }
+    }
 
     return NextResponse.json({
       success: true,

@@ -197,13 +197,10 @@ export function PageEditor({ pageId, initialData }: PageEditorProps) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="HOME">Home</SelectItem>
-                  <SelectItem value="STORY">Our Story</SelectItem>
                   <SelectItem value="SCHEDULE">Schedule</SelectItem>
                   <SelectItem value="TRAVEL">Travel</SelectItem>
                   <SelectItem value="REGISTRY">Registry</SelectItem>
                   <SelectItem value="FAQ">FAQ</SelectItem>
-                  <SelectItem value="GALLERY">Gallery</SelectItem>
-                  <SelectItem value="PARTY">Wedding Party</SelectItem>
                   <SelectItem value="CONTACT">Contact</SelectItem>
                   <SelectItem value="CUSTOM">Custom</SelectItem>
                 </SelectContent>
@@ -386,11 +383,6 @@ function getDefaultContentForType(type: string): any {
         content: "Add your content here...",
         alignment: "left",
       }
-    case "gallery":
-      return {
-        images: [],
-        columns: 3,
-      }
     case "faq":
       return {
         items: [
@@ -427,7 +419,6 @@ function getSectionDisplayName(type: string): string {
   const names: Record<string, string> = {
     hero: "Hero",
     text: "Text Block",
-    gallery: "Gallery",
     faq: "FAQ",
     map: "Map",
     registry: "Registry",

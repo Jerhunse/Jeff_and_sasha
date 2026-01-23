@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
+import { uploadToS3, isS3Configured } from "@/lib/aws"
 import { writeFile } from "fs/promises"
 import { join } from "path"
 import { nanoid } from "nanoid"
@@ -41,27 +42,60 @@ export async function POST(req: NextRequest) {
     const ext = file.name.split(".").pop()
     const filename = `${nanoid()}.${ext}`
 
-    // For now, save to public/uploads directory
-    // In production, upload to S3/R2
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
-    const uploadDir = join(process.cwd(), "public", "uploads")
-    const filePath = join(uploadDir, filename)
+    let url: string
 
-    // Note: This requires the uploads directory to exist
-    // In production, use proper cloud storage (S3, R2, Uploadcare, etc.)
-    try {
-      await writeFile(filePath, buffer)
-    } catch (writeError) {
-      console.error("File write error:", writeError)
-      return NextResponse.json(
-        { error: "Failed to save file. Ensure public/uploads directory exists or configure cloud storage." },
-        { status: 500 }
-      )
+    // Try S3 first if configured, otherwise fall back to local storage
+    if (isS3Configured()) {
+      try {
+        // Upload to S3
+        // Use a path structure: media/{coupleId}/{filename} for organization
+        const s3Key = `media/${session.user.coupleId}/${filename}`
+        url = await uploadToS3({
+          key: s3Key,
+          body: buffer,
+          contentType: file.type,
+          metadata: {
+            originalFilename: file.name,
+            uploadedBy: session.user.id,
+            coupleId: session.user.coupleId,
+          },
+        })
+      } catch (s3Error: any) {
+        console.error("S3 upload failed, falling back to local storage:", s3Error)
+        // Fall through to local storage
+        const uploadDir = join(process.cwd(), "public", "uploads")
+        const filePath = join(uploadDir, filename)
+
+        try {
+          await writeFile(filePath, buffer)
+          url = `/uploads/${filename}`
+        } catch (writeError) {
+          console.error("File write error:", writeError)
+          return NextResponse.json(
+            { error: "Failed to save file. Both S3 and local storage failed." },
+            { status: 500 }
+          )
+        }
+      }
+    } else {
+      // Local storage fallback
+      const uploadDir = join(process.cwd(), "public", "uploads")
+      const filePath = join(uploadDir, filename)
+
+      try {
+        await writeFile(filePath, buffer)
+        url = `/uploads/${filename}`
+      } catch (writeError) {
+        console.error("File write error:", writeError)
+        return NextResponse.json(
+          { error: "Failed to save file. Ensure public/uploads directory exists or configure AWS_S3_BUCKET." },
+          { status: 500 }
+        )
+      }
     }
-
-    const url = `/uploads/${filename}`
 
     // Return the URL to be used in the media POST endpoint
     return NextResponse.json({

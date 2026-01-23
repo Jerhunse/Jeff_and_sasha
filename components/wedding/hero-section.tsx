@@ -35,6 +35,15 @@ export function HeroSection({
 
   return (
     <section className="relative w-full">
+      {/* Countdown Section - Moved to Top */}
+      <div className="container py-16">
+        <div className="text-center mb-8">
+          <h2 className="font-serif text-4xl font-bold mb-2">Counting Down</h2>
+          <p className="text-muted-foreground">Until we say "I do"</p>
+        </div>
+        <CountdownTimer targetDate={weddingDate} />
+      </div>
+
       {/* Hero Image */}
       <div className="relative h-[600px] w-full overflow-hidden">
         {heroImageUrl ? (
@@ -84,15 +93,6 @@ export function HeroSection({
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Countdown Section */}
-      <div className="container py-16">
-        <div className="text-center mb-8">
-          <h2 className="font-serif text-4xl font-bold mb-2">Counting Down</h2>
-          <p className="text-muted-foreground">Until we say "I do"</p>
-        </div>
-        <CountdownTimer targetDate={weddingDate} />
       </div>
     </section>
   )

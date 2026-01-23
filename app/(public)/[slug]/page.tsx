@@ -4,7 +4,7 @@ import { HeroSection } from "@/components/wedding/hero-section"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { Calendar, MapPin, Gift, Book, ExternalLink } from "lucide-react"
+import { Calendar, MapPin, Gift, ExternalLink } from "lucide-react"
 
 interface HomePageProps {
   params: Promise<{ slug: string }>
@@ -63,12 +63,6 @@ export default async function WeddingHomePage({ params }: HomePageProps) {
       title: "Registry",
       description: "View our registry",
       href: `/${slug}/registry`,
-    },
-    {
-      icon: Book,
-      title: "Our Story",
-      description: "How we met and fell in love",
-      href: `/${slug}/story`,
     },
   ]
 
@@ -160,7 +154,7 @@ export default async function WeddingHomePage({ params }: HomePageProps) {
                 <Card key={event.id} className="card-hover">
                   <CardContent className="pt-6">
                     <div className="mb-4">
-                      <h3 className="font-serif text-2xl font-bold mb-2">{event.title}</h3>
+                      <h3 className="font-serif text-2xl font-bold mb-2">{event.name}</h3>
                       <p className="text-sm text-muted-foreground">
                         {new Date(event.startTime).toLocaleDateString("en-US", {
                           weekday: "short",
@@ -214,18 +208,13 @@ export default async function WeddingHomePage({ params }: HomePageProps) {
                     <div className="aspect-video w-full overflow-hidden bg-muted">
                       <img
                         src={item.imageUrl}
-                        alt={item.name}
+                        alt={item.label}
                         className="w-full h-full object-cover"
                       />
                     </div>
                   )}
                   <CardContent className="pt-6">
-                    <h3 className="font-serif text-xl font-bold mb-2">{item.name}</h3>
-                    {item.storeName && (
-                      <p className="text-sm text-muted-foreground mb-3">
-                        {item.storeName}
-                      </p>
-                    )}
+                    <h3 className="font-serif text-xl font-bold mb-2">{item.label}</h3>
                     {item.description && (
                       <p className="text-sm mb-4 line-clamp-2">{item.description}</p>
                     )}

@@ -32,6 +32,8 @@ import {
   Users,
   Baby,
   Star,
+  Key,
+  Copy,
 } from "lucide-react"
 import Link from "next/link"
 
@@ -40,6 +42,11 @@ type GuestWithRelations = Guest & {
     tag: Tag
   })[]
   household: Household | null
+  rsvpResponses?: Array<{
+    id: string
+    status: RsvpStatus
+    respondedAt: Date
+  }>
   _count: {
     rsvpResponses: number
   }
@@ -53,15 +60,26 @@ interface GuestListTableProps {
   totalCount: number
 }
 
-function getRsvpStatusBadge(status: RsvpStatus) {
-  const variants: Record<RsvpStatus, { variant: any; label: string }> = {
+function getRsvpStatusBadge(status: RsvpStatus | null | undefined) {
+  // Map Prisma enum values to display values
+  const statusMap: Record<string, RsvpStatus> = {
+    YES: "ATTENDING" as RsvpStatus,
+    NO: "DECLINED" as RsvpStatus,
+    MAYBE: "MAYBE" as RsvpStatus,
+    PENDING: "PENDING" as RsvpStatus,
+  }
+  
+  // Convert Prisma enum to display enum, default to PENDING
+  const displayStatus = status ? (statusMap[status] || "PENDING" as RsvpStatus) : ("PENDING" as RsvpStatus)
+  
+  const variants: Record<string, { variant: any; label: string }> = {
     PENDING: { variant: "secondary", label: "Pending" },
     ATTENDING: { variant: "default", label: "Attending" },
     DECLINED: { variant: "destructive", label: "Declined" },
     MAYBE: { variant: "outline", label: "Maybe" },
   }
 
-  const config = variants[status]
+  const config = variants[displayStatus] || variants.PENDING
   return <Badge variant={config.variant}>{config.label}</Badge>
 }
 
@@ -221,7 +239,9 @@ export function GuestListTable({
                         <span className="text-sm text-muted-foreground">-</span>
                       )}
                     </TableCell>
-                    <TableCell>{getRsvpStatusBadge(guest.rsvpStatus)}</TableCell>
+                    <TableCell>
+                      {getRsvpStatusBadge(guest.rsvpResponses?.[0]?.status)}
+                    </TableCell>
                     <TableCell>
                       <div className="flex flex-wrap gap-1">
                         {guest.tags.length === 0 ? (
@@ -282,6 +302,49 @@ export function GuestListTable({
                               Edit Guest
                             </Link>
                           </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={async () => {
+                              try {
+                                const response = await fetch(
+                                  `/api/admin/guests/${guest.id}/generate-invite-code`,
+                                  { method: "POST" }
+                                )
+
+                                const data = await response.json()
+
+                                if (data.success) {
+                                  // Copy to clipboard
+                                  await navigator.clipboard.writeText(data.rsvpUrl)
+                                  alert(
+                                    `Invite code generated!\n\nCode: ${data.inviteCode}\n\nRSVP URL copied to clipboard:\n${data.rsvpUrl}`
+                                  )
+                                } else {
+                                  alert(`Error: ${data.error}`)
+                                }
+                              } catch (error) {
+                                console.error("Error generating invite code:", error)
+                                alert("Failed to generate invite code. Please try again.")
+                              }
+                            }}
+                          >
+                            <Key className="h-4 w-4 mr-2" />
+                            Generate Invite Code
+                          </DropdownMenuItem>
+                          {guest.inviteToken && (
+                            <DropdownMenuItem
+                              onClick={async () => {
+                                const baseUrl =
+                                  process.env.NEXT_PUBLIC_APP_URL ||
+                                  window.location.origin
+                                const rsvpUrl = `${baseUrl}/rsvp/${guest.inviteToken}`
+                                await navigator.clipboard.writeText(rsvpUrl)
+                                alert(`RSVP URL copied to clipboard:\n${rsvpUrl}`)
+                              }}
+                            >
+                              <Copy className="h-4 w-4 mr-2" />
+                              Copy RSVP Link
+                            </DropdownMenuItem>
+                          )}
                           <DropdownMenuItem>Send Invite</DropdownMenuItem>
                           <DropdownMenuItem>Add to Household</DropdownMenuItem>
                           <DropdownMenuSeparator />

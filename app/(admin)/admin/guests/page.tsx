@@ -49,8 +49,31 @@ export default async function GuestsPage({ searchParams }: GuestsPageProps) {
     ]
   }
 
+  // RSVP status filter - map form values to Prisma enum and filter via relation
   if (rsvpStatus) {
-    where.rsvpStatus = rsvpStatus
+    const statusMap: Record<string, "YES" | "NO" | "MAYBE"> = {
+      ATTENDING: "YES",
+      DECLINED: "NO",
+      MAYBE: "MAYBE",
+    }
+    const prismaStatus = statusMap[rsvpStatus]
+    
+    if (prismaStatus) {
+      // Filter guests who have RSVP response with this status
+      where.rsvpResponses = {
+        some: {
+          eventId: null,
+          status: prismaStatus,
+        },
+      }
+    } else if (rsvpStatus === "PENDING") {
+      // Pending = no RSVP response
+      where.rsvpResponses = {
+        none: {
+          eventId: null,
+        },
+      }
+    }
   }
 
   if (household) {
@@ -85,6 +108,11 @@ export default async function GuestsPage({ searchParams }: GuestsPageProps) {
           },
         },
         household: true,
+        rsvpResponses: {
+          where: { eventId: null }, // General RSVP
+          orderBy: { respondedAt: "desc" },
+          take: 1,
+        },
         _count: {
           select: {
             rsvpResponses: true,
@@ -92,6 +120,7 @@ export default async function GuestsPage({ searchParams }: GuestsPageProps) {
         },
       },
       orderBy: [
+        { createdAt: "desc" }, // Show newest first to see recently added guests
         { lastName: "asc" },
         { firstName: "asc" },
       ],
@@ -133,27 +162,40 @@ export default async function GuestsPage({ searchParams }: GuestsPageProps) {
     }),
   ])
 
-  // Calculate stats
+  // Calculate stats - RSVP status is now in RSVPResponse, not Guest
+  const [attendingCount, declinedCount, pendingCount] = await Promise.all([
+    prisma.rSVPResponse.count({
+      where: {
+        coupleId: session.user.coupleId,
+        eventId: null,
+        status: "YES", // Prisma enum value
+      },
+    }),
+    prisma.rSVPResponse.count({
+      where: {
+        coupleId: session.user.coupleId,
+        eventId: null,
+        status: "NO", // Prisma enum value
+      },
+    }),
+    // Pending = guests without RSVP responses
+    prisma.guest.count({
+      where: {
+        coupleId: session.user.coupleId,
+        rsvpResponses: {
+          none: {
+            eventId: null,
+          },
+        },
+      },
+    }),
+  ])
+
   const stats = {
     total: wedding?._count.guests || 0,
-    attending: await prisma.guest.count({
-      where: {
-        coupleId: session.user.coupleId,
-        rsvpStatus: "ATTENDING",
-      },
-    }),
-    declined: await prisma.guest.count({
-      where: {
-        coupleId: session.user.coupleId,
-        rsvpStatus: "DECLINED",
-      },
-    }),
-    pending: await prisma.guest.count({
-      where: {
-        coupleId: session.user.coupleId,
-        rsvpStatus: "PENDING",
-      },
-    }),
+    attending: attendingCount,
+    declined: declinedCount,
+    pending: pendingCount,
     households: households.length,
     children: await prisma.guest.count({
       where: {

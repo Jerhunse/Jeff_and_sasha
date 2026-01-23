@@ -29,9 +29,10 @@ interface RsvpFormProps {
     plusOneUsed: boolean
     plusOneName?: string | null
     rsvpStatus: string
-    inviteCode: string
-  }
-  wedding: {
+    inviteCode?: string
+    inviteToken?: string
+  } | null
+  couple: {
     id: string
     partner1Name: string
     partner2Name: string
@@ -47,16 +48,18 @@ interface RsvpFormProps {
   }
 }
 
-export function RsvpForm({ guest, couple }: RsvpFormProps) {
+export function RsvpForm({ guest, couple, isNewGuest = false, sharedCode }: RsvpFormProps & { isNewGuest?: boolean; sharedCode?: string }) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const [formData, setFormData] = useState({
-    status: guest.rsvpStatus === "PENDING" ? "" : guest.rsvpStatus,
-    email: guest.email || "",
-    phone: guest.phone || "",
+    firstName: guest?.firstName || "",
+    lastName: guest?.lastName || "",
+    status: guest?.rsvpStatus === "PENDING" ? "" : guest?.rsvpStatus || "",
+    email: guest?.email || "",
+    phone: guest?.phone || "",
     mealChoice: "",
     dietaryRestrictions: "",
     songRequest: "",
@@ -64,11 +67,12 @@ export function RsvpForm({ guest, couple }: RsvpFormProps) {
     busRoute: "",
     message: "",
     // Plus one fields
-    hasPlusOne: guest.allowPlusOne && guest.plusOneUsed,
-    plusOneName: guest.plusOneName || "",
-    plusOneEmail: "",
-    plusOneMealChoice: "",
-    plusOneDietary: "",
+    plusOneCount: guest?.plusOneUsed && guest?.plusOneName 
+      ? Math.max(1, guest.plusOneName.split(",").filter((n: string) => n.trim()).length)
+      : 0,
+    plusOneNames: guest?.plusOneUsed && guest?.plusOneName
+      ? guest.plusOneName.split(",").map((n: string) => n.trim()).filter((n: string) => n)
+      : [] as string[],
   })
 
   const mealOptions = couple.mealOptions
@@ -84,6 +88,25 @@ export function RsvpForm({ guest, couple }: RsvpFormProps) {
     setIsSubmitting(true)
     setError(null)
 
+    // Validate required fields
+    if (isNewGuest) {
+      if (!formData.firstName.trim()) {
+        setError("Please enter your first name")
+        setIsSubmitting(false)
+        return
+      }
+      if (!formData.lastName.trim()) {
+        setError("Please enter your last name")
+        setIsSubmitting(false)
+        return
+      }
+      if (!formData.email?.trim()) {
+        setError("Please enter your email address")
+        setIsSubmitting(false)
+        return
+      }
+    }
+
     if (!formData.status) {
       setError("Please select your RSVP status")
       setIsSubmitting(false)
@@ -96,14 +119,25 @@ export function RsvpForm({ guest, couple }: RsvpFormProps) {
       return
     }
 
-    if (formData.hasPlusOne && !formData.plusOneName) {
-      setError("Please provide your plus one's name")
-      setIsSubmitting(false)
-      return
+    if (formData.plusOneCount > 0) {
+      // Validate all plus one names are provided
+      const missingNames = formData.plusOneNames.filter((name, index) => 
+        index < formData.plusOneCount && !name?.trim()
+      )
+      if (missingNames.length > 0) {
+        setError(`Please provide names for all ${formData.plusOneCount} guest${formData.plusOneCount > 1 ? 's' : ''}`)
+        setIsSubmitting(false)
+        return
+      }
     }
 
     try {
-      const response = await fetch(`/api/rsvp/${guest.inviteCode}`, {
+      // Use shared code endpoint for new guests, otherwise use guest token
+      const endpoint = isNewGuest && sharedCode 
+        ? `/api/rsvp/${sharedCode}/new`
+        : `/api/rsvp/${guest?.inviteCode || guest?.inviteToken}`
+      
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -149,7 +183,10 @@ export function RsvpForm({ guest, couple }: RsvpFormProps) {
       <Card>
         <CardHeader>
           <CardTitle className="font-serif text-2xl">
-            RSVP for {guest.firstName} {guest.lastName}
+            {guest 
+              ? `RSVP for ${guest.firstName} ${guest.lastName}`
+              : "RSVP"
+            }
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -180,12 +217,55 @@ export function RsvpForm({ guest, couple }: RsvpFormProps) {
 
           {formData.status === "ATTENDING" && (
             <>
+              {/* Name Fields for New Guests */}
+              {isNewGuest && (
+                <div className="space-y-4 pt-4 border-t">
+                  <h3 className="font-medium text-lg">Your Information</h3>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="firstName">
+                        First Name <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="firstName"
+                        type="text"
+                        value={formData.firstName}
+                        onChange={(e) =>
+                          setFormData({ ...formData, firstName: e.target.value })
+                        }
+                        placeholder="First Name"
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="lastName">
+                        Last Name <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="lastName"
+                        type="text"
+                        value={formData.lastName}
+                        onChange={(e) =>
+                          setFormData({ ...formData, lastName: e.target.value })
+                        }
+                        placeholder="Last Name"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Contact Information */}
               <div className="space-y-4 pt-4 border-t">
                 <h3 className="font-medium text-lg">Contact Information</h3>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">
+                    Email <span className="text-red-500">*</span>
+                  </Label>
                   <Input
                     id="email"
                     type="email"
@@ -194,6 +274,7 @@ export function RsvpForm({ guest, couple }: RsvpFormProps) {
                       setFormData({ ...formData, email: e.target.value })
                     }
                     placeholder="your@email.com"
+                    required
                   />
                 </div>
 
@@ -320,108 +401,74 @@ export function RsvpForm({ guest, couple }: RsvpFormProps) {
               )}
 
               {/* Plus One */}
-              {guest.allowPlusOne && (
+              {(guest?.allowPlusOne || isNewGuest) && (
                 <div className="space-y-4 pt-4 border-t">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="hasPlusOne"
-                      checked={formData.hasPlusOne}
-                      onCheckedChange={(checked) =>
+                  <div className="space-y-2">
+                    <Label htmlFor="plusOneCount" className="text-base">
+                      Number of additional guests
+                    </Label>
+                    <Select
+                      value={formData.plusOneCount.toString()}
+                      onValueChange={(value) => {
+                        const count = parseInt(value)
+                        // Initialize or trim the plusOneNames array
+                        const newNames = [...formData.plusOneNames]
+                        if (count > newNames.length) {
+                          // Add empty strings for new slots
+                          while (newNames.length < count) {
+                            newNames.push("")
+                          }
+                        } else {
+                          // Remove extra slots
+                          newNames.splice(count)
+                        }
                         setFormData({
                           ...formData,
-                          hasPlusOne: checked as boolean,
+                          plusOneCount: count,
+                          plusOneNames: newNames,
                         })
-                      }
-                    />
-                    <Label
-                      htmlFor="hasPlusOne"
-                      className="text-base cursor-pointer"
+                      }}
                     >
-                      I'm bringing a plus one
-                    </Label>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select number of guests" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0">None</SelectItem>
+                        <SelectItem value="1">1 guest</SelectItem>
+                        <SelectItem value="2">2 guests</SelectItem>
+                        <SelectItem value="3">3 guests</SelectItem>
+                        <SelectItem value="4">4 guests</SelectItem>
+                        <SelectItem value="5">5 guests</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
-                  {formData.hasPlusOne && (
+                  {formData.plusOneCount > 0 && (
                     <div className="space-y-4 ml-6 p-4 border rounded-lg bg-muted/30">
-                      <h4 className="font-medium">Plus One Information</h4>
+                      <h4 className="font-medium">
+                        Guest{formData.plusOneCount > 1 ? 's' : ''} Information
+                      </h4>
                       
-                      <div className="space-y-2">
-                        <Label htmlFor="plusOneName">
-                          Name <span className="text-red-500">*</span>
-                        </Label>
-                        <Input
-                          id="plusOneName"
-                          value={formData.plusOneName}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              plusOneName: e.target.value,
-                            })
-                          }
-                          placeholder="Guest's full name"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="plusOneEmail">Email</Label>
-                        <Input
-                          id="plusOneEmail"
-                          type="email"
-                          value={formData.plusOneEmail}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              plusOneEmail: e.target.value,
-                            })
-                          }
-                          placeholder="guest@email.com"
-                        />
-                      </div>
-
-                      {couple.askMealChoice && (
-                        <>
-                          <div className="space-y-2">
-                            <Label htmlFor="plusOneMeal">Meal Choice</Label>
-                            <Select
-                              value={formData.plusOneMealChoice}
-                              onValueChange={(value) =>
-                                setFormData({
-                                  ...formData,
-                                  plusOneMealChoice: value,
-                                })
-                              }
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select entrée" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {mealOptions.map((option: string) => (
-                                  <SelectItem key={option} value={option}>
-                                    {option}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label htmlFor="plusOneDietary">
-                              Dietary Restrictions
-                            </Label>
-                            <Input
-                              id="plusOneDietary"
-                              value={formData.plusOneDietary}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  plusOneDietary: e.target.value,
-                                })
-                              }
-                              placeholder="Allergies, dietary requirements"
-                            />
-                          </div>
-                        </>
-                      )}
+                      {Array.from({ length: formData.plusOneCount }).map((_, index) => (
+                        <div key={index} className="space-y-2">
+                          <Label htmlFor={`plusOneName-${index}`}>
+                            Guest {index + 1} Name <span className="text-red-500">*</span>
+                          </Label>
+                          <Input
+                            id={`plusOneName-${index}`}
+                            value={formData.plusOneNames[index] || ""}
+                            onChange={(e) => {
+                              const newNames = [...formData.plusOneNames]
+                              newNames[index] = e.target.value
+                              setFormData({
+                                ...formData,
+                                plusOneNames: newNames,
+                              })
+                            }}
+                            placeholder="Guest's full name"
+                          />
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>

@@ -78,7 +78,7 @@ export default async function SchedulePage({ params }: SchedulePageProps) {
                         )}
                       </div>
                       <CardTitle className="font-serif text-3xl">
-                        {event.title}
+                        {event.name}
                       </CardTitle>
                     </div>
                   </div>

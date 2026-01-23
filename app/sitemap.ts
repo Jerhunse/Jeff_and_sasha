@@ -25,18 +25,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           priority: 1,
         },
         {
-          url: `${baseUrl}/${wedding.slug}/story`,
-          lastModified: wedding.updatedAt,
-          changeFrequency: "monthly" as const,
-          priority: 0.8,
-        },
-        {
-          url: `${baseUrl}/${wedding.slug}/party`,
-          lastModified: wedding.updatedAt,
-          changeFrequency: "monthly" as const,
-          priority: 0.8,
-        },
-        {
           url: `${baseUrl}/${wedding.slug}/schedule`,
           lastModified: wedding.updatedAt,
           changeFrequency: "weekly" as const,
@@ -52,12 +40,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           url: `${baseUrl}/${wedding.slug}/registry`,
           lastModified: wedding.updatedAt,
           changeFrequency: "monthly" as const,
-          priority: 0.7,
-        },
-        {
-          url: `${baseUrl}/${wedding.slug}/gallery`,
-          lastModified: wedding.updatedAt,
-          changeFrequency: "weekly" as const,
           priority: 0.7,
         },
         {

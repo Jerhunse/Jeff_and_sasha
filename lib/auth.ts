@@ -27,12 +27,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (session.user) {
         const dbUser = await prisma.user.findUnique({
           where: { id: user.id },
-          select: { role: true, weddingId: true }
+          select: { role: true, weddingId: true, coupleId: true }
         })
         
         session.user.id = user.id
         session.user.role = dbUser?.role || 'GUEST'
         session.user.weddingId = dbUser?.weddingId
+        session.user.coupleId = dbUser?.coupleId
       }
       return session
     },

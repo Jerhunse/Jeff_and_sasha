@@ -74,48 +74,54 @@ export default async function TravelPage({ params }: TravelPageProps) {
                 </div>
               )}
               
-              {/* Google Maps Embed */}
+              {/* Map Links */}
               {wedding.venueAddress && (
                 <div className="space-y-4">
-                  <div className="aspect-video w-full rounded-lg overflow-hidden border">
-                    <iframe
-                      width="100%"
-                      height="100%"
-                      style={{ border: 0 }}
-                      loading="lazy"
-                      allowFullScreen
-                      referrerPolicy="no-referrer-when-downgrade"
-                      src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}&q=${encodeURIComponent(
-                        [
-                          wedding.venueAddress,
-                          wedding.venueCity,
-                          wedding.venueState,
-                          wedding.venueZip,
-                        ]
-                          .filter(Boolean)
-                          .join(", ")
-                      )}`}
-                    />
+                  {/* Only show embed if API key is configured */}
+                  {process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY && (
+                    <div className="aspect-video w-full rounded-lg overflow-hidden border">
+                      <iframe
+                        width="100%"
+                        height="100%"
+                        style={{ border: 0 }}
+                        loading="lazy"
+                        allowFullScreen
+                        referrerPolicy="no-referrer-when-downgrade"
+                        src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&q=${encodeURIComponent(
+                          [
+                            wedding.venueAddress,
+                            wedding.venueCity,
+                            wedding.venueState,
+                            wedding.venueZip,
+                          ]
+                            .filter(Boolean)
+                            .join(", ")
+                        )}`}
+                      />
+                    </div>
+                  )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <Button asChild variant="outline">
+                      <a
+                        href="https://share.google/BQng1GFNuxbDEQf5T"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <MapPin className="h-4 w-4 mr-2" />
+                        Open in Google Maps
+                      </a>
+                    </Button>
+                    <Button asChild variant="outline">
+                      <a
+                        href="http://maps.apple.com/maps?q=175+Pollard+Rd+Temple+GA+30179+United+States"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <MapPin className="h-4 w-4 mr-2" />
+                        Open in Apple Maps
+                      </a>
+                    </Button>
                   </div>
-                  <Button asChild variant="outline" className="w-full">
-                    <a
-                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                        [
-                          wedding.venueAddress,
-                          wedding.venueCity,
-                          wedding.venueState,
-                          wedding.venueZip,
-                        ]
-                          .filter(Boolean)
-                          .join(", ")
-                      )}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <MapPin className="h-4 w-4 mr-2" />
-                      Open in Google Maps
-                    </a>
-                  </Button>
                 </div>
               )}
             </CardContent>
@@ -141,7 +147,7 @@ export default async function TravelPage({ params }: TravelPageProps) {
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <CardTitle className="font-serif text-2xl">{hotel.name}</CardTitle>
-                      {hotel.blockCode && (
+                      {hotel.code && (
                         <Badge variant="default">Room Block</Badge>
                       )}
                     </div>
@@ -171,7 +177,7 @@ export default async function TravelPage({ params }: TravelPageProps) {
                       </div>
                     )}
 
-                    {hotel.blockCode && (
+                    {hotel.code && (
                       <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-2">
                         <div className="flex items-center gap-2 font-semibold text-sm">
                           <DollarSign className="h-4 w-4 text-primary" />
@@ -180,15 +186,15 @@ export default async function TravelPage({ params }: TravelPageProps) {
                         <p className="text-sm">
                           <span className="font-medium">Block Code:</span>{" "}
                           <code className="bg-background px-2 py-1 rounded">
-                            {hotel.blockCode}
+                            {hotel.code}
                           </code>
                         </p>
-                        {hotel.blockDeadline && (
+                        {hotel.deadline && (
                           <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <Calendar className="h-4 w-4" />
                             <span>
                               Book by{" "}
-                              {new Date(hotel.blockDeadline).toLocaleDateString()}
+                              {new Date(hotel.deadline).toLocaleDateString()}
                             </span>
                           </div>
                         )}

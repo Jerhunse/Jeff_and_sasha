@@ -2,7 +2,6 @@
 
 import { HeroSectionEditor } from "./sections/hero-section"
 import { TextSectionEditor } from "./sections/text-section"
-import { GallerySectionEditor } from "./sections/gallery-section"
 import { FAQSectionEditor } from "./sections/faq-section"
 import { MapSectionEditor } from "./sections/map-section"
 import { RegistrySectionEditor } from "./sections/registry-section"
@@ -29,8 +28,6 @@ export function SectionEditor({ section, onChange }: SectionEditorProps) {
       return <TextSectionEditor content={section.content} onChange={onChange} />
     case "two-column":
       return <TwoColumnSectionEditor content={section.content} onChange={onChange} />
-    case "gallery":
-      return <GallerySectionEditor content={section.content} onChange={onChange} />
     case "timeline":
       return <TimelineSectionEditor content={section.content} onChange={onChange} />
     case "faq":

@@ -66,8 +66,8 @@ export default async function RegistryPage({ params }: RegistryPageProps) {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               {wedding.cashFunds.map((fund) => {
-                const progressPercentage = fund.goalAmount
-                  ? Math.min((fund.currentAmount / fund.goalAmount) * 100, 100)
+                const progressPercentage = fund.goal
+                  ? Math.min((fund.received / fund.goal) * 100, 100)
                   : 0
 
                 return (
@@ -87,9 +87,6 @@ export default async function RegistryPage({ params }: RegistryPageProps) {
                           <h3 className="font-serif text-2xl font-bold mb-1">
                             {fund.title}
                           </h3>
-                          <p className="text-sm text-muted-foreground capitalize">
-                            {fund.category.toLowerCase().replace("_", " ")}
-                          </p>
                         </div>
                         <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/10">
                           <Heart className="h-6 w-6 text-primary" />
@@ -100,14 +97,14 @@ export default async function RegistryPage({ params }: RegistryPageProps) {
                         <p className="text-sm mb-4">{fund.description}</p>
                       )}
 
-                      {fund.goalAmount && (
+                      {fund.goal && (
                         <div className="mb-4">
                           <div className="flex justify-between text-sm mb-2">
                             <span className="font-medium">
-                              ${fund.currentAmount.toFixed(0)} raised
+                              ${fund.received.toFixed(0)} raised
                             </span>
                             <span className="text-muted-foreground">
-                              ${fund.goalAmount.toFixed(0)} goal
+                              ${fund.goal.toFixed(0)} goal
                             </span>
                           </div>
                           <div className="w-full bg-muted rounded-full h-2">
@@ -145,7 +142,7 @@ export default async function RegistryPage({ params }: RegistryPageProps) {
           </div>
         )}
 
-        {wedding.registry.length === 0 && wedding.cashFunds.length === 0 ? (
+        {wedding.registryLinks.length === 0 && wedding.cashFunds.length === 0 ? (
           <Card>
             <CardContent className="pt-8 text-center py-12">
               <p className="text-muted-foreground mb-4">
@@ -164,16 +161,13 @@ export default async function RegistryPage({ params }: RegistryPageProps) {
                   <div className="aspect-video w-full overflow-hidden bg-muted">
                     <img
                       src={item.imageUrl}
-                      alt={item.name}
+                      alt={item.label}
                       className="w-full h-full object-cover"
                     />
                   </div>
                 )}
                 <CardContent className="pt-6">
-                  <h3 className="font-serif text-2xl font-bold mb-2">{item.name}</h3>
-                  {item.storeName && (
-                    <p className="text-sm text-muted-foreground mb-3">{item.storeName}</p>
-                  )}
+                  <h3 className="font-serif text-2xl font-bold mb-2">{item.label}</h3>
                   {item.description && (
                     <p className="text-sm mb-4">{item.description}</p>
                   )}
@@ -189,7 +183,7 @@ export default async function RegistryPage({ params }: RegistryPageProps) {
           </div>
         ) : null}
 
-        {wedding.cashFunds.length === 0 && wedding.registry.length > 0 && (
+        {wedding.cashFunds.length === 0 && wedding.registryLinks.length > 0 && (
           <Card className="mt-12 bg-primary/5 border-primary/20">
             <CardContent className="pt-8 text-center">
               <p className="text-sm">

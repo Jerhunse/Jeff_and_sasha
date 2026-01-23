@@ -28,12 +28,6 @@ const sectionTypes = [
     icon: Columns,
   },
   {
-    type: "gallery",
-    name: "Gallery",
-    description: "Grid of images with lightbox",
-    icon: Image,
-  },
-  {
     type: "timeline",
     name: "Timeline",
     description: "Chronological events display",

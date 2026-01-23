@@ -1,0 +1,40 @@
+# AWS App Runner Configuration
+# Note: App Runner will automatically detect and use the Dockerfile
+# This file is for reference. Configure via AWS Console or CloudFormation/CDK.
+
+# App Runner uses the Dockerfile automatically when:
+# - Source is connected to a repository
+# - Dockerfile is present in the root directory
+# - Runtime is set to "Docker"
+
+# Configuration is done via:
+# 1. AWS Console (recommended for first-time setup)
+# 2. AWS CLI
+# 3. CloudFormation/CDK templates
+
+# Example AWS CLI command to create service:
+# aws apprunner create-service \
+#   --service-name wedding-platform \
+#   --source-configuration '{
+#     "CodeRepository": {
+#       "RepositoryUrl": "https://github.com/your-org/wedding-platform",
+#       "SourceCodeVersion": {
+#         "Type": "BRANCH",
+#         "Value": "main"
+#       },
+#       "CodeConfiguration": {
+#         "ConfigurationSource": "REPOSITORY",
+#         "CodeConfigurationValues": {
+#           "Runtime": "DOCKER",
+#           "BuildCommand": "",
+#           "StartCommand": "",
+#           "RuntimeEnvironmentVariables": []
+#         }
+#       }
+#     }
+#   }' \
+#   --instance-configuration '{
+#     "Cpu": "1 vCPU",
+#     "Memory": "2 GB"
+#   }' \
+#   --auto-scaling-configuration-arn <auto-scaling-arn>

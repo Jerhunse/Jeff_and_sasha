@@ -10,12 +10,14 @@ declare module "next-auth" {
       image?: string | null
       role: Role
       weddingId?: string | null
+      coupleId?: string | null
     }
   }
 
   interface User {
     role: Role
     weddingId?: string | null
+    coupleId?: string | null
   }
 }
 
