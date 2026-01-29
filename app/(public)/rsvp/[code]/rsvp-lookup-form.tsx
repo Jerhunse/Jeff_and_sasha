@@ -2,135 +2,118 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import { Heart, Mail, Key } from "lucide-react"
+import { Heart, Mail, PenLine } from "lucide-react"
 
 interface RsvpLookupFormProps {
   slug: string
 }
 
 export function RsvpLookupForm({ slug }: RsvpLookupFormProps) {
-  const [code, setCode] = useState("")
   const [email, setEmail] = useState("")
+  const [phone, setPhone] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const router = useRouter()
 
-  const handleCodeSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!code.trim()) {
-      setError("Please enter your invite code")
-      return
-    }
-    router.push(`/rsvp/${code.trim()}`)
-  }
-
-  const handleEmailSubmit = async (e: React.FormEvent) => {
+  const handleLookupSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
     setLoading(true)
 
-    if (!email.trim()) {
-      setError("Please enter your email address")
+    const trimmedEmail = email.trim()
+    const trimmedPhone = phone.replace(/\D/g, "").trim()
+
+    if (!trimmedEmail && !trimmedPhone) {
+      setError("Please enter your email address or phone number")
       setLoading(false)
       return
     }
 
     try {
-      // Try to find guest by email and wedding slug
       const response = await fetch(`/api/rsvp/lookup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), slug }),
+        body: JSON.stringify({
+          slug,
+          ...(trimmedEmail && { email: trimmedEmail }),
+          ...(trimmedPhone && { phone: trimmedPhone }),
+        }),
       })
 
       const data = await response.json()
 
       if (response.ok && data.found) {
-        if (data.source === "supabase") {
-          // Found in Supabase - redirect to view/edit page with email
-          router.push(`/rsvp/email/${encodeURIComponent(email.trim().toLowerCase())}?slug=${slug}`)
+        if (data.source === "supabase" && data.email) {
+          router.push(`/rsvp/email/${encodeURIComponent(data.email.toLowerCase())}?slug=${slug}`)
         } else if (data.inviteToken) {
-          // Found in Prisma - redirect to token-based RSVP
           router.push(`/rsvp/${data.inviteToken}`)
         } else {
-          setError("We found your RSVP but couldn't load it. Please contact the couple.")
+          setError("We found your invitation but couldn't load it. Please contact the couple.")
         }
       } else {
-        setError(data.error || "We couldn't find an RSVP for that email address. Please check your email for your unique RSVP link, or contact the couple.")
+        setError(data.error || "We couldn't find an invitation for that email or phone number. You can RSVP now without a code, or contact the couple.")
       }
     } catch (err) {
-      setError("Something went wrong. Please try again or use your invite code.")
+      setError("Something went wrong. Please try again.")
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-16 px-4 bg-gradient-to-br from-primary/10 via-secondary to-accent/10">
+    <div className="min-h-screen flex items-center justify-center py-16 px-4">
       <div className="w-full max-w-2xl">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/20 mb-6">
-            <Heart className="h-8 w-8 text-primary fill-primary" />
+            <Heart className="h-8 w-8 text-gold fill-gold" />
           </div>
-          <h1 className="font-serif text-4xl md:text-5xl font-bold mb-2">
+          <h1 className="font-cursive text-4xl md:text-5xl text-gold mb-2">
             RSVP
           </h1>
           <p className="text-lg text-muted-foreground">
-            Please enter your invite code or email address to RSVP
+            Choose how you&rsquo;d like to RSVP
           </p>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
-          {/* Invite Code Method */}
-          <Card>
+          {/* RSVP now - no code required */}
+          <Card className="border-gold/30 hover:border-gold/50 transition-colors">
             <CardHeader>
               <div className="flex items-center gap-2 mb-2">
-                <Key className="h-5 w-5 text-primary" />
-                <CardTitle>I have my invite code</CardTitle>
+                <PenLine className="h-5 w-5 text-primary" />
+                <CardTitle>RSVP now</CardTitle>
               </div>
               <CardDescription>
-                Enter the code from your invitation
+                Fill out the form — no invite code needed
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleCodeSubmit} className="space-y-4">
-                <div>
-                  <Label htmlFor="code">Invite Code</Label>
-                  <Input
-                    id="code"
-                    type="text"
-                    placeholder="Enter your code"
-                    value={code}
-                    onChange={(e) => setCode(e.target.value)}
-                    className="mt-1"
-                  />
-                </div>
-                <Button type="submit" className="w-full">
-                  Continue
-                </Button>
-              </form>
+              <Button asChild className="w-full" size="lg">
+                <Link href={`/rsvp/${slug}/new`}>Continue to RSVP form</Link>
+              </Button>
             </CardContent>
           </Card>
 
-          {/* Email Method */}
+          {/* Search by email or phone */}
           <Card>
             <CardHeader>
               <div className="flex items-center gap-2 mb-2">
                 <Mail className="h-5 w-5 text-primary" />
-                <CardTitle>Look up by email</CardTitle>
+                <CardTitle>Find my invitation</CardTitle>
               </div>
               <CardDescription>
-                We'll find your invitation
+                Look up by email or phone to view or update your RSVP
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleEmailSubmit} className="space-y-4">
+              <form onSubmit={handleLookupSubmit} className="space-y-4">
                 <div>
-                  <Label htmlFor="email">Email Address</Label>
+                  <Label htmlFor="email">Email</Label>
                   <Input
                     id="email"
                     type="email"
@@ -140,8 +123,22 @@ export function RsvpLookupForm({ slug }: RsvpLookupFormProps) {
                     className="mt-1"
                   />
                 </div>
+                <div>
+                  <Label htmlFor="phone">Phone number</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="(555) 123-4567"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Enter at least one — we&rsquo;ll find your invitation
+                </p>
                 <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Looking up..." : "Find My Invitation"}
+                  {loading ? "Looking up..." : "Find my invitation"}
                 </Button>
               </form>
             </CardContent>
@@ -158,10 +155,10 @@ export function RsvpLookupForm({ slug }: RsvpLookupFormProps) {
 
         <div className="mt-6 text-center">
           <p className="text-sm text-muted-foreground">
-            Can't find your invitation?{" "}
+            Can&rsquo;t find your invitation?{" "}
             <a
               href={`/${slug}/contact`}
-              className="text-primary hover:underline font-medium"
+              className="text-gold hover:underline font-medium"
             >
               Contact us
             </a>

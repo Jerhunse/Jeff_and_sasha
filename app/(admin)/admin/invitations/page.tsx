@@ -21,13 +21,13 @@ import Link from "next/link"
 export default async function InvitationsPage() {
   const session = await auth()
 
-  if (!session?.user?.weddingId) {
+  if (!session?.user?.coupleId) {
     redirect("/auth/signin")
   }
 
   // Fetch wedding with guests and invitation data
-  const wedding = await prisma.wedding.findUnique({
-    where: { id: session.user.weddingId },
+  const wedding = await prisma.couple.findUnique({
+    where: { id: session.user.coupleId },
     include: {
       guests: {
         include: {
@@ -45,22 +45,41 @@ export default async function InvitationsPage() {
     redirect("/admin")
   }
 
-  // Calculate statistics
+  // Calculate statistics from invitations and RSVP responses
   const totalGuests = wedding.guests.length
   
+  // Get all invitations for these guests
+  const allInvitations = wedding.guests.flatMap(g => g.invitations || [])
+  const saveTheDateInvitations = allInvitations.filter(inv => {
+    const metadata = inv.metadata ? JSON.parse(inv.metadata) : {}
+    return metadata.type === "SAVE_THE_DATE"
+  })
+  const regularInvitations = allInvitations.filter(inv => {
+    const metadata = inv.metadata ? JSON.parse(inv.metadata) : {}
+    return metadata.type === "INVITATION" || !metadata.type
+  })
+  
   const saveTheDateStats = {
-    sent: wedding.guests.filter((g) => g.saveTheDateSent).length,
-    opened: wedding.guests.filter((g) => g.saveTheDateOpened).length,
-    pending: wedding.guests.filter((g) => !g.saveTheDateSent).length,
+    sent: saveTheDateInvitations.filter(inv => inv.status === "SENT" || inv.status === "DELIVERED" || inv.status === "OPENED").length,
+    opened: saveTheDateInvitations.filter(inv => inv.status === "OPENED" || inv.openedAt).length,
+    pending: totalGuests - saveTheDateInvitations.filter(inv => inv.status === "SENT" || inv.status === "DELIVERED" || inv.status === "OPENED").length,
   }
 
+  // Get RSVP responses for statistics
+  const rsvpResponses = await prisma.rSVPResponse.findMany({
+    where: {
+      coupleId: session.user.coupleId,
+      guestId: { in: wedding.guests.map(g => g.id) },
+    },
+  })
+
   const invitationStats = {
-    sent: wedding.guests.filter((g) => g.inviteSent).length,
-    opened: wedding.guests.filter((g) => g.inviteViewed).length,
-    replied: wedding.guests.filter((g) => g.rsvpStatus !== "PENDING").length,
-    pending: wedding.guests.filter((g) => g.rsvpStatus === "PENDING").length,
-    attending: wedding.guests.filter((g) => g.rsvpStatus === "ATTENDING").length,
-    declined: wedding.guests.filter((g) => g.rsvpStatus === "DECLINED").length,
+    sent: regularInvitations.filter(inv => inv.status === "SENT" || inv.status === "DELIVERED" || inv.status === "OPENED").length,
+    opened: regularInvitations.filter(inv => inv.status === "OPENED" || inv.openedAt).length,
+    replied: rsvpResponses.length,
+    pending: totalGuests - rsvpResponses.length,
+    attending: rsvpResponses.filter(r => r.status === "YES").length,
+    declined: rsvpResponses.filter(r => r.status === "NO").length,
   }
 
   return (

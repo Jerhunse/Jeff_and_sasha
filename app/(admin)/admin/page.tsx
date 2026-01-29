@@ -27,7 +27,7 @@ export default async function AdminDashboard() {
       },
       guests: {
         select: {
-          rsvpStatus: true,
+          id: true,
         },
       },
     },
@@ -37,13 +37,21 @@ export default async function AdminDashboard() {
     return <div>Wedding not found</div>
   }
 
-  // Calculate RSVP stats
-  const rsvpStats = wedding.guests.reduce(
-    (acc, guest) => {
-      acc[guest.rsvpStatus] = (acc[guest.rsvpStatus] || 0) + 1
+  // Calculate RSVP stats from RSVP responses
+  const rsvpResponses = await prisma.rSVPResponse.findMany({
+    where: {
+      coupleId: session.user.coupleId,
+      eventId: null,
+    },
+  })
+  
+  const rsvpStats = rsvpResponses.reduce(
+    (acc, response) => {
+      const status = response.status || "PENDING"
+      acc[status] = (acc[status] || 0) + 1
       return acc
     },
-    {} as Record<string, number>
+    { PENDING: wedding._count.guests - rsvpResponses.length } as Record<string, number>
   )
 
   const stats = [

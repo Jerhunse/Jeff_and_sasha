@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await auth()
 
-    if (!session?.user?.weddingId) {
+    if (!session?.user?.coupleId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
@@ -22,16 +22,11 @@ export async function POST(request: NextRequest) {
       guests.map((guest: any) =>
         prisma.guest.create({
           data: {
-            weddingId: session.user.weddingId!,
+            coupleId: session.user.coupleId!,
             firstName: guest.firstName,
             lastName: guest.lastName,
             email: guest.email || undefined,
             phone: guest.phone || undefined,
-            addressLine1: guest.addressLine1 || undefined,
-            city: guest.city || undefined,
-            state: guest.state || undefined,
-            zipCode: guest.zipCode || undefined,
-            inviteCode: nanoid(10),
             importSource: "csv",
             importedAt: new Date(),
             originalData: JSON.stringify(guest),
@@ -44,7 +39,7 @@ export async function POST(request: NextRequest) {
     await prisma.guestActivity.createMany({
       data: createdGuests.map((guest) => ({
         guestId: guest.id,
-        type: "IMPORTED",
+        action: "IMPORTED",
         description: `Guest imported from CSV`,
         userId: session.user.id,
         userName: session.user.name || session.user.email,

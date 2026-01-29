@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
+import { PaperCard } from "@/components/ui/paper-card"
+import { FloralDivider } from "@/components/wedding"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { HelpCircle } from "lucide-react"
@@ -46,13 +48,13 @@ export default async function FaqPage({ params }: FaqPageProps) {
   const categories = Object.keys(faqsByCategory)
 
   return (
-    <div className="container py-16">
+    <PaperCard>
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-6">
-            <HelpCircle className="h-8 w-8 text-primary" />
+            <HelpCircle className="h-8 w-8 text-gold" />
           </div>
-          <h1 className="font-serif text-5xl md:text-6xl font-bold mb-4">
+          <h1 className="font-cursive text-5xl md:text-6xl text-gold mb-4">
             Frequently Asked Questions
           </h1>
           <p className="text-lg text-muted-foreground">
@@ -60,11 +62,13 @@ export default async function FaqPage({ params }: FaqPageProps) {
           </p>
         </div>
 
+        <FloralDivider />
+
         {wedding.faqs.length === 0 ? (
-          <Card>
+          <Card className="border-border/50 bg-card/50">
             <CardContent className="pt-8 text-center py-12">
               <p className="text-muted-foreground">
-                Have a question? Reach out to us and we'll get back to you soon!
+                Have a question? Reach out to us and we&rsquo;ll get back to you soon!
               </p>
             </CardContent>
           </Card>
@@ -74,23 +78,23 @@ export default async function FaqPage({ params }: FaqPageProps) {
               <div key={category}>
                 {categories.length > 1 && (
                   <div className="mb-4">
-                    <Badge variant="outline" className="font-serif text-sm">
+                    <Badge variant="outline" className="font-cursive text-sm">
                       {category}
                     </Badge>
                   </div>
                 )}
                 <div className="space-y-4">
                   {faqsByCategory[category].map((faq) => (
-                    <Card key={faq.id} className="card-hover">
+                    <Card key={faq.id} className="card-hover border-border/50 bg-card/50">
                       <CardHeader>
-                        <CardTitle className="font-serif text-xl flex items-start gap-3">
-                          <span className="text-primary mt-1">Q:</span>
+                        <CardTitle className="font-cursive text-xl flex items-start gap-3">
+                          <span className="text-gold mt-1">Q:</span>
                           <span>{faq.question}</span>
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
                         <div className="flex items-start gap-3">
-                          <span className="text-primary font-semibold mt-1">A:</span>
+                          <span className="text-gold font-semibold mt-1">A:</span>
                           <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
                             {faq.answer}
                           </p>
@@ -104,16 +108,16 @@ export default async function FaqPage({ params }: FaqPageProps) {
           </div>
         )}
 
-        <Card className="mt-12 bg-muted/50">
+        <Card className="mt-12 bg-muted/50 border-border/50">
           <CardContent className="pt-8 text-center">
             <p className="font-medium mb-2">Still have questions?</p>
             <p className="text-sm text-muted-foreground">
-              Feel free to reach out to us directly. We're happy to help!
+              Feel free to reach out to us directly. We&rsquo;re happy to help!
             </p>
           </CardContent>
         </Card>
       </div>
-    </div>
+    </PaperCard>
   )
 }
 

@@ -1,0 +1,33 @@
+/* Wedding theme tokens – paper, linen, sage, gold */
+:root {
+  /* Background + Paper */
+  --bg-linen: #ede7dc;
+  --paper-ivory: #f6f3ee;
+  --paper-warm: #efe8dc;
+
+  /* Sage + Olive */
+  --sage-soft: #9fa68f;
+  --sage-deep: #7f876f;
+  --olive-muted: #a7ae96;
+  --dark-olive-green: #556b2f;
+
+  /* Ink */
+  --ink-main: #3f3e3c;
+  --ink-muted: rgba(63, 62, 60, 0.72);
+
+  /* Accents – gold + copper */
+  --wax-copper: #b8734a;
+  --gold-leaf: #c8a44d;
+
+  /* UI */
+  --radius-card: 10px;
+  --radius-pill: 999px;
+
+  /* Shadows */
+  --shadow-paper: 0 18px 50px rgba(0, 0, 0, 0.14);
+  --shadow-soft: 0 8px 22px rgba(0, 0, 0, 0.1);
+
+  /* Spacing */
+  --container-max: 920px;
+  --gutter: 20px;
+}

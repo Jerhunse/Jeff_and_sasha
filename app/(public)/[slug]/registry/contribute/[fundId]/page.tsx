@@ -16,11 +16,11 @@ async function getCashFundData(fundId: string, slug: string) {
   const fund = await prisma.cashFund.findFirst({
     where: {
       id: fundId,
-      wedding: { slug },
+      couple: { slug },
       isActive: true,
     },
     include: {
-      wedding: {
+      couple: {
         select: {
           slug: true,
           partner1Name: true,
@@ -31,7 +31,7 @@ async function getCashFundData(fundId: string, slug: string) {
     },
   })
 
-  if (!fund || !fund.wedding.isPublished) {
+  if (!fund || !fund.couple.isPublished) {
     return null
   }
 
@@ -46,8 +46,8 @@ export default async function ContributionPage({ params }: ContributionPageProps
     notFound()
   }
 
-  const progressPercentage = fund.goalAmount
-    ? Math.min((fund.currentAmount / fund.goalAmount) * 100, 100)
+  const progressPercentage = fund.goal
+    ? Math.min((fund.received / fund.goal) * 100, 100)
     : 0
 
   const presetAmounts = [25, 50, 100, 250, 500]
@@ -91,14 +91,14 @@ export default async function ContributionPage({ params }: ContributionPageProps
                   <p className="text-sm text-center">{fund.description}</p>
                 )}
 
-                {fund.goalAmount && (
+                {fund.goal && (
                   <div>
                     <div className="flex justify-between text-sm mb-2">
                       <span className="font-medium">
-                        ${fund.currentAmount.toFixed(0)}
+                        ${fund.received.toFixed(0)}
                       </span>
                       <span className="text-muted-foreground">
-                        ${fund.goalAmount.toFixed(0)}
+                        ${fund.goal.toFixed(0)}
                       </span>
                     </div>
                     <div className="w-full bg-muted rounded-full h-2">
@@ -124,7 +124,7 @@ export default async function ContributionPage({ params }: ContributionPageProps
                   Make a Contribution
                 </CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  Help {fund.wedding.partner1Name} & {fund.wedding.partner2Name} celebrate
+                  Help {fund.couple.partner1Name} & {fund.couple.partner2Name} celebrate
                   their special day
                 </p>
               </CardHeader>

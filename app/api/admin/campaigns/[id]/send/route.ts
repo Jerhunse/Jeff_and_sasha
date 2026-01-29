@@ -176,7 +176,7 @@ export async function POST(
           if (emailResult.success) {
             emailSent = true
           } else {
-            errorMessage = emailResult.error
+            errorMessage = "error" in emailResult ? emailResult.error : "Failed to send email"
           }
         }
 

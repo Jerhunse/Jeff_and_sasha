@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
+import { PaperCard } from "@/components/ui/paper-card"
+import { FloralDivider } from "@/components/wedding"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Calendar, Clock, MapPin, Shirt } from "lucide-react"
@@ -35,10 +37,10 @@ export default async function SchedulePage({ params }: SchedulePageProps) {
   }
 
   return (
-    <div className="container py-16">
+    <PaperCard>
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
-          <h1 className="font-serif text-5xl md:text-6xl font-bold mb-4">
+          <h1 className="font-cursive text-5xl md:text-6xl text-gold mb-4">
             Wedding Schedule
           </h1>
           <p className="text-lg text-muted-foreground">
@@ -51,8 +53,10 @@ export default async function SchedulePage({ params }: SchedulePageProps) {
           </p>
         </div>
 
+        <FloralDivider />
+
         {wedding.events.length === 0 ? (
-          <Card>
+          <Card className="border-border/50 bg-card/50">
             <CardContent className="pt-8 text-center">
               <p className="text-muted-foreground">
                 Schedule details coming soon! Check back for updates.
@@ -62,22 +66,22 @@ export default async function SchedulePage({ params }: SchedulePageProps) {
         ) : (
           <div className="space-y-6">
             {wedding.events.map((event, index) => (
-              <Card key={event.id} className="card-hover">
+              <Card key={event.id} className="card-hover border-border/50 bg-card/50">
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <Badge variant="outline" className="font-serif">
+                        <Badge variant="outline" className="font-cursive">
                           Event {index + 1}
                         </Badge>
                         {event.attire && (
                           <Badge variant="secondary" className="flex items-center gap-1">
-                            <Shirt className="h-3 w-3" />
+                            <Shirt className="h-3 w-3 text-gold" />
                             {event.attire}
                           </Badge>
                         )}
                       </div>
-                      <CardTitle className="font-serif text-3xl">
+                      <CardTitle className="font-cursive text-3xl text-gold">
                         {event.name}
                       </CardTitle>
                     </div>
@@ -90,10 +94,10 @@ export default async function SchedulePage({ params }: SchedulePageProps) {
                     </p>
                   )}
 
-                  <div className="flex flex-col gap-3 pt-4 border-t">
+                  <div className="flex flex-col gap-3 pt-4 border-t border-border/50">
                     <div className="flex items-center gap-3 text-sm">
                       <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10">
-                        <Calendar className="h-4 w-4 text-primary" />
+                        <Calendar className="h-4 w-4 text-gold" />
                       </div>
                       <div>
                         <p className="font-medium">
@@ -108,7 +112,7 @@ export default async function SchedulePage({ params }: SchedulePageProps) {
 
                     <div className="flex items-center gap-3 text-sm">
                       <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10">
-                        <Clock className="h-4 w-4 text-primary" />
+                        <Clock className="h-4 w-4 text-gold" />
                       </div>
                       <div>
                         <p className="font-medium">
@@ -132,7 +136,7 @@ export default async function SchedulePage({ params }: SchedulePageProps) {
                     {event.location && (
                       <div className="flex items-start gap-3 text-sm">
                         <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 flex-shrink-0">
-                          <MapPin className="h-4 w-4 text-primary" />
+                          <MapPin className="h-4 w-4 text-gold" />
                         </div>
                         <div className="flex-1">
                           <p className="font-medium">{event.location}</p>
@@ -149,7 +153,7 @@ export default async function SchedulePage({ params }: SchedulePageProps) {
           </div>
         )}
       </div>
-    </div>
+    </PaperCard>
   )
 }
 

@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
-import { Playfair_Display, Inter, Cormorant_Garamond } from "next/font/google";
+import {
+  Inter,
+  Cormorant_Garamond,
+  EB_Garamond,
+  Dancing_Script,
+} from "next/font/google";
+import "../src/styles/theme.css";
 import "./globals.css";
-
-const playfair = Playfair_Display({
-  variable: "--font-playfair",
-  subsets: ["latin"],
-  display: "swap",
-});
+import "../src/styles/components.css";
+import TextureLayer from "../src/components/TextureLayer";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -18,7 +20,19 @@ const cormorant = Cormorant_Garamond({
   variable: "--font-cormorant",
   subsets: ["latin"],
   display: "swap",
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["300", "400", "600"],
+});
+
+const ebGaramond = EB_Garamond({
+  variable: "--font-eb-garamond",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const dancingScript = Dancing_Script({
+  variable: "--font-cursive",
+  subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -34,9 +48,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${playfair.variable} ${inter.variable} ${cormorant.variable} font-sans antialiased`}
+        className={`${inter.variable} ${cormorant.variable} ${ebGaramond.variable} ${dancingScript.variable} font-sans antialiased`}
       >
-        {children}
+        <TextureLayer />
+        <div className="app-shell">{children}</div>
       </body>
     </html>
   );

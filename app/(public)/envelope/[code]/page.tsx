@@ -37,6 +37,15 @@ export default async function EnvelopePage({ params }: EnvelopePageProps) {
   const wedding = guest.couple
   const weddingDate = wedding.weddingDate.toISOString()
 
+  // Get RSVP response for this guest
+  const rsvpResponse = await prisma.rSVPResponse.findFirst({
+    where: {
+      guestId: guest.id,
+      eventId: null,
+    },
+    orderBy: { respondedAt: "desc" },
+  })
+
   // Prepare wedding details
   const weddingDetails = {
     venueName: wedding.venueName,
@@ -54,6 +63,36 @@ export default async function EnvelopePage({ params }: EnvelopePageProps) {
     })),
   }
 
+  // Transform guest to match component interface
+  const guestForComponent = {
+    id: guest.id,
+    firstName: guest.firstName,
+    lastName: guest.lastName,
+    email: guest.email,
+    phone: guest.phone,
+    allowPlusOne: guest.allowPlusOne,
+    plusOneUsed: !!rsvpResponse?.plusOneName,
+    plusOneName: rsvpResponse?.plusOneName || null,
+    rsvpStatus: rsvpResponse?.status || "PENDING",
+    inviteToken: guest.inviteToken,
+  }
+
+  // Transform couple to match component interface (with defaults for fields that don't exist)
+  const coupleForComponent = {
+    id: wedding.id,
+    partner1Name: wedding.partner1Name,
+    partner2Name: wedding.partner2Name,
+    weddingDate: wedding.weddingDate,
+    slug: wedding.slug,
+    rsvpDeadline: wedding.rsvpDeadline,
+    askMealChoice: true, // Default value - these fields don't exist in Couple model
+    mealOptions: null,
+    askSongRequest: true,
+    askBusTransport: false,
+    busRoutes: null,
+    maxCapacity: wedding.maxCapacity,
+  }
+
   return (
     <EnvelopeLandingWithCode
       partner1Name={wedding.partner1Name}
@@ -61,8 +100,8 @@ export default async function EnvelopePage({ params }: EnvelopePageProps) {
       weddingDate={weddingDate}
       redirectTo={`/${wedding.slug}`}
       weddingDetails={weddingDetails}
-      guest={guest}
-      couple={wedding}
+      guest={guestForComponent}
+      couple={coupleForComponent}
     />
   )
 }

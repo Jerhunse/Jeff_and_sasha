@@ -132,7 +132,7 @@ export async function POST(
           results.failed++
           results.errors.push({
             recipientId: recipient.id,
-            error: emailResult.error,
+            error: "error" in emailResult ? emailResult.error : "Failed to send email",
           })
         }
       } catch (error: any) {

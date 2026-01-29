@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
+import { PaperCard } from "@/components/ui/paper-card"
+import { FloralDivider } from "@/components/wedding"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Gift, ExternalLink, DollarSign, Heart } from "lucide-react"
@@ -39,26 +41,28 @@ export default async function RegistryPage({ params }: RegistryPageProps) {
   }
 
   return (
-    <div className="container py-16">
+    <PaperCard>
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-6">
-            <Gift className="h-8 w-8 text-primary" />
+            <Gift className="h-8 w-8 text-gold" />
           </div>
-          <h1 className="font-serif text-5xl md:text-6xl font-bold mb-4">
+          <h1 className="font-cursive text-5xl md:text-6xl text-gold mb-4">
             Registry
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Your presence at our wedding is the greatest gift of all. However, if you wish
-            to honor us with a gift, we've registered at the following stores.
+            to honor us with a gift, we&rsquo;ve registered at the following stores.
           </p>
         </div>
+
+        <FloralDivider />
 
         {/* Cash Funds Section */}
         {wedding.cashFunds.length > 0 && (
           <div className="mb-12">
             <div className="text-center mb-8">
-              <h2 className="font-serif text-3xl font-bold mb-2">Cash Funds</h2>
+              <h2 className="font-cursive text-3xl text-gold mb-2">Cash Funds</h2>
               <p className="text-muted-foreground">
                 Help us create unforgettable memories
               </p>
@@ -71,7 +75,7 @@ export default async function RegistryPage({ params }: RegistryPageProps) {
                   : 0
 
                 return (
-                  <Card key={fund.id} className="card-hover overflow-hidden">
+                  <Card key={fund.id} className="card-hover overflow-hidden border-border/50 bg-card/50">
                     {fund.imageUrl && (
                       <div className="aspect-video w-full overflow-hidden bg-muted">
                         <img
@@ -84,12 +88,12 @@ export default async function RegistryPage({ params }: RegistryPageProps) {
                     <CardContent className="pt-6">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
-                          <h3 className="font-serif text-2xl font-bold mb-1">
+                          <h3 className="font-cursive text-2xl text-gold mb-1">
                             {fund.title}
                           </h3>
                         </div>
                         <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/10">
-                          <Heart className="h-6 w-6 text-primary" />
+                          <Heart className="h-6 w-6 text-gold" />
                         </div>
                       </div>
 
@@ -133,8 +137,9 @@ export default async function RegistryPage({ params }: RegistryPageProps) {
         {/* Registry Items Section */}
         {wedding.registryLinks.length > 0 && (
           <div className="mb-8">
+            <FloralDivider />
             <div className="text-center mb-8">
-              <h2 className="font-serif text-3xl font-bold mb-2">Gift Registries</h2>
+              <h2 className="font-cursive text-3xl text-gold mb-2">Gift Registries</h2>
               <p className="text-muted-foreground">
                 Browse our registry at these retailers
               </p>
@@ -143,7 +148,7 @@ export default async function RegistryPage({ params }: RegistryPageProps) {
         )}
 
         {wedding.registryLinks.length === 0 && wedding.cashFunds.length === 0 ? (
-          <Card>
+          <Card className="border-border/50 bg-card/50">
             <CardContent className="pt-8 text-center py-12">
               <p className="text-muted-foreground mb-4">
                 Registry details coming soon!
@@ -156,7 +161,7 @@ export default async function RegistryPage({ params }: RegistryPageProps) {
         ) : wedding.registryLinks.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {wedding.registryLinks.map((item) => (
-              <Card key={item.id} className="card-hover overflow-hidden">
+              <Card key={item.id} className="card-hover overflow-hidden border-border/50 bg-card/50">
                 {item.imageUrl && (
                   <div className="aspect-video w-full overflow-hidden bg-muted">
                     <img
@@ -167,7 +172,7 @@ export default async function RegistryPage({ params }: RegistryPageProps) {
                   </div>
                 )}
                 <CardContent className="pt-6">
-                  <h3 className="font-serif text-2xl font-bold mb-2">{item.label}</h3>
+                  <h3 className="font-cursive text-2xl text-gold mb-2">{item.label}</h3>
                   {item.description && (
                     <p className="text-sm mb-4">{item.description}</p>
                   )}
@@ -188,13 +193,13 @@ export default async function RegistryPage({ params }: RegistryPageProps) {
             <CardContent className="pt-8 text-center">
               <p className="text-sm">
                 <strong>Cash Gift Alternative:</strong> If you prefer to give a monetary gift,
-                we'll provide details closer to the wedding date.
+                we&rsquo;ll provide details closer to the wedding date.
               </p>
             </CardContent>
           </Card>
         )}
       </div>
-    </div>
+    </PaperCard>
   )
 }
 

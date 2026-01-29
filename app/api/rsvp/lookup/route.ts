@@ -2,18 +2,35 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { supabase } from "@/lib/supabase"
 
+/** Normalize phone to digits only. For US 11-digit (1XXXXXXXXXX), use last 10 so matches work regardless of leading 1. */
+function normalizePhone(value: string): string {
+  const digits = value.replace(/\D/g, "").trim()
+  if (digits.length === 11 && digits.startsWith("1")) {
+    return digits.slice(1)
+  }
+  return digits
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const { email, slug } = await req.json()
+    const body = await req.json()
+    const slug = typeof body.slug === "string" ? body.slug.trim() : ""
+    const email = typeof body.email === "string" ? body.email.trim() : ""
+    const phone = typeof body.phone === "string" ? normalizePhone(body.phone) : ""
 
-    if (!email || !slug) {
+    if (!slug) {
       return NextResponse.json(
-        { error: "Email and wedding slug are required" },
+        { error: "Wedding slug is required" },
+        { status: 400 }
+      )
+    }
+    if (!email && !phone) {
+      return NextResponse.json(
+        { error: "Email or phone number is required" },
         { status: 400 }
       )
     }
 
-    // Find the wedding by slug
     const wedding = await prisma.couple.findUnique({
       where: { slug },
     })
@@ -25,62 +42,110 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // First, check Supabase RSVP table (new system)
-    const normalizedEmail = email.trim().toLowerCase()
-    const { data: supabaseRsvp, error: supabaseError } = await supabase
-      .from("rsvp")
-      .select("*")
-      .eq("email", normalizedEmail)
-      .maybeSingle()
+    // 1) Look up by email when provided
+    if (email) {
+      const normalizedEmail = email.toLowerCase()
+      const { data: supabaseRsvp, error: supabaseError } = await supabase
+        .from("rsvp")
+        .select("*")
+        .eq("email", normalizedEmail)
+        .maybeSingle()
 
-    // If found in Supabase (no error and data exists)
-    if (!supabaseError && supabaseRsvp) {
-      // Found in Supabase - return RSVP data with a flag
-      return NextResponse.json({
-        found: true,
-        source: "supabase",
-        email: supabaseRsvp.email,
-        firstName: supabaseRsvp.first_name,
-        lastName: supabaseRsvp.last_name,
-        isAttending: supabaseRsvp.is_attending,
-        numberOfGuests: supabaseRsvp.number_of_guests,
-        plusOneFirstName: supabaseRsvp.plus_one_first_name,
-        plusOneLastName: supabaseRsvp.plus_one_last_name,
-      })
-    }
+      if (!supabaseError && supabaseRsvp) {
+        return NextResponse.json({
+          found: true,
+          source: "supabase",
+          email: supabaseRsvp.email,
+          firstName: supabaseRsvp.first_name,
+          lastName: supabaseRsvp.last_name,
+          isAttending: supabaseRsvp.is_attending,
+          numberOfGuests: supabaseRsvp.number_of_guests,
+          plusOneFirstName: supabaseRsvp.plus_one_first_name,
+          plusOneLastName: supabaseRsvp.plus_one_last_name,
+        })
+      }
 
-    // If not found in Supabase, check Prisma Guest table (old system)
-    const guest = await prisma.guest.findFirst({
-      where: {
-        coupleId: wedding.id,
-        email: {
-          equals: email,
-          mode: "insensitive",
+      const guestByEmail = await prisma.guest.findFirst({
+        where: {
+          coupleId: wedding.id,
+          email: { equals: email, mode: "insensitive" },
         },
-      },
-      select: {
-        inviteToken: true,
-        firstName: true,
-        lastName: true,
-      },
-    })
-
-    if (guest) {
-      // Found in Prisma - return invite token
-      return NextResponse.json({
-        found: true,
-        source: "prisma",
-        inviteToken: guest.inviteToken,
-        firstName: guest.firstName,
-        lastName: guest.lastName,
+        select: {
+          inviteToken: true,
+          firstName: true,
+          lastName: true,
+        },
       })
+      if (guestByEmail) {
+        return NextResponse.json({
+          found: true,
+          source: "prisma",
+          inviteToken: guestByEmail.inviteToken,
+          firstName: guestByEmail.firstName,
+          lastName: guestByEmail.lastName,
+        })
+      }
     }
 
-    // Not found in either system
+    // 2) Look up by phone when provided (Supabase first, then Prisma Guest)
+    if (phone) {
+      // 2a) Supabase rsvp table (e.g. RSVP now flow sync)
+      const { data: supabaseRows, error: supabaseError } = await supabase
+        .from("rsvp")
+        .select("email, first_name, last_name, phone, is_attending, number_of_guests, plus_one_first_name, plus_one_last_name")
+        .not("phone", "is", null)
+
+      if (!supabaseError && supabaseRows?.length) {
+        const supabaseMatch = supabaseRows.find(
+          (row) => row.phone && normalizePhone(row.phone) === phone
+        )
+        if (supabaseMatch) {
+          return NextResponse.json({
+            found: true,
+            source: "supabase",
+            email: supabaseMatch.email,
+            firstName: supabaseMatch.first_name,
+            lastName: supabaseMatch.last_name,
+            isAttending: supabaseMatch.is_attending,
+            numberOfGuests: supabaseMatch.number_of_guests,
+            plusOneFirstName: supabaseMatch.plus_one_first_name,
+            plusOneLastName: supabaseMatch.plus_one_last_name,
+          })
+        }
+      }
+
+      // 2b) Prisma Guest table
+      const guestsWithPhone = await prisma.guest.findMany({
+        where: {
+          coupleId: wedding.id,
+          phone: { not: null },
+        },
+        select: {
+          inviteToken: true,
+          firstName: true,
+          lastName: true,
+          phone: true,
+        },
+      })
+      const match = guestsWithPhone.find(
+        (g) => g.phone && normalizePhone(g.phone) === phone
+      )
+      if (match) {
+        return NextResponse.json({
+          found: true,
+          source: "prisma",
+          inviteToken: match.inviteToken,
+          firstName: match.firstName,
+          lastName: match.lastName,
+        })
+      }
+    }
+
     return NextResponse.json(
-      { 
-        error: "We couldn't find an RSVP for that email address. Please check your email for your unique RSVP link, or contact the couple.",
-        found: false 
+      {
+        error:
+          "We couldn't find an invitation for that email or phone number. You can RSVP now without a code, or contact the couple.",
+        found: false,
       },
       { status: 404 }
     )

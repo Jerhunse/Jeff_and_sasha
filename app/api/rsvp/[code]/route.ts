@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
+import { cookies } from "next/headers"
 import { prisma } from "@/lib/prisma"
 import { sendEmail, generateRSVPConfirmationEmail } from "@/lib/email"
 import { supabase } from "@/lib/supabase"
+
+const COOKIE_NAME = "wedding_access"
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 30 // 30 days
 
 export async function POST(
   req: NextRequest,
@@ -267,12 +271,10 @@ export async function POST(
         const rsvpLookupUrl = `${baseUrl}/rsvp/${guest.couple.slug}`
         
         // Get plus one names from RSVP response
-        const rsvpResponse = await prisma.rSVPResponse.findUnique({
+        const rsvpResponse = await prisma.rSVPResponse.findFirst({
           where: {
-            guestId_eventId: {
-              guestId: guest.id,
-              eventId: null,
-            },
+            guestId: guest.id,
+            eventId: null,
           },
         })
         const plusOneNames = rsvpResponse?.plusOneName
@@ -323,6 +325,16 @@ export async function POST(
         console.error("Failed to send RSVP confirmation email:", emailError)
       }
     }
+
+    // Grant site access so user can enter wedding website after RSVP
+    const cookieStore = await cookies()
+    cookieStore.set(COOKIE_NAME, "verified", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: COOKIE_MAX_AGE,
+      path: "/",
+    })
 
     return NextResponse.json({
       success: true,

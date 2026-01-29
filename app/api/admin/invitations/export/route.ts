@@ -6,22 +6,34 @@ export async function GET(req: NextRequest) {
   try {
     const session = await auth()
 
-    if (!session?.user?.weddingId) {
+    if (!session?.user?.coupleId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     // Fetch all guests with invitation data
     const guests = await prisma.guest.findMany({
-      where: { weddingId: session.user.weddingId },
+      where: { coupleId: session.user.coupleId },
       include: {
         invitations: {
           orderBy: { createdAt: "desc" },
-          take: 1,
         },
         household: true,
       },
       orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
     })
+
+    // Fetch all RSVP responses for these guests
+    const rsvpResponses = await prisma.rSVPResponse.findMany({
+      where: {
+        coupleId: session.user.coupleId,
+        guestId: { in: guests.map(g => g.id) },
+        eventId: null,
+      },
+      orderBy: { respondedAt: "desc" },
+    })
+
+    // Create a map of guestId -> RSVP response
+    const rsvpMap = new Map(rsvpResponses.map(r => [r.guestId, r]))
 
     // Generate CSV
     const headers = [
@@ -46,6 +58,19 @@ export async function GET(req: NextRequest) {
 
     const rows = guests.map((guest) => {
       const lastInvitation = guest.invitations[0]
+      const rsvpResponse = rsvpMap.get(guest.id)
+
+      // Find save the date and invitation from invitations
+      const saveTheDateInv = guest.invitations.find(inv => {
+        const metadata = inv.metadata ? JSON.parse(inv.metadata) : {}
+        return metadata.type === "SAVE_THE_DATE"
+      })
+      const regularInv = guest.invitations.find(inv => {
+        const metadata = inv.metadata ? JSON.parse(inv.metadata) : {}
+        return metadata.type === "INVITATION" || !metadata.type
+      })
+
+      const answers = rsvpResponse?.answersJSON ? JSON.parse(rsvpResponse.answersJSON) : {}
 
       return [
         guest.firstName,
@@ -53,26 +78,26 @@ export async function GET(req: NextRequest) {
         guest.email || "",
         guest.phone || "",
         guest.household?.name || "",
-        guest.rsvpStatus,
-        guest.saveTheDateSent
-          ? new Date(guest.saveTheDateSent).toLocaleDateString()
+        rsvpResponse?.status || "PENDING",
+        saveTheDateInv?.sentAt
+          ? new Date(saveTheDateInv.sentAt).toLocaleDateString()
           : "",
-        guest.saveTheDateOpened
-          ? new Date(guest.saveTheDateOpened).toLocaleDateString()
+        saveTheDateInv?.openedAt
+          ? new Date(saveTheDateInv.openedAt).toLocaleDateString()
           : "",
-        guest.inviteSent
-          ? new Date(guest.inviteSent).toLocaleDateString()
+        regularInv?.sentAt
+          ? new Date(regularInv.sentAt).toLocaleDateString()
           : "",
-        guest.inviteViewed
-          ? new Date(guest.inviteViewed).toLocaleDateString()
+        regularInv?.openedAt
+          ? new Date(regularInv.openedAt).toLocaleDateString()
           : "",
         lastInvitation?.status || "",
-        guest.mealChoice || "",
-        guest.dietaryRestrictions || "",
-        guest.songRequest || "",
-        guest.busRequired ? "Yes" : "No",
+        answers.mealChoice || "",
+        answers.dietaryRestrictions || "",
+        answers.songRequest || "",
+        answers.busRequired ? "Yes" : "No",
         guest.allowPlusOne ? "Yes" : "No",
-        guest.plusOneName || "",
+        rsvpResponse?.plusOneName || "",
       ]
     })
 

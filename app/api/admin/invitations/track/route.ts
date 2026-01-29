@@ -14,22 +14,14 @@ export async function GET(req: NextRequest) {
         where: { id: invitationId },
         data: {
           status: "OPENED",
-          emailOpenedAt: new Date(),
+          openedAt: new Date(),
           openCount: { increment: 1 },
-          lastOpenedAt: new Date(),
         },
       })
     }
 
-    if (guestId) {
-      // Update guest viewed tracking
-      await prisma.guest.update({
-        where: { id: guestId },
-        data: {
-          inviteViewed: new Date(),
-        },
-      })
-    }
+    // Note: Guest model doesn't have inviteViewed field
+    // Tracking is handled via Invitation model
 
     // Return a 1x1 transparent pixel
     const pixel = Buffer.from(

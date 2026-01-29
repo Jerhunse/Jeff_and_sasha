@@ -272,17 +272,7 @@ export function DedupeWizard() {
                         <p>{currentMatch.guest1.phone}</p>
                       </div>
                     )}
-                    {currentMatch.guest1.addressLine1 && (
-                      <div>
-                        <Label className="text-xs text-muted-foreground">Address</Label>
-                        <p className="text-sm">
-                          {currentMatch.guest1.addressLine1}
-                          <br />
-                          {currentMatch.guest1.city}, {currentMatch.guest1.state}{" "}
-                          {currentMatch.guest1.zipCode}
-                        </p>
-                      </div>
-                    )}
+                    {/* Address display removed - address is stored in Address model, not directly on Guest */}
                   </CardContent>
                 </Card>
 
@@ -310,17 +300,7 @@ export function DedupeWizard() {
                         <p>{currentMatch.guest2.phone}</p>
                       </div>
                     )}
-                    {currentMatch.guest2.addressLine1 && (
-                      <div>
-                        <Label className="text-xs text-muted-foreground">Address</Label>
-                        <p className="text-sm">
-                          {currentMatch.guest2.addressLine1}
-                          <br />
-                          {currentMatch.guest2.city}, {currentMatch.guest2.state}{" "}
-                          {currentMatch.guest2.zipCode}
-                        </p>
-                      </div>
-                    )}
+                    {/* Address display removed - address is stored in Address model, not directly on Guest */}
                   </CardContent>
                 </Card>
               </div>

@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
   try {
     const session = await auth()
 
-    if (!session?.user?.weddingId) {
+    if (!session?.user?.coupleId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
@@ -33,8 +33,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Fetch wedding details
-    const wedding = await prisma.wedding.findUnique({
-      where: { id: session.user.weddingId },
+    const wedding = await prisma.couple.findUnique({
+      where: { id: session.user.coupleId },
     })
 
     if (!wedding) {
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
     const guests = await prisma.guest.findMany({
       where: {
         id: { in: guestIds },
-        weddingId: session.user.weddingId,
+        coupleId: session.user.coupleId,
       },
     })
 
@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
           continue
         }
 
-        const rsvpLink = `${baseUrl}/rsvp/${guest.inviteCode}`
+        const rsvpLink = `${baseUrl}/rsvp/${guest.inviteToken}`
         const websiteUrl = `${baseUrl}/${wedding.slug}`
 
         const emailData: InvitationEmailData = {
@@ -122,7 +122,7 @@ export async function POST(req: NextRequest) {
           if (emailResult.success) {
             emailSent = true
           } else {
-            errorMessage = emailResult.error
+            errorMessage = "error" in emailResult ? emailResult.error : "Failed to send email"
           }
         }
 
@@ -143,39 +143,27 @@ export async function POST(req: NextRequest) {
         // Create invitation record
         const invitation = await prisma.invitation.create({
           data: {
-            weddingId: session.user.weddingId,
+            coupleId: session.user.coupleId,
             guestId: guest.id,
-            type,
             status: emailSent || smsSent ? "SENT" : "FAILED",
             sentViaEmail: emailSent,
             emailAddress: guest.email,
-            emailSentAt: emailSent ? new Date() : null,
+            sentAt: emailSent || smsSent ? new Date() : null,
             sentViaSMS: smsSent,
             phoneNumber: guest.phone,
-            smsSentAt: smsSent ? new Date() : null,
-            inviteLink: rsvpLink,
             errorMessage,
+            metadata: JSON.stringify({ inviteLink: rsvpLink, type }),
           },
         })
 
-        // Update guest record
-        if (type === "SAVE_THE_DATE" && emailSent) {
-          await prisma.guest.update({
-            where: { id: guest.id },
-            data: { saveTheDateSent: new Date() },
-          })
-        } else if (type === "INVITATION" && emailSent) {
-          await prisma.guest.update({
-            where: { id: guest.id },
-            data: { inviteSent: new Date() },
-          })
-        }
-
+        // Note: Guest model doesn't have saveTheDateSent/inviteSent fields
+        // Invitation tracking is handled via the Invitation model
+        
         // Log activity
         await prisma.guestActivity.create({
           data: {
             guestId: guest.id,
-            type: "INVITE_SENT",
+            action: "INVITE_SENT",
             description: `${type === "SAVE_THE_DATE" ? "Save the Date" : "Invitation"} sent via ${emailSent ? "email" : ""}${emailSent && smsSent ? " and " : ""}${smsSent ? "SMS" : ""}`,
             userId: session.user.id,
             userName: session.user.name || undefined,

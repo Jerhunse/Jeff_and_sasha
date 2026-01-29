@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { SiteHeader } from "@/components/wedding/site-header"
+import { FloralDivider } from "@/components/wedding"
 import { Metadata } from "next"
 
 interface WeddingLayoutProps {
@@ -113,9 +114,10 @@ export default async function WeddingLayout({ children, params }: WeddingLayoutP
         weddingDate={wedding.weddingDate}
       />
       <main className="flex-1">{children}</main>
-      <footer className="border-t py-8 bg-muted/30">
+      <footer className="border-t border-border/50 py-12 bg-card/50">
         <div className="container text-center text-sm text-muted-foreground">
-          <p className="font-serif text-lg mb-2">
+          <FloralDivider />
+          <p className="font-cursive text-2xl text-gold mb-2">
             {wedding.partner1Name} & {wedding.partner2Name}
           </p>
           <p>

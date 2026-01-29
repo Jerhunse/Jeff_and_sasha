@@ -22,11 +22,11 @@ export function SiteHeader({ weddingSlug, partner1Name, partner2Name, weddingDat
   ]
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-card/80 backdrop-blur supports-[backdrop-filter]:bg-card/60">
       <div className="container flex h-16 items-center justify-between">
         <Link href={`/${weddingSlug}`} className="flex items-center space-x-2">
-          <Heart className="h-6 w-6 text-primary fill-primary" />
-          <span className="font-serif text-xl font-bold">
+          <Heart className="h-6 w-6 text-gold fill-gold" />
+          <span className="font-cursive text-2xl text-foreground">
             {partner1Name} & {partner2Name}
           </span>
         </Link>
@@ -36,7 +36,7 @@ export function SiteHeader({ weddingSlug, partner1Name, partner2Name, weddingDat
             <Link
               key={item.href}
               href={item.href}
-              className="transition-colors hover:text-primary"
+              className="transition-colors hover:text-gold"
             >
               {item.label}
             </Link>
@@ -45,9 +45,7 @@ export function SiteHeader({ weddingSlug, partner1Name, partner2Name, weddingDat
 
         <div className="flex items-center space-x-4">
           <Button asChild variant="default" className="rounded-full">
-            <Link href={`/rsvp/${weddingSlug}`}>
-              RSVP
-            </Link>
+            <Link href={`/rsvp/${weddingSlug}`}>RSVP</Link>
           </Button>
         </div>
       </div>

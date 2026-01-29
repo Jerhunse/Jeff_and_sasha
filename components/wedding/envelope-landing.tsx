@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { SimpleRsvpForm } from "@/components/rsvp/simple-rsvp-form"
 
 interface WeddingEvent {
@@ -98,7 +99,7 @@ export function EnvelopeLanding({
       <style jsx>{`
         .envelope-scene {
           min-height: 100vh;
-          background: #e7ebdf; /* sage background */
+          background: var(--bg-linen);
           display: flex;
           flex-direction: column;
           justify-content: center;
@@ -122,7 +123,7 @@ export function EnvelopeLanding({
           position: absolute;
           width: 100%;
           height: 100%;
-          background: #b7c2a1; /* envelope body */
+          background: var(--sage-soft);
           border-radius: 6px;
           z-index: 1;
         }
@@ -132,7 +133,7 @@ export function EnvelopeLanding({
           top: 0;
           width: 100%;
           height: 50%;
-          background: #aab694; /* flap */
+          background: var(--sage-deep);
           transform-origin: top;
           transform: rotateX(0deg);
           transition: transform 1s ease;
@@ -145,7 +146,7 @@ export function EnvelopeLanding({
           position: absolute;
           width: 90%;
           height: 85%;
-          background: #f7f6f2;
+          background: var(--paper-ivory);
           top: 8%;
           left: 5%;
           border-radius: 4px;
@@ -155,11 +156,12 @@ export function EnvelopeLanding({
           display: flex;
           justify-content: center;
           align-items: center;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+          box-shadow: var(--shadow-soft);
         }
 
         .envelope-card p {
-          color: #5f6b4a;
+          color: var(--ink-main);
+          font-family: var(--font-cursive), "Dancing Script", cursive;
           font-size: 22px;
           letter-spacing: 1px;
           text-align: center;
@@ -177,7 +179,7 @@ export function EnvelopeLanding({
 
         .hint {
           margin-top: 16px;
-          color: #6b7456;
+          color: var(--ink-muted);
           font-size: 14px;
           letter-spacing: 2px;
           transition: opacity 0.3s ease;
@@ -218,11 +220,19 @@ export function EnvelopeLanding({
             </div>
 
             <p className={`hint ${isOpen ? "hidden" : ""}`}>Click to open</p>
+            <p className="mt-6">
+              <Link
+                href={redirectTo}
+                className="text-sm text-muted-foreground hover:text-gold underline underline-offset-2 transition-colors"
+              >
+                Skip to wedding details →
+              </Link>
+            </p>
           </div>
         ) : (
           <div className="w-full max-w-2xl px-4 py-8">
             <div className="text-center mb-8">
-              <h1 className="font-serif text-4xl md:text-5xl font-bold mb-2">
+              <h1 className="font-cursive text-4xl md:text-5xl text-gold mb-2">
                 RSVP
               </h1>
               <p className="text-xl text-muted-foreground">

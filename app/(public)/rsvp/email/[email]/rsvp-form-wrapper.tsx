@@ -48,7 +48,17 @@ export function SimpleRsvpFormWrapper({
 }: SimpleRsvpFormWrapperProps) {
   const router = useRouter()
 
-  const handleSuccess = () => {
+  const handleSuccess = async () => {
+    // Grant site access so user can enter wedding website after RSVP
+    try {
+      await fetch("/api/rsvp/grant-access", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug: weddingSlug }),
+      })
+    } catch {
+      // Proceed with redirect even if grant fails; middleware will send them to gate
+    }
     router.push(`/${weddingSlug}`)
   }
 

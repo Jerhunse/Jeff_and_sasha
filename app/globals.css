@@ -7,7 +7,11 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-inter);
-  --font-serif: var(--font-playfair);
+  --font-serif: var(--font-cormorant);
+  --font-cormorant: var(--font-cormorant);
+  --font-eb-garamond: var(--font-eb-garamond);
+  --font-cursive: var(--font-cursive);
+  --color-gold: var(--dark-olive-green);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -44,133 +48,137 @@
   --radius-2xl: calc(var(--radius) + 8px);
 }
 
-/* Joy-style Wedding Theme - Warm Neutrals + Soft Greens */
+/* Wedding theme: linen, paper, gold (tokens in theme.css) */
 :root {
-  /* Base radius - rounded corners for Joy aesthetic */
   --radius: 0.75rem;
-  
-  /* Warm Neutral Palette */
-  --background: oklch(0.98 0.005 85);
-  --foreground: oklch(0.25 0.01 75);
-  
-  /* Card styling with subtle warmth */
-  --card: oklch(1 0.003 85);
-  --card-foreground: oklch(0.25 0.01 75);
-  
-  /* Popover */
-  --popover: oklch(1 0.003 85);
-  --popover-foreground: oklch(0.25 0.01 75);
-  
-  /* Soft Green Primary - Joy-inspired */
-  --primary: oklch(0.55 0.08 145);
-  --primary-foreground: oklch(0.99 0.005 145);
-  
-  /* Warm secondary */
-  --secondary: oklch(0.95 0.01 75);
-  --secondary-foreground: oklch(0.30 0.01 75);
-  
-  /* Muted warm tones */
-  --muted: oklch(0.96 0.008 75);
-  --muted-foreground: oklch(0.50 0.01 75);
-  
-  /* Accent - soft sage */
-  --accent: oklch(0.92 0.03 135);
-  --accent-foreground: oklch(0.30 0.02 135);
-  
-  /* Destructive - soft coral */
+  --background: var(--bg-linen);
+  --foreground: var(--ink-main);
+  --card: var(--paper-ivory);
+  --card-foreground: var(--ink-main);
+  --popover: var(--paper-ivory);
+  --popover-foreground: var(--ink-main);
+  --primary: var(--gold-leaf);
+  --primary-foreground: #1a1816;
+  --secondary: var(--paper-warm);
+  --secondary-foreground: var(--ink-main);
+  --muted: var(--paper-warm);
+  --muted-foreground: var(--ink-muted);
+  --accent: var(--sage-soft);
+  --accent-foreground: var(--ink-main);
   --destructive: oklch(0.60 0.15 25);
-  
-  /* Borders and inputs */
-  --border: oklch(0.90 0.01 75);
-  --input: oklch(0.90 0.01 75);
-  --ring: oklch(0.55 0.08 145);
-  
-  /* Chart colors - nature inspired */
-  --chart-1: oklch(0.65 0.12 145);
-  --chart-2: oklch(0.70 0.10 85);
-  --chart-3: oklch(0.60 0.08 175);
-  --chart-4: oklch(0.75 0.12 115);
-  --chart-5: oklch(0.68 0.10 55);
-  
-  /* Sidebar */
-  --sidebar: oklch(0.98 0.005 85);
-  --sidebar-foreground: oklch(0.30 0.01 75);
-  --sidebar-primary: oklch(0.55 0.08 145);
-  --sidebar-primary-foreground: oklch(0.99 0.005 145);
-  --sidebar-accent: oklch(0.95 0.01 75);
-  --sidebar-accent-foreground: oklch(0.30 0.01 75);
-  --sidebar-border: oklch(0.90 0.01 75);
-  --sidebar-ring: oklch(0.55 0.08 145);
+  --border: rgba(63, 62, 60, 0.15);
+  --input: rgba(63, 62, 60, 0.12);
+  --ring: var(--gold-leaf);
+  --chart-1: var(--gold-leaf);
+  --chart-2: var(--sage-soft);
+  --chart-3: var(--wax-copper);
+  --chart-4: var(--sage-deep);
+  --chart-5: var(--olive-muted);
+  --sidebar: var(--paper-ivory);
+  --sidebar-foreground: var(--ink-main);
+  --sidebar-primary: var(--gold-leaf);
+  --sidebar-primary-foreground: #1a1816;
+  --sidebar-accent: var(--paper-warm);
+  --sidebar-accent-foreground: var(--ink-main);
+  --sidebar-border: rgba(63, 62, 60, 0.12);
+  --sidebar-ring: var(--gold-leaf);
 }
 
 .dark {
-  --background: oklch(0.15 0.01 75);
-  --foreground: oklch(0.95 0.008 85);
-  
-  --card: oklch(0.18 0.01 75);
-  --card-foreground: oklch(0.95 0.008 85);
-  
-  --popover: oklch(0.18 0.01 75);
-  --popover-foreground: oklch(0.95 0.008 85);
-  
-  --primary: oklch(0.65 0.10 145);
-  --primary-foreground: oklch(0.15 0.01 145);
-  
-  --secondary: oklch(0.22 0.01 75);
-  --secondary-foreground: oklch(0.95 0.008 75);
-  
-  --muted: oklch(0.22 0.01 75);
-  --muted-foreground: oklch(0.65 0.01 75);
-  
-  --accent: oklch(0.25 0.02 135);
-  --accent-foreground: oklch(0.92 0.03 135);
-  
+  --background: #1a1816;
+  --foreground: #f6f3ee;
+  --card: #252220;
+  --card-foreground: #f6f3ee;
+  --popover: #252220;
+  --popover-foreground: #f6f3ee;
+  --primary: var(--gold-leaf);
+  --primary-foreground: #1a1816;
+  --secondary: #2d2a28;
+  --secondary-foreground: #f6f3ee;
+  --muted: #2d2a28;
+  --muted-foreground: rgba(246, 243, 238, 0.72);
+  --accent: var(--sage-deep);
+  --accent-foreground: #f6f3ee;
   --destructive: oklch(0.65 0.18 25);
-  
-  --border: oklch(0.25 0.01 75);
-  --input: oklch(0.28 0.015 75);
-  --ring: oklch(0.65 0.10 145);
-  
-  --chart-1: oklch(0.55 0.15 145);
-  --chart-2: oklch(0.60 0.12 85);
-  --chart-3: oklch(0.50 0.10 175);
-  --chart-4: oklch(0.65 0.14 115);
-  --chart-5: oklch(0.58 0.12 55);
-  
-  --sidebar: oklch(0.18 0.01 75);
-  --sidebar-foreground: oklch(0.95 0.008 85);
-  --sidebar-primary: oklch(0.65 0.10 145);
-  --sidebar-primary-foreground: oklch(0.15 0.01 145);
-  --sidebar-accent: oklch(0.22 0.01 75);
-  --sidebar-accent-foreground: oklch(0.95 0.008 75);
-  --sidebar-border: oklch(0.25 0.01 75);
-  --sidebar-ring: oklch(0.65 0.10 145);
+  --border: rgba(246, 243, 238, 0.15);
+  --input: rgba(246, 243, 238, 0.12);
+  --ring: var(--gold-leaf);
+  --sidebar: #252220;
+  --sidebar-foreground: #f6f3ee;
+  --sidebar-primary: var(--gold-leaf);
+  --sidebar-primary-foreground: #1a1816;
+  --sidebar-accent: #2d2a28;
+  --sidebar-accent-foreground: #f6f3ee;
+  --sidebar-border: rgba(246, 243, 238, 0.12);
+  --sidebar-ring: var(--gold-leaf);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
-  
+
+  html,
+  body {
+    min-height: 100%;
+  }
+
   body {
     @apply bg-background text-foreground;
-    line-height: 1.7; /* Generous line-height for Joy aesthetic */
+    font-family: var(--font-eb-garamond), "EB Garamond", serif;
+    line-height: 1.7;
   }
-  
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-serif; /* Playfair Display for headings */
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-cormorant), "Cormorant Garamond", serif;
+    font-weight: 300;
+    letter-spacing: 1px;
     line-height: 1.3;
   }
-  
-  /* Smooth transitions for Joy-style micro-interactions */
-  button, a, input, textarea, select {
+
+  h1,
+  h2 {
+    color: var(--ink-main);
+  }
+
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-cormorant), "Cormorant Garamond", serif;
+    line-height: 1.3;
+  }
+
+  p,
+  li,
+  label,
+  input,
+  button {
+    font-family: var(--font-eb-garamond), "EB Garamond", serif;
+    line-height: 1.7;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  button,
+  a,
+  input,
+  textarea,
+  select {
     @apply transition-all duration-200;
   }
-  
-  /* Card hover elevation effect */
+
   .card-hover {
     @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
   }
+}
+
+.muted {
+  color: var(--ink-muted);
 }
 
 /* Custom utility classes for Joy aesthetic */
@@ -183,8 +191,15 @@
     text-wrap: pretty;
   }
   
-  /* Floral/organic patterns */
   .bg-floral-pattern {
-    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4e4d4' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239fa68f' fill-opacity='0.08'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+
+  .font-cursive {
+    font-family: var(--font-cursive), "Dancing Script", cursive;
+  }
+
+  .text-gold {
+    color: var(--dark-olive-green);
   }
 }

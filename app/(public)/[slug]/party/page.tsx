@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
+import { PaperCard } from "@/components/ui/paper-card"
+import { FloralDivider } from "@/components/wedding"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -85,13 +87,13 @@ export default async function WeddingPartyPage({ params }: PartyPageProps) {
   )
 
   return (
-    <div className="container py-16">
+    <PaperCard>
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-6">
-            <Users className="h-8 w-8 text-primary" />
+            <Users className="h-8 w-8 text-gold" />
           </div>
-          <h1 className="font-serif text-5xl md:text-6xl font-bold mb-4">
+          <h1 className="font-cursive text-5xl md:text-6xl text-gold mb-4">
             Our Wedding Party
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -99,8 +101,10 @@ export default async function WeddingPartyPage({ params }: PartyPageProps) {
           </p>
         </div>
 
+        <FloralDivider />
+
         {wedding.weddingParty.length === 0 ? (
-          <Card>
+          <Card className="border-border/50 bg-card/50">
             <CardContent className="pt-8 text-center py-12">
               <p className="text-muted-foreground">
                 Wedding party details coming soon!
@@ -112,12 +116,12 @@ export default async function WeddingPartyPage({ params }: PartyPageProps) {
             {/* Honored Guests - Bride & Groom */}
             {honoredGuests.length > 0 && (
               <section>
-                <h2 className="font-serif text-3xl font-bold text-center mb-8">
+                <h2 className="font-cursive text-3xl text-gold text-center mb-8">
                   The Happy Couple
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
                   {honoredGuests.map((member) => (
-                    <Card key={member.id} className="card-hover overflow-hidden">
+                    <Card key={member.id} className="card-hover overflow-hidden border-border/50 bg-card/50">
                       <div className="aspect-square w-full overflow-hidden bg-muted">
                         {member.imageUrl ? (
                           <img
@@ -139,7 +143,7 @@ export default async function WeddingPartyPage({ params }: PartyPageProps) {
                         <Badge variant="outline" className="mb-3">
                           {getRoleLabel(member.role, member.roleLabel)}
                         </Badge>
-                        <h3 className="font-serif text-2xl font-bold mb-2">
+                        <h3 className="font-cursive text-2xl text-gold mb-2">
                           {member.name}
                         </h3>
                         {member.relationship && (
@@ -160,12 +164,13 @@ export default async function WeddingPartyPage({ params }: PartyPageProps) {
             {/* Honor Attendants */}
             {honorAttendants.length > 0 && (
               <section>
-                <h2 className="font-serif text-3xl font-bold text-center mb-8">
+                <FloralDivider />
+                <h2 className="font-cursive text-3xl text-gold text-center mb-8">
                   Honor Attendants
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
                   {honorAttendants.map((member) => (
-                    <Card key={member.id} className="card-hover overflow-hidden">
+                    <Card key={member.id} className="card-hover overflow-hidden border-border/50 bg-card/50">
                       <div className="aspect-square w-full overflow-hidden bg-muted">
                         {member.imageUrl ? (
                           <img
@@ -187,7 +192,7 @@ export default async function WeddingPartyPage({ params }: PartyPageProps) {
                         <Badge variant="outline" className="mb-3">
                           {getRoleLabel(member.role, member.roleLabel)}
                         </Badge>
-                        <h3 className="font-serif text-2xl font-bold mb-2">
+                        <h3 className="font-cursive text-2xl text-gold mb-2">
                           {member.name}
                         </h3>
                         {member.relationship && (
@@ -208,12 +213,13 @@ export default async function WeddingPartyPage({ params }: PartyPageProps) {
             {/* Bridesmaids and Groomsmen */}
             {(bridalParty.length > 0 || groomsParty.length > 0) && (
               <section>
-                <h2 className="font-serif text-3xl font-bold text-center mb-8">
+                <FloralDivider />
+                <h2 className="font-cursive text-3xl text-gold text-center mb-8">
                   The Wedding Party
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {[...bridalParty, ...groomsParty].map((member) => (
-                    <Card key={member.id} className="card-hover overflow-hidden">
+                    <Card key={member.id} className="card-hover overflow-hidden border-border/50 bg-card/50">
                       <div className="aspect-square w-full overflow-hidden bg-muted">
                         {member.imageUrl ? (
                           <img
@@ -235,7 +241,7 @@ export default async function WeddingPartyPage({ params }: PartyPageProps) {
                         <Badge variant="secondary" className="mb-3 text-xs">
                           {getRoleLabel(member.role, member.roleLabel)}
                         </Badge>
-                        <h3 className="font-serif text-xl font-bold mb-2">
+                        <h3 className="font-cursive text-xl text-gold mb-2">
                           {member.name}
                         </h3>
                         {member.relationship && (
@@ -256,12 +262,13 @@ export default async function WeddingPartyPage({ params }: PartyPageProps) {
             {/* Other Roles */}
             {others.length > 0 && (
               <section>
-                <h2 className="font-serif text-3xl font-bold text-center mb-8">
+                <FloralDivider />
+                <h2 className="font-cursive text-3xl text-gold text-center mb-8">
                   Special Roles
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {others.map((member) => (
-                    <Card key={member.id} className="card-hover overflow-hidden">
+                    <Card key={member.id} className="card-hover overflow-hidden border-border/50 bg-card/50">
                       <div className="aspect-square w-full overflow-hidden bg-muted">
                         {member.imageUrl ? (
                           <img
@@ -283,7 +290,7 @@ export default async function WeddingPartyPage({ params }: PartyPageProps) {
                         <Badge variant="secondary" className="mb-3 text-xs">
                           {getRoleLabel(member.role, member.roleLabel)}
                         </Badge>
-                        <h3 className="font-serif text-xl font-bold mb-2">
+                        <h3 className="font-cursive text-xl text-gold mb-2">
                           {member.name}
                         </h3>
                         {member.relationship && (
@@ -303,7 +310,7 @@ export default async function WeddingPartyPage({ params }: PartyPageProps) {
           </div>
         )}
       </div>
-    </div>
+    </PaperCard>
   )
 }
 

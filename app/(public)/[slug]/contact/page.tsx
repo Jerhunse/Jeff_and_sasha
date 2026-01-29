@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
+import { PaperCard } from "@/components/ui/paper-card"
+import { FloralDivider } from "@/components/wedding"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -44,7 +46,7 @@ export default async function ContactPage({ params, searchParams }: ContactPageP
   }
 
   return (
-    <div className="container py-16">
+    <PaperCard>
       <div className="max-w-5xl mx-auto">
         {success && (
           <Card className="mb-8 bg-green-50 border-green-200">
@@ -88,22 +90,24 @@ export default async function ContactPage({ params, searchParams }: ContactPageP
 
         <div className="text-center mb-12">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-6">
-            <MessageCircle className="h-8 w-8 text-primary" />
+            <MessageCircle className="h-8 w-8 text-gold" />
           </div>
-          <h1 className="font-serif text-5xl md:text-6xl font-bold mb-4">
+          <h1 className="font-cursive text-5xl md:text-6xl text-gold mb-4">
             Get In Touch
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Have a question about our wedding? We'd love to hear from you!
+            Have a question about our wedding? We&rsquo;d love to hear from you!
           </p>
         </div>
+
+        <FloralDivider />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Contact Info */}
           <div className="space-y-6">
-            <Card>
+            <Card className="border-border/50 bg-card/50">
               <CardHeader>
-                <CardTitle className="font-serif text-xl">Quick Info</CardTitle>
+                <CardTitle className="font-cursive text-xl text-gold">Quick Info</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-start gap-3">
@@ -142,9 +146,9 @@ export default async function ContactPage({ params, searchParams }: ContactPageP
               </CardContent>
             </Card>
 
-            <Card className="bg-muted/50">
+            <Card className="bg-muted/50 border-border/50">
               <CardContent className="pt-6">
-                <h3 className="font-serif text-lg font-bold mb-3">Common Questions?</h3>
+                <h3 className="font-cursive text-lg text-gold mb-3">Common Questions?</h3>
                 <p className="text-sm text-muted-foreground mb-4">
                   Check our FAQ page for quick answers to common questions about the
                   wedding, venue, accommodations, and more.
@@ -158,9 +162,9 @@ export default async function ContactPage({ params, searchParams }: ContactPageP
 
           {/* Contact Form */}
           <div className="lg:col-span-2">
-            <Card>
+            <Card className="border-border/50 bg-card/50">
               <CardHeader>
-                <CardTitle className="font-serif text-2xl">Send Us a Message</CardTitle>
+                <CardTitle className="font-cursive text-2xl text-gold">Send Us a Message</CardTitle>
               </CardHeader>
               <CardContent>
                 <form action={`/api/contact/${slug}`} method="POST" className="space-y-6">
@@ -242,7 +246,7 @@ export default async function ContactPage({ params, searchParams }: ContactPageP
           </div>
         </div>
       </div>
-    </div>
+    </PaperCard>
   )
 }
 

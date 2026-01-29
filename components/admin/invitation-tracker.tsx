@@ -36,6 +36,12 @@ import { SendInvitationsDialog } from "./send-invitations-dialog"
 type GuestWithInvitations = Guest & {
   invitations: Invitation[]
   household: Household | null
+  saveTheDateOpened?: boolean | null
+  saveTheDateSent?: boolean | string | Date | null
+  inviteViewed?: boolean | null
+  inviteSent?: boolean | string | Date | null
+  rsvpStatus?: RsvpStatus | null
+  rsvpDate?: string | Date | null
 }
 
 interface InvitationTrackerProps {
@@ -101,19 +107,19 @@ function getInvitationStatusBadge(guest: GuestWithInvitations, type: "STD" | "IN
   }
 }
 
-function getRsvpStatusBadge(status: RsvpStatus) {
-  const variants: Record<RsvpStatus, { variant: any; icon: any; label: string }> = {
+function getRsvpStatusBadge(status: RsvpStatus | null | undefined) {
+  const variants: Record<string, { variant: "outline" | "default" | "destructive" | "secondary"; icon: typeof Clock; label: string }> = {
     PENDING: {
       variant: "outline",
       icon: Clock,
       label: "Pending",
     },
-    ATTENDING: {
+    YES: {
       variant: "default",
       icon: CheckCircle,
       label: "Attending",
     },
-    DECLINED: {
+    NO: {
       variant: "destructive",
       icon: XCircle,
       label: "Declined",
@@ -125,7 +131,7 @@ function getRsvpStatusBadge(status: RsvpStatus) {
     },
   }
 
-  const config = variants[status]
+  const config = status ? variants[status] ?? variants.PENDING : variants.PENDING
   const Icon = config.icon
 
   return (
@@ -349,7 +355,7 @@ export function InvitationTracker({ guests }: InvitationTrackerProps) {
                     </TableCell>
                     <TableCell>
                       {getInvitationStatusBadge(guest, "STD")}
-                      {guest.saveTheDateSent && (
+                      {guest.saveTheDateSent && (typeof guest.saveTheDateSent === "string" || guest.saveTheDateSent instanceof Date) && (
                         <div className="text-xs text-muted-foreground mt-1">
                           {new Date(guest.saveTheDateSent).toLocaleDateString()}
                         </div>
@@ -357,7 +363,7 @@ export function InvitationTracker({ guests }: InvitationTrackerProps) {
                     </TableCell>
                     <TableCell>
                       {getInvitationStatusBadge(guest, "INVITE")}
-                      {guest.inviteSent && (
+                      {guest.inviteSent && (typeof guest.inviteSent === "string" || guest.inviteSent instanceof Date) && (
                         <div className="text-xs text-muted-foreground mt-1">
                           {new Date(guest.inviteSent).toLocaleDateString()}
                         </div>

@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from "next/server"
+import { cookies } from "next/headers"
 import { prisma } from "@/lib/prisma"
 import { nanoid } from "nanoid"
 import { sendEmail, generateRSVPConfirmationEmail } from "@/lib/email"
 import { supabase } from "@/lib/supabase"
 
+const COOKIE_NAME = "wedding_access"
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 30 // 30 days
+
 /**
- * Create a new guest RSVP using the shared code "sj2026"
- * POST /api/rsvp/sj2026/new
+ * Create a new guest RSVP with no invite code required.
+ * POST /api/rsvp/[code]/new — code is either legacy "sj2026" or wedding slug.
  */
 export async function POST(
   req: NextRequest,
@@ -14,11 +18,7 @@ export async function POST(
 ) {
   try {
     const { code } = await params
-
-    // Verify it's the shared code
-    if (code.toLowerCase() !== "sj2026") {
-      return NextResponse.json({ error: "Invalid code" }, { status: 400 })
-    }
+    const codeLower = code.toLowerCase()
 
     const body = await req.json()
 
@@ -90,11 +90,16 @@ export async function POST(
       ? actualPlusOneNames.filter((n: string) => n?.trim()).join(", ")
       : null
 
-    // Get the first published wedding
-    const wedding = await prisma.couple.findFirst({
-      where: { isPublished: true },
-      orderBy: { createdAt: "asc" },
-    })
+    // Resolve wedding: legacy "sj2026" → first published; otherwise code is wedding slug
+    const wedding =
+      codeLower === "sj2026"
+        ? await prisma.couple.findFirst({
+            where: { isPublished: true },
+            orderBy: { createdAt: "asc" },
+          })
+        : await prisma.couple.findUnique({
+            where: { slug: code, isPublished: true },
+          })
 
     if (!wedding) {
       return NextResponse.json({ error: "Wedding not found" }, { status: 404 })
@@ -315,6 +320,16 @@ export async function POST(
         console.error("Failed to send RSVP confirmation email:", emailError)
       }
     }
+
+    // Grant site access so user can enter wedding website after RSVP
+    const cookieStore = await cookies()
+    cookieStore.set(COOKIE_NAME, "verified", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: COOKIE_MAX_AGE,
+      path: "/",
+    })
 
     return NextResponse.json({
       success: true,

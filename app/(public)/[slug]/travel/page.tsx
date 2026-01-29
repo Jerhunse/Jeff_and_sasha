@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
+import { PaperCard } from "@/components/ui/paper-card"
+import { FloralDivider } from "@/components/wedding"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -35,10 +37,10 @@ export default async function TravelPage({ params }: TravelPageProps) {
   }
 
   return (
-    <div className="container py-16">
+    <PaperCard>
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-12">
-          <h1 className="font-serif text-5xl md:text-6xl font-bold mb-4">
+          <h1 className="font-cursive text-5xl md:text-6xl text-gold mb-4">
             Travel & Accommodations
           </h1>
           <p className="text-lg text-muted-foreground">
@@ -46,11 +48,13 @@ export default async function TravelPage({ params }: TravelPageProps) {
           </p>
         </div>
 
+        <FloralDivider />
+
         {/* Venue Information */}
         {(wedding.venueName || wedding.venueAddress) && (
-          <Card className="mb-8">
+          <Card className="mb-8 border-border/50 bg-card/50">
             <CardHeader>
-              <CardTitle className="font-serif text-3xl">Wedding Venue</CardTitle>
+              <CardTitle className="font-cursive text-3xl text-gold">Wedding Venue</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {wedding.venueName && (
@@ -130,10 +134,11 @@ export default async function TravelPage({ params }: TravelPageProps) {
 
         {/* Hotel Accommodations */}
         <div className="mb-8">
-          <h2 className="font-serif text-3xl font-bold mb-6">Where to Stay</h2>
+          <FloralDivider />
+          <h2 className="font-cursive text-3xl text-gold mb-6">Where to Stay</h2>
 
           {wedding.hotels.length === 0 ? (
-            <Card>
+            <Card className="border-border/50 bg-card/50">
               <CardContent className="pt-8 text-center">
                 <p className="text-muted-foreground">
                   Hotel recommendations coming soon!
@@ -143,10 +148,10 @@ export default async function TravelPage({ params }: TravelPageProps) {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {wedding.hotels.map((hotel) => (
-                <Card key={hotel.id} className="card-hover">
+                <Card key={hotel.id} className="card-hover border-border/50 bg-card/50">
                   <CardHeader>
                     <div className="flex items-start justify-between">
-                      <CardTitle className="font-serif text-2xl">{hotel.name}</CardTitle>
+                      <CardTitle className="font-cursive text-2xl text-gold">{hotel.name}</CardTitle>
                       {hotel.code && (
                         <Badge variant="default">Room Block</Badge>
                       )}
@@ -246,7 +251,7 @@ export default async function TravelPage({ params }: TravelPageProps) {
           )}
         </div>
       </div>
-    </div>
+    </PaperCard>
   )
 }
 

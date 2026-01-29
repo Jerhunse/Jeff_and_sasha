@@ -120,6 +120,7 @@ model Couple {
   showFlorals     Boolean      @default(true)
   heroImageUrl    String?
   logoImageUrl    String?
+  landingVideoUrl String?      // Video URL for landing page animation
   
   // Privacy & Security
   privacyMode     PrivacyMode  @default(PUBLIC)

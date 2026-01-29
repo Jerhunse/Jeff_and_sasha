@@ -42,6 +42,12 @@ type GuestWithRelations = Guest & {
     tag: Tag
   })[]
   household: Household | null
+  address?: {
+    city: string
+    state: string
+    postal: string
+    line1: string
+  } | null
   rsvpResponses?: Array<{
     id: string
     status: RsvpStatus
@@ -221,10 +227,10 @@ export function GuestListTable({
                             <span>{guest.phone}</span>
                           </div>
                         )}
-                        {guest.city && (
+                        {guest.address && (
                           <div className="flex items-center gap-1 text-muted-foreground">
                             <MapPin className="h-3 w-3" />
-                            <span>{guest.city}, {guest.state}</span>
+                            <span>{guest.address.city}, {guest.address.state}</span>
                           </div>
                         )}
                       </div>
@@ -270,16 +276,7 @@ export function GuestListTable({
                             +1
                           </Badge>
                         )}
-                        {guest.dietaryRestrictions && (
-                          <Badge variant="secondary" className="text-xs">
-                            Dietary
-                          </Badge>
-                        )}
-                        {guest.needsAccommodation && (
-                          <Badge variant="secondary" className="text-xs">
-                            Hotel
-                          </Badge>
-                        )}
+                        {/* Dietary restrictions and accommodation info are stored in RSVP responses, not directly on Guest */}
                       </div>
                     </TableCell>
                     <TableCell>
