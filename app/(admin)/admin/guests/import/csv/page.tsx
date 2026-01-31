@@ -407,7 +407,7 @@ export default function CSVImportPage() {
           <CardContent className="pt-12 pb-12 text-center">
             <div className="flex flex-col items-center gap-4 max-w-md mx-auto">
               <div className="p-4 rounded-full bg-green-100">
-                <CheckCircle className="h-12 w-12 text-green-600" />
+                <CheckCircle className="h-12 w-12 text-white" />
               </div>
               
               <div>

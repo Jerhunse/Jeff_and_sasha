@@ -133,9 +133,9 @@ export default async function CampaignsInvitationsPage() {
         <Card className="p-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium">RSVP Received</span>
-            <CheckCircle className="h-4 w-4 text-green-600" />
+            <CheckCircle className="h-4 w-4 text-white" />
           </div>
-          <div className="text-3xl font-bold text-green-600">
+          <div className="text-3xl font-bold text-white">
             {guestsWithReplied}
           </div>
           <p className="text-xs text-muted-foreground mt-1">

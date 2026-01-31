@@ -347,7 +347,7 @@ export function DynamicRsvpForm({ token }: DynamicRsvpFormProps) {
       <Card>
         <CardContent className="pt-6">
           <div className="text-center py-12">
-            <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
+            <CheckCircle className="h-16 w-16 text-white mx-auto mb-4" />
             <h2 className="text-2xl font-bold mb-2">Thank You!</h2>
             <p className="text-muted-foreground mb-4">
               Your RSVP has been submitted successfully.

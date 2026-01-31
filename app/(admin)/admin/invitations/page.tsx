@@ -141,9 +141,9 @@ export default async function InvitationsPage() {
         <Card className="p-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium">RSVP Status</span>
-            <CheckCircle className="h-4 w-4 text-green-600" />
+            <CheckCircle className="h-4 w-4 text-white" />
           </div>
-          <div className="text-3xl font-bold text-green-600">
+          <div className="text-3xl font-bold text-white">
             {invitationStats.replied}
           </div>
           <p className="text-xs text-muted-foreground mt-1">

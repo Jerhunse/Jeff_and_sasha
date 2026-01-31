@@ -159,10 +159,10 @@ export function SendInvitationsDialog({
           ) : (
             <div className="space-y-3">
               <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 text-center">
-                <p className="font-medium text-green-800 dark:text-green-200 mb-2">
+                <p className="font-medium text-white mb-2">
                   Invitations Sent Successfully!
                 </p>
-                <div className="space-y-1 text-sm text-green-700 dark:text-green-300">
+                <div className="space-y-1 text-sm text-white">
                   <p>✓ {result.results.success} sent successfully</p>
                   {result.results.failed > 0 && (
                     <p>✗ {result.results.failed} failed</p>

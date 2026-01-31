@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Heart, Mail, PenLine } from "lucide-react"
+import { RsvpQrCode } from "@/components/wedding/rsvp-qr-code"
 
 interface RsvpLookupFormProps {
   slug: string
@@ -18,7 +19,15 @@ export function RsvpLookupForm({ slug }: RsvpLookupFormProps) {
   const [phone, setPhone] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [rsvpUrl, setRsvpUrl] = useState("")
   const router = useRouter()
+
+  useEffect(() => {
+    // Get the current URL for the QR code
+    if (typeof window !== "undefined") {
+      setRsvpUrl(`${window.location.origin}/rsvp/${slug}`)
+    }
+  }, [slug])
 
   const handleLookupSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -164,6 +173,18 @@ export function RsvpLookupForm({ slug }: RsvpLookupFormProps) {
             </a>
           </p>
         </div>
+
+        {/* QR Code Section */}
+        {rsvpUrl && (
+          <div className="mt-12">
+            <RsvpQrCode
+              rsvpUrl={rsvpUrl}
+              title="Share this QR Code"
+              description="Guests can scan this code to quickly access the RSVP page"
+              size={220}
+            />
+          </div>
+        )}
       </div>
     </div>
   )

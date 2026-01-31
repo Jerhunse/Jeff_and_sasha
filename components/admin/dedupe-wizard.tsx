@@ -165,7 +165,7 @@ export function DedupeWizard() {
         <Card>
           <CardContent className="pt-6">
             <div className="text-center py-12">
-              <CheckCircle className="h-12 w-12 mx-auto mb-4 text-green-600" />
+              <CheckCircle className="h-12 w-12 mx-auto mb-4 text-white" />
               <h3 className="text-lg font-semibold mb-2">No Duplicates Found!</h3>
               <p className="text-muted-foreground">
                 Your guest list looks clean at this confidence level.

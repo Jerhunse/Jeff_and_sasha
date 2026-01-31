@@ -12,8 +12,8 @@ async function main() {
     update: {},
     create: {
       slug: "jeff-and-sasha",
-      partner1Name: "Jeff",
-      partner2Name: "Sasha",
+      partner1Name: "Jeffery Erhunse",
+      partner2Name: "Sasha Contreras",
       weddingDate: new Date("2025-09-20T16:00:00Z"),
       venueName: "The Grand Ballroom",
       venueAddress: "123 Main Street",
@@ -45,14 +45,14 @@ async function main() {
 
   console.log("✅ Created admin user:", user.email)
 
-  // Create events
+  // Create events — first timeline item is Ceremony at 4:00 PM (local time)
   const ceremony = await prisma.event.create({
     data: {
       coupleId: couple.id,
       name: "Ceremony",
       description: "Join us for our wedding ceremony",
-      startTime: new Date("2025-09-20T16:00:00Z"),
-      endTime: new Date("2025-09-20T17:00:00Z"),
+      startTime: new Date("2025-09-20T16:00:00-07:00"), // 4:00 PM Pacific
+      endTime: new Date("2025-09-20T17:00:00-07:00"),
       location: "The Grand Ballroom",
       address: "123 Main Street, San Francisco, CA 94102",
       visibility: "PUBLIC",
@@ -66,8 +66,8 @@ async function main() {
       coupleId: couple.id,
       name: "Reception",
       description: "Celebrate with dinner and dancing",
-      startTime: new Date("2025-09-20T18:00:00Z"),
-      endTime: new Date("2025-09-20T23:00:00Z"),
+      startTime: new Date("2025-09-20T18:00:00-07:00"), // 6:00 PM Pacific
+      endTime: new Date("2025-09-20T23:00:00-07:00"),
       location: "The Grand Ballroom",
       address: "123 Main Street, San Francisco, CA 94102",
       visibility: "PUBLIC",
@@ -201,7 +201,7 @@ async function main() {
       name: "Save the Date Campaign",
       type: "SAVE_THE_DATE",
       status: "DRAFT",
-      subject: "Save the Date - Jeff & Sasha",
+      subject: "Save the Date - Jeffery Erhunse & Sasha Contreras",
     },
   })
 
@@ -220,7 +220,7 @@ async function main() {
             id: "hero-1",
             type: "hero",
             content: {
-              title: "Jeff & Sasha",
+              title: "Jeffery Erhunse & Sasha Contreras",
               subtitle: "September 20, 2025",
               backgroundImage: "",
               showCountdown: true,

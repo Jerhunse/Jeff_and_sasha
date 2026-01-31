@@ -50,6 +50,16 @@ A beautiful, elegant wedding website platform inspired by Joy's aesthetic. Built
 - (Optional) Google OAuth credentials
 - (Optional) Resend API key for emails
 
+### Deployment Options
+
+**Quick Deploy Options:**
+- **[CloudFront + App Runner](./CLOUDFRONT_QUICKSTART.md)** - Recommended for production (fastest, most scalable)
+- **[Netlify](./NETLIFY_DEPLOYMENT.md)** - Simplest setup
+- **[Docker + AWS ECR](./DOCKER_ECR_DEPLOYMENT.md)** - Full container control
+- **[AWS App Runner](./apprunner.yaml)** - Fully managed containers
+
+See [CLOUDFRONT_DEPLOYMENT.md](./CLOUDFRONT_DEPLOYMENT.md) for comprehensive CloudFront setup guide.
+
 ### Installation
 
 1. **Clone the repository**

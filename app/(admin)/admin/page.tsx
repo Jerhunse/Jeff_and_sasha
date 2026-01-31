@@ -65,7 +65,7 @@ export default async function AdminDashboard() {
       title: "Attending",
       value: rsvpStats.ATTENDING || 0,
       icon: CheckCircle,
-      color: "text-green-600",
+      color: "text-white",
     },
     {
       title: "Declined",

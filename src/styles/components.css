@@ -21,7 +21,7 @@
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background: var(--bg-linen) url("/Gemini_Generated_Image_x4mqmsx4mqmsx4mq-Firefly-Upscaler-2x-scale.png") center center;
+  background: var(--bg-linen) url("/background-main.png") center center;
   background-size: cover;
   background-attachment: fixed;
   background-repeat: no-repeat;
@@ -151,9 +151,9 @@
   margin: 24px 0 0;
 }
 
-/* Gold / cursive utilities – text accent uses dark olive green */
+/* Gold / cursive utilities – text accent uses sage green */
 .text-gold {
-  color: var(--dark-olive-green);
+  color: var(--sage-deep);
 }
 
 .font-cursive {

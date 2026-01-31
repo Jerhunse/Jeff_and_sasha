@@ -6,7 +6,7 @@ import { KPITiles } from "@/components/admin/kpi-tiles"
 import { ActivityFeed } from "@/components/admin/activity-feed"
 import { RsvpTrendChart } from "@/components/admin/charts/rsvp-trend-chart"
 import { MealDistributionChart } from "@/components/admin/charts/meal-distribution-chart"
-import { Mail, Users, Calendar, Settings, TrendingUp } from "lucide-react"
+import { Mail, Users, Calendar, Settings, TrendingUp, QrCode } from "lucide-react"
 import Link from "next/link"
 
 export default async function AdminOverviewPage() {
@@ -108,7 +108,7 @@ export default async function AdminOverviewPage() {
                     </div>
                     <div className="text-center">
                       <p className="text-muted-foreground">Open Rate</p>
-                      <p className="font-semibold text-green-600">
+                      <p className="font-semibold text-white">
                         {campaign.openRate}%
                       </p>
                     </div>
@@ -141,6 +141,12 @@ export default async function AdminOverviewPage() {
               <Link href="/admin/campaigns">
                 <Mail className="mr-2 h-4 w-4" />
                 Send Invitations
+              </Link>
+            </Button>
+            <Button variant="outline" className="w-full justify-start" asChild>
+              <Link href="/admin/qr-code">
+                <QrCode className="mr-2 h-4 w-4" />
+                Download QR Code
               </Link>
             </Button>
             <Button variant="outline" className="w-full justify-start" asChild>

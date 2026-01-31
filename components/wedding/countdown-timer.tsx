@@ -54,12 +54,17 @@ export function CountdownTimer({ targetDate, compact = false }: CountdownTimerPr
     return null
   }
 
+  const cardStyle =
+    "bg-card rounded-[18px] p-3 md:p-4 min-w-[60px] md:min-w-[80px] flex items-center justify-center shadow-[0_8px_24px_rgba(0,0,0,0.15)] border border-[rgba(212,175,55,0.3)]"
+  const compactCardStyle =
+    "bg-card rounded-[16px] px-2 py-1.5 md:px-3 md:py-2 min-w-[45px] md:min-w-[50px] flex items-center justify-center shadow-[0_8px_24px_rgba(0,0,0,0.15)] border border-[rgba(212,175,55,0.3)]"
+
   const TimeUnit = ({ value, label }: { value: number; label: string }) => (
     <div className="flex flex-col items-center">
-      <div className="bg-card border-2 border-primary/20 rounded-2xl p-4 min-w-[80px] shadow-lg flex items-center justify-center">
-        <div className="text-4xl font-serif font-bold text-primary text-center">{value}</div>
+      <div className={cardStyle}>
+        <div className="text-2xl md:text-4xl font-serif font-bold text-primary text-center">{value}</div>
       </div>
-      <div className="text-sm font-medium text-muted-foreground mt-2 uppercase tracking-wider">
+      <div className="text-xs md:text-sm font-medium text-muted-foreground mt-1 md:mt-2 uppercase tracking-wider">
         {label}
       </div>
     </div>
@@ -67,7 +72,7 @@ export function CountdownTimer({ targetDate, compact = false }: CountdownTimerPr
 
   const CompactTimeUnit = ({ value, label }: { value: number; label: string }) => (
     <div className="flex flex-col items-center">
-      <div className="bg-card border-2 border-primary/20 rounded-lg px-3 py-2 min-w-[50px] flex items-center justify-center">
+      <div className={compactCardStyle}>
         <div className="text-sm font-serif font-bold text-primary text-center">{value}</div>
       </div>
       <div className="text-xs font-medium text-muted-foreground mt-1 uppercase tracking-wider">
@@ -91,11 +96,11 @@ export function CountdownTimer({ targetDate, compact = false }: CountdownTimerPr
   }
 
   return (
-    <div className="flex gap-4 justify-center">
+    <div className="flex gap-2 md:gap-4 justify-center">
       <TimeUnit value={timeLeft.days} label="Days" />
       <TimeUnit value={timeLeft.hours} label="Hours" />
-      <TimeUnit value={timeLeft.minutes} label="Minutes" />
-      <TimeUnit value={timeLeft.seconds} label="Seconds" />
+      <TimeUnit value={timeLeft.minutes} label="Min" />
+      <TimeUnit value={timeLeft.seconds} label="Sec" />
     </div>
   )
 }

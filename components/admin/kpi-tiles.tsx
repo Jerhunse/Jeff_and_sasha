@@ -29,7 +29,7 @@ export function KPITiles({ data }: KPITilesProps) {
       label: "Attending",
       value: data.yes,
       icon: UserCheck,
-      color: "text-green-600",
+      color: "text-white",
       bgColor: "bg-green-600/10",
       percentage: data.totalGuests > 0
         ? `${((data.yes / data.totalGuests) * 100).toFixed(1)}%`

@@ -13,11 +13,12 @@ const PUBLIC_ROUTES = [
   "/_next",
   "/favicon.ico",
   "/rsvp", // RSVP pages (lookup, form) – user gets cookie after submitting
+  "/videos", // Video files for splash page
 ]
 
-// Static assets in public/ (splash image, etc.) – allow so gate page can load them
+// Static assets in public/ (splash image, videos, etc.) – allow so gate page can load them
 const isStaticAsset = (pathname: string) =>
-  /\.(png|jpg|jpeg|gif|webp|svg|ico|woff2?)$/i.test(pathname)
+  /\.(png|jpg|jpeg|gif|webp|svg|ico|woff2?|mp4|webm)$/i.test(pathname)
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl

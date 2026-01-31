@@ -43,30 +43,10 @@ async function updateWeddingInfo() {
 
     console.log('Cleared existing events')
 
-    // Create schedule events
+    // Create schedule events — timeline starts with ceremony at 4pm
     const baseDate = '2026-06-26'
-    
+
     const events = [
-      {
-        name: 'Venue Available for Family & Bridal Party',
-        description: 'The venue will be open for family and bridal party members to arrive and prepare for the ceremony.',
-        startTime: new Date(`${baseDate}T09:00:00-04:00`),
-        endTime: new Date(`${baseDate}T22:00:00-04:00`),
-        location: 'The Venue at Stillwater Pond',
-        address: '175 Pollard Rd, Temple, GA 30179',
-        visibility: 'PRIVATE' as const,
-        order: 0,
-      },
-      {
-        name: 'Wedding Party & Family Photos',
-        description: 'Photos with wedding party and family members before the ceremony.',
-        startTime: new Date(`${baseDate}T14:00:00-04:00`),
-        endTime: new Date(`${baseDate}T16:00:00-04:00`),
-        location: 'The Venue at Stillwater Pond',
-        address: '175 Pollard Rd, Temple, GA 30179',
-        visibility: 'PRIVATE' as const,
-        order: 1,
-      },
       {
         name: 'Ceremony',
         description: 'Join us as we exchange our vows and begin our journey together.',
@@ -76,47 +56,37 @@ async function updateWeddingInfo() {
         address: '175 Pollard Rd, Temple, GA 30179',
         attire: 'Semi-Formal',
         visibility: 'PUBLIC' as const,
-        order: 2,
+        order: 0,
       },
       {
         name: 'Cocktail Hour',
         description: 'Enjoy drinks and hors d\'oeuvres while we take photos with the wedding party.',
         startTime: new Date(`${baseDate}T16:30:00-04:00`),
-        endTime: new Date(`${baseDate}T17:00:00-04:00`),
+        endTime: new Date(`${baseDate}T17:30:00-04:00`),
         location: 'The Venue at Stillwater Pond',
         address: '175 Pollard Rd, Temple, GA 30179',
         visibility: 'PUBLIC' as const,
-        order: 3,
+        order: 1,
       },
       {
-        name: 'First Dance & Dinner',
-        description: 'Watch our first dance as a married couple followed by dinner service.',
-        startTime: new Date(`${baseDate}T17:00:00-04:00`),
-        endTime: new Date(`${baseDate}T17:45:00-04:00`),
+        name: 'Grand Entrance & Dinner',
+        description: 'Grand entrance followed by dinner service.',
+        startTime: new Date(`${baseDate}T17:30:00-04:00`),
+        endTime: new Date(`${baseDate}T18:30:00-04:00`),
         location: 'The Venue at Stillwater Pond',
         address: '175 Pollard Rd, Temple, GA 30179',
         visibility: 'PUBLIC' as const,
-        order: 4,
+        order: 2,
       },
       {
-        name: 'Parent Dances, Toasts & Speeches',
-        description: 'Special dances with our parents and heartfelt toasts from our loved ones.',
-        startTime: new Date(`${baseDate}T17:45:00-04:00`),
-        endTime: new Date(`${baseDate}T18:00:00-04:00`),
-        location: 'The Venue at Stillwater Pond',
-        address: '175 Pollard Rd, Temple, GA 30179',
-        visibility: 'PUBLIC' as const,
-        order: 5,
-      },
-      {
-        name: 'Dance Floor Open',
-        description: 'Let\'s celebrate! Join us on the dance floor for an unforgettable evening.',
-        startTime: new Date(`${baseDate}T18:00:00-04:00`),
+        name: 'First Dances',
+        description: 'Our first dance as a couple, then parent dances. Dance floor opens after.',
+        startTime: new Date(`${baseDate}T18:30:00-04:00`),
         endTime: new Date(`${baseDate}T19:00:00-04:00`),
         location: 'The Venue at Stillwater Pond',
         address: '175 Pollard Rd, Temple, GA 30179',
         visibility: 'PUBLIC' as const,
-        order: 6,
+        order: 3,
       },
       {
         name: 'Cake Cutting',
@@ -126,17 +96,17 @@ async function updateWeddingInfo() {
         location: 'The Venue at Stillwater Pond',
         address: '175 Pollard Rd, Temple, GA 30179',
         visibility: 'PUBLIC' as const,
-        order: 7,
+        order: 4,
       },
       {
-        name: 'Grand Send Off',
+        name: 'Send Off',
         description: 'Help us celebrate with a grand send-off as we begin our new life together!',
         startTime: new Date(`${baseDate}T21:00:00-04:00`),
-        endTime: new Date(`${baseDate}T21:15:00-04:00`),
+        endTime: new Date(`${baseDate}T21:30:00-04:00`),
         location: 'The Venue at Stillwater Pond',
         address: '175 Pollard Rd, Temple, GA 30179',
         visibility: 'PUBLIC' as const,
-        order: 8,
+        order: 5,
       },
     ]
 

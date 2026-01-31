@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from "react"
-import Image from "next/image"
+import { useState, useMemo } from "react"
 import { RsvpLookupForm } from "@/app/(public)/rsvp/[code]/rsvp-lookup-form"
+import { InteractiveImage, type ImageMapRegion } from "@/components/ui/interactive-image"
 
 const DEFAULT_SPLASH_IMAGE = "/Gemini_Generated_Image_x4mqmsx4mqmsx4mq-Firefly-Upscaler-2x-scale.png"
 
@@ -11,31 +11,33 @@ interface SplashRsvpGateProps {
   rsvpSlug: string
   /** Optional override for splash image; defaults to the invitation image */
   imageUrl?: string
+  /**
+   * Optional custom click-mapped regions. If not provided, a default center
+   * region "RSVP" (30–70%, 30–70%) is used. Coords: [left%, top%, right%, bottom%].
+   */
+  regions?: ImageMapRegion[]
 }
 
 /**
- * Landing gate: user sees only the full-screen splash image first.
- * Clicking the center of the image reveals the RSVP lookup form; they must
- * complete the RSVP flow (invite code or email → submit RSVP) before
- * getting access to the rest of the site (wedding_access cookie).
+ * Landing gate: full-screen interactive image with click-mapped regions.
+ * Default: center region opens the RSVP form; user must complete RSVP
+ * before getting access (wedding_access cookie). Pass custom regions to
+ * map multiple hotspots (e.g. RSVP, Schedule, Registry).
  */
-export function SplashRsvpGate({ rsvpSlug, imageUrl = DEFAULT_SPLASH_IMAGE }: SplashRsvpGateProps) {
+export function SplashRsvpGate({ rsvpSlug, imageUrl = DEFAULT_SPLASH_IMAGE, regions: customRegions }: SplashRsvpGateProps) {
   const [showForm, setShowForm] = useState(false)
 
-  const handleCenterClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const target = e.currentTarget
-    const rect = target.getBoundingClientRect()
-    const centerX = rect.left + rect.width / 2
-    const centerY = rect.top + rect.height / 2
-    const distX = Math.abs(e.clientX - centerX)
-    const distY = Math.abs(e.clientY - centerY)
-    // Consider "center" as middle 40% (within 20% of center each axis)
-    const thresholdX = rect.width * 0.2
-    const thresholdY = rect.height * 0.2
-    if (distX <= thresholdX && distY <= thresholdY) {
-      setShowForm(true)
-    }
-  }
+  const regions = useMemo((): ImageMapRegion[] => {
+    if (customRegions?.length) return customRegions
+    return [
+      {
+        id: "rsvp",
+        coords: [30, 30, 70, 70],
+        label: "Click to RSVP",
+        onClick: () => setShowForm(true),
+      },
+    ]
+  }, [customRegions])
 
   if (showForm) {
     return (
@@ -47,31 +49,17 @@ export function SplashRsvpGate({ rsvpSlug, imageUrl = DEFAULT_SPLASH_IMAGE }: Sp
 
   return (
     <div
-      className="relative min-h-screen min-h-dvh w-full cursor-pointer overflow-hidden bg-black"
-      onClick={handleCenterClick}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault()
-          setShowForm(true)
-        }
-      }}
-      aria-label="Click the center of the invitation to continue"
+      className="relative min-h-screen min-h-dvh w-full overflow-hidden bg-black"
+      role="img"
+      aria-label="Wedding invitation with clickable regions"
     >
-      <Image
+      <InteractiveImage
         src={imageUrl}
         alt="Wedding invitation"
-        fill
-        className="object-contain"
-        sizes="100vw"
-        priority
+        regions={regions}
+        objectFit="contain"
         unoptimized={imageUrl.startsWith("/") && imageUrl.includes("Gemini")}
-      />
-      {/* Invisible center hotspot: middle 40% × 40% */}
-      <div
-        className="absolute left-1/2 top-1/2 h-[40%] w-[40%] -translate-x-1/2 -translate-y-1/2"
-        aria-hidden
+        className="absolute inset-0"
       />
     </div>
   )

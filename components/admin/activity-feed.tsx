@@ -39,11 +39,11 @@ const actionIcons: Record<string, any> = {
 }
 
 const actionColors: Record<string, string> = {
-  CREATED: "bg-green-600/10 text-green-600",
+  CREATED: "bg-green-600/10 text-white",
   UPDATED: "bg-blue-600/10 text-blue-600",
   DELETED: "bg-red-600/10 text-red-600",
   INVITE_SENT: "bg-purple-600/10 text-purple-600",
-  RSVP_CHANGED: "bg-green-600/10 text-green-600",
+  RSVP_CHANGED: "bg-green-600/10 text-white",
   TAG_ADDED: "bg-yellow-600/10 text-yellow-600",
   MESSAGE_SENT: "bg-blue-600/10 text-blue-600",
   SEATING_UPDATED: "bg-indigo-600/10 text-indigo-600",
