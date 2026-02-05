@@ -1,10 +1,10 @@
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect, notFound } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
+import { GuestEditForm } from "@/components/admin/guest-edit-form"
 
 interface GuestEditPageProps {
   params: Promise<{
@@ -58,22 +58,7 @@ export default async function GuestEditPage({ params }: GuestEditPageProps) {
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Guest Edit Form</CardTitle>
-          <CardDescription>This feature is coming soon</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">
-            The guest editing functionality will be implemented here. For now, you can view guest details.
-          </p>
-          <Button asChild className="mt-4">
-            <Link href={`/admin/guests/${guest.id}`}>
-              Back to Guest Details
-            </Link>
-          </Button>
-        </CardContent>
-      </Card>
+      <GuestEditForm guest={guest} />
     </div>
   )
 }

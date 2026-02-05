@@ -79,7 +79,16 @@ export function WeddingPageClient({ wedding, weddingSchema }: WeddingPageClientP
         />
 
         {/* Wedding Calendar */}
-        <WeddingCalendar weddingDate={wedding.weddingDate} />
+        <WeddingCalendar 
+          weddingDate={wedding.weddingDate}
+          partner1Name={wedding.partner1Name}
+          partner2Name={wedding.partner2Name}
+          venueName={wedding.venueName}
+          venueAddress={wedding.venueAddress}
+          venueCity={wedding.venueCity}
+          venueState={wedding.venueState}
+          venueZip={wedding.venueZip}
+        />
 
         {/* Schedule Section */}
         <ScheduleSection

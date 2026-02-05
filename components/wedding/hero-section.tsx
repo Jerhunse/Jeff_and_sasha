@@ -66,9 +66,9 @@ export function HeroSection({
 
   return (
     <section className="relative h-screen min-h-dvh w-full overflow-hidden bg-transparent">
-      {/* Video background with fade effect */}
+      {/* Video background with fade effect - desktop only */}
       <div 
-        className="absolute inset-0 transition-opacity duration-300"
+        className="hidden md:block absolute inset-0 transition-opacity duration-300"
         style={{ opacity: videoOpacity }}
       >
         <video
@@ -77,35 +77,16 @@ export function HeroSection({
           loop
           muted
           playsInline
-          webkit-playsinline="true"
-          x5-playsinline="true"
           preload="auto"
           disablePictureInPicture
           className="absolute inset-0 w-full h-full object-cover"
-          poster="/background-main.png"
-          onLoadedData={(e) => {
-            // Force play on mobile devices
-            const video = e.currentTarget
-            video.play().catch((err) => {
-              console.log('Autoplay blocked:', err)
-            })
-          }}
-          onCanPlay={(e) => {
-            // Additional attempt to play when video is ready
-            const video = e.currentTarget
-            if (video.paused) {
-              video.play().catch((err) => {
-                console.log('Autoplay blocked on canPlay:', err)
-              })
-            }
-          }}
         >
           <source src="/videos/wedding-splash.mp4" type="video/mp4" />
           <source src="/videos/wedding-splash.webm" type="video/webm" />
         </video>
       </div>
       
-      {/* Fallback static image (visible when video fades out or fails to load) */}
+      {/* Static background image - always visible, video overlays on desktop */}
       <img
         src="/background-main.png"
         alt="Wedding"

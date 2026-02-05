@@ -151,19 +151,46 @@ export async function POST(req: NextRequest) {
 
     // 3) Look up by name when provided
     if (name) {
-      const nameParts = name.split(/\s+/)
-      const firstName = nameParts[0]
-      const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : ""
+      const nameParts = name.split(/\s+/).filter(part => part.length > 0)
+      
+      // Build search conditions based on what was provided
+      const searchConditions = []
+      
+      if (nameParts.length === 1) {
+        // Single word: could be first name or last name
+        const singleName = nameParts[0]
+        searchConditions.push(
+          { firstName: { contains: singleName, mode: "insensitive" } },
+          { lastName: { contains: singleName, mode: "insensitive" } }
+        )
+      } else if (nameParts.length >= 2) {
+        // Multiple words: treat as first + last name
+        const firstName = nameParts[0]
+        const lastName = nameParts.slice(1).join(" ")
+        
+        // Prioritize exact first+last match, but also allow partial matches
+        searchConditions.push(
+          // Exact first name + exact last name match
+          {
+            AND: [
+              { firstName: { contains: firstName, mode: "insensitive" } },
+              { lastName: { contains: lastName, mode: "insensitive" } }
+            ]
+          },
+          // First name matches
+          { firstName: { contains: firstName, mode: "insensitive" } },
+          // Last name matches
+          { lastName: { contains: lastName, mode: "insensitive" } },
+          // Last name matches the full search query (in case they put last name first)
+          { lastName: { contains: name, mode: "insensitive" } }
+        )
+      }
 
       // Search for partial matches in first name or last name
       const guestsByName = await prisma.guest.findMany({
         where: {
           coupleId: wedding.id,
-          OR: [
-            { firstName: { contains: firstName, mode: "insensitive" } },
-            { lastName: { contains: name, mode: "insensitive" } },
-            { firstName: { contains: name, mode: "insensitive" } },
-          ],
+          OR: searchConditions,
         },
         select: {
           inviteToken: true,
@@ -176,12 +203,35 @@ export async function POST(req: NextRequest) {
       })
 
       if (guestsByName.length > 0) {
+        // If multiple matches, prioritize exact matches
+        let prioritizedGuests = guestsByName
+        
+        // If we have multiple words, prioritize guests matching both first and last
+        if (nameParts.length >= 2) {
+          const firstName = nameParts[0].toLowerCase()
+          const lastName = nameParts.slice(1).join(" ").toLowerCase()
+          
+          const exactMatches = guestsByName.filter(g => 
+            g.firstName.toLowerCase().includes(firstName) && 
+            g.lastName.toLowerCase().includes(lastName)
+          )
+          
+          if (exactMatches.length > 0) {
+            // Put exact matches first, then other matches
+            const otherMatches = guestsByName.filter(g => 
+              !(g.firstName.toLowerCase().includes(firstName) && 
+                g.lastName.toLowerCase().includes(lastName))
+            )
+            prioritizedGuests = [...exactMatches, ...otherMatches]
+          }
+        }
+        
         // If multiple matches, return all for user to choose
         return NextResponse.json({
           found: true,
           source: "prisma",
-          multiple: guestsByName.length > 1,
-          guests: guestsByName.map((g) => ({
+          multiple: prioritizedGuests.length > 1,
+          guests: prioritizedGuests.map((g) => ({
             inviteToken: g.inviteToken,
             firstName: g.firstName,
             lastName: g.lastName,

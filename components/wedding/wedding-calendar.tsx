@@ -5,9 +5,25 @@ import Image from "next/image"
 
 interface WeddingCalendarProps {
   weddingDate: Date
+  partner1Name?: string
+  partner2Name?: string
+  venueName?: string
+  venueAddress?: string
+  venueCity?: string
+  venueState?: string
+  venueZip?: string
 }
 
-export function WeddingCalendar({ weddingDate }: WeddingCalendarProps) {
+export function WeddingCalendar({ 
+  weddingDate, 
+  partner1Name = "Wedding",
+  partner2Name = "",
+  venueName = "Wedding Venue",
+  venueAddress = "",
+  venueCity = "",
+  venueState = "",
+  venueZip = ""
+}: WeddingCalendarProps) {
   const date = new Date(weddingDate)
   const year = date.getFullYear()
   const month = date.getMonth()
@@ -36,6 +52,74 @@ export function WeddingCalendar({ weddingDate }: WeddingCalendarProps) {
   }
 
   const dayNames = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"]
+
+  // Function to format date for iCalendar
+  const formatICSDate = (date: Date): string => {
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const hours = String(date.getHours()).padStart(2, '0')
+    const minutes = String(date.getMinutes()).padStart(2, '0')
+    const seconds = String(date.getSeconds()).padStart(2, '0')
+    return `${year}${month}${day}T${hours}${minutes}${seconds}`
+  }
+
+  // Function to generate and download .ics file
+  const downloadICS = () => {
+    const coupleNames = partner2Name 
+      ? `${partner1Name} & ${partner2Name}` 
+      : partner1Name
+
+    // Build location string
+    let location = venueName
+    if (venueAddress) {
+      location += `, ${venueAddress}`
+    }
+    if (venueCity) {
+      location += `, ${venueCity}`
+    }
+    if (venueState) {
+      location += `, ${venueState}`
+    }
+    if (venueZip) {
+      location += ` ${venueZip}`
+    }
+
+    // Create start and end times (assuming 4 hour event)
+    const startDate = new Date(weddingDate)
+    const endDate = new Date(weddingDate)
+    endDate.setHours(endDate.getHours() + 4)
+
+    // Generate ICS content
+    const icsContent = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Wedding Calendar//EN',
+      'CALSCALE:GREGORIAN',
+      'METHOD:PUBLISH',
+      'BEGIN:VEVENT',
+      `DTSTART:${formatICSDate(startDate)}`,
+      `DTEND:${formatICSDate(endDate)}`,
+      `DTSTAMP:${formatICSDate(new Date())}`,
+      `SUMMARY:${coupleNames} Wedding`,
+      `DESCRIPTION:Join us for the wedding celebration of ${coupleNames}`,
+      `LOCATION:${location}`,
+      'STATUS:CONFIRMED',
+      'SEQUENCE:0',
+      `UID:${Date.now()}@wedding-platform`,
+      'END:VEVENT',
+      'END:VCALENDAR'
+    ].join('\r\n')
+
+    // Create blob and download
+    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' })
+    const link = document.createElement('a')
+    link.href = window.URL.createObjectURL(blob)
+    link.download = `${coupleNames.replace(/\s+/g, '-')}-Wedding.ics`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
 
   return (
     <section className="relative py-12 md:py-20 px-4 md:px-6" style={{ backgroundColor: "#708C5C" }}>
@@ -128,6 +212,7 @@ export function WeddingCalendar({ weddingDate }: WeddingCalendarProps) {
               {/* Add to Calendar Button */}
               <div className="mt-6 md:mt-8 text-center lg:text-left">
                 <button
+                  onClick={downloadICS}
                   className="px-6 py-2.5 md:py-2 border font-sans text-xs md:text-sm tracking-widest uppercase transition-all duration-300 hover:bg-white/10 min-h-[44px]"
                   style={{ color: "#D4C8B8", borderColor: "#D4C8B8" }}
                 >

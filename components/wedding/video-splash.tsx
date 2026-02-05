@@ -88,43 +88,32 @@ export function VideoSplash({
         }
       `}</style>
       <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-black" style={{ zIndex: 9999 }}>
-        {/* Video background - fills entire viewport */}
+        {/* Video background - desktop only */}
         <video
           autoPlay
           loop
           muted
           playsInline
-          webkit-playsinline="true"
-          x5-playsinline="true"
           preload="auto"
           disablePictureInPicture
-          className="absolute top-0 left-0 min-w-full min-h-full w-auto h-auto object-cover"
+          className="hidden md:block absolute top-0 left-0 min-w-full min-h-full w-auto h-auto object-cover"
           style={{
             transform: 'translate(-50%, -50%)',
             left: '50%',
             top: '50%',
           }}
-          poster={posterUrl}
-          onLoadedData={(e) => {
-            // Force play on mobile devices
-            const video = e.currentTarget
-            video.play().catch((err) => {
-              console.log('Autoplay blocked:', err)
-            })
-          }}
-          onCanPlay={(e) => {
-            // Additional attempt to play when video is ready
-            const video = e.currentTarget
-            if (video.paused) {
-              video.play().catch((err) => {
-                console.log('Autoplay blocked on canPlay:', err)
-              })
-            }
-          }}
         >
           <source src={videoUrl} type="video/mp4" />
           <source src={videoUrl.replace('.mp4', '.webm')} type="video/webm" />
         </video>
+
+        {/* Static background image - visible on all devices, but video overlays on desktop */}
+        <div
+          className="absolute inset-0 w-full h-full bg-cover bg-center"
+          style={{
+            backgroundImage: `url(${posterUrl})`,
+          }}
+        />
 
       {/* Vignette effect - faded border around all 4 sides */}
       <div 
