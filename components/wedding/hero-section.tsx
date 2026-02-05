@@ -77,8 +77,28 @@ export function HeroSection({
           loop
           muted
           playsInline
+          webkit-playsinline="true"
+          x5-playsinline="true"
+          preload="auto"
+          disablePictureInPicture
           className="absolute inset-0 w-full h-full object-cover"
           poster="/background-main.png"
+          onLoadedData={(e) => {
+            // Force play on mobile devices
+            const video = e.currentTarget
+            video.play().catch((err) => {
+              console.log('Autoplay blocked:', err)
+            })
+          }}
+          onCanPlay={(e) => {
+            // Additional attempt to play when video is ready
+            const video = e.currentTarget
+            if (video.paused) {
+              video.play().catch((err) => {
+                console.log('Autoplay blocked on canPlay:', err)
+              })
+            }
+          }}
         >
           <source src="/videos/wedding-splash.mp4" type="video/mp4" />
           <source src="/videos/wedding-splash.webm" type="video/webm" />

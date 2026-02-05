@@ -1,0 +1,73 @@
+╔═══════════════════════════════════════════════════════════╗
+║                                                           ║
+║        🚀 JEFFANDSASHA.COM - DNS CONFIGURATION 🚀         ║
+║                                                           ║
+╚═══════════════════════════════════════════════════════════╝
+
+📱 SAVE THIS - Reference on your phone while configuring!
+
+═══════════════════════════════════════════════════════════
+
+⚠️  STEP 1: DEACTIVATE DOMAIN GUARD FIRST!
+   
+   Login: https://my.ionos.com
+   Go to: Domains & SSL → jeffandsasha.com
+   Find: Domain Guard
+   Click: DEACTIVATE
+
+═══════════════════════════════════════════════════════════
+
+📝 STEP 2: ADD THESE EXACT DNS RECORDS
+
+RECORD #1:
+┌─────────────────────┐
+│ Type:   A           │
+│ Name:   @           │
+│ Value:  76.76.21.21 │
+│ TTL:    3600        │
+└─────────────────────┘
+
+RECORD #2:
+┌─────────────────────┐
+│ Type:   A           │
+│ Name:   www         │
+│ Value:  76.76.21.21 │
+│ TTL:    3600        │
+└─────────────────────┘
+
+⚠️  IMPORTANT: Use EXACTLY 76.76.21.21 (Vercel's IP)
+
+═══════════════════════════════════════════════════════════
+
+✅ STEP 3: SAVE & WAIT
+
+   ⏱️  DNS propagates in 5-15 minutes
+   📧 You'll get email from Vercel
+   🔒 SSL auto-configures
+   
+   Test: https://dnschecker.org/#A/jeffandsasha.com
+
+═══════════════════════════════════════════════════════════
+
+🎉 YOUR LIVE WEBSITE:
+
+   https://jeffandsasha.com
+   https://www.jeffandsasha.com
+
+   Temporary (works now):
+   https://wedding-platform-ebon.vercel.app
+
+═══════════════════════════════════════════════════════════
+
+📞 NEED HELP?
+
+   Check: DEPLOYMENT_SUMMARY.md
+   Or: VERCEL_DEPLOYMENT_COMPLETE.md
+
+═══════════════════════════════════════════════════════════
+
+✨ That's it! Simple 3-step process.
+
+   After DNS setup, your wedding site goes LIVE! 💒
+
+═══════════════════════════════════════════════════════════

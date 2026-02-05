@@ -94,6 +94,10 @@ export function VideoSplash({
           loop
           muted
           playsInline
+          webkit-playsinline="true"
+          x5-playsinline="true"
+          preload="auto"
+          disablePictureInPicture
           className="absolute top-0 left-0 min-w-full min-h-full w-auto h-auto object-cover"
           style={{
             transform: 'translate(-50%, -50%)',
@@ -101,6 +105,22 @@ export function VideoSplash({
             top: '50%',
           }}
           poster={posterUrl}
+          onLoadedData={(e) => {
+            // Force play on mobile devices
+            const video = e.currentTarget
+            video.play().catch((err) => {
+              console.log('Autoplay blocked:', err)
+            })
+          }}
+          onCanPlay={(e) => {
+            // Additional attempt to play when video is ready
+            const video = e.currentTarget
+            if (video.paused) {
+              video.play().catch((err) => {
+                console.log('Autoplay blocked on canPlay:', err)
+              })
+            }
+          }}
         >
           <source src={videoUrl} type="video/mp4" />
           <source src={videoUrl.replace('.mp4', '.webm')} type="video/webm" />

@@ -105,28 +105,27 @@ export function TravelSection({
                         />
                       </div>
                     )}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                      <Button asChild variant="outline" className="min-h-[44px]">
-                        <a
-                          href="https://share.google/BQng1GFNuxbDEQf5T"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <MapPin className="h-4 w-4 mr-2" />
-                          Open in Google Maps
-                        </a>
-                      </Button>
-                      <Button asChild variant="outline" className="min-h-[44px]">
-                        <a
-                          href="http://maps.apple.com/maps?q=175+Pollard+Rd+Temple+GA+30179+United+States"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <MapPin className="h-4 w-4 mr-2" />
-                          Open in Apple Maps
-                        </a>
-                      </Button>
+                    
+                    {/* Note for guests */}
+                    <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                      <p className="text-sm text-amber-900 dark:text-amber-200 flex items-start gap-2">
+                        <Info className="h-4 w-4 mt-0.5 shrink-0" />
+                        <span>
+                          <strong>Important:</strong> Please use Google Maps for directions. Apple Maps may not direct you to the correct location.
+                        </span>
+                      </p>
                     </div>
+                    
+                    <Button asChild variant="outline" className="w-full min-h-[44px]">
+                      <a
+                        href="https://share.google/BQng1GFNuxbDEQf5T"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <MapPin className="h-4 w-4 mr-2" />
+                        Open in Google Maps
+                      </a>
+                    </Button>
                   </div>
                 )}
               </CardContent>

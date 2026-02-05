@@ -37,7 +37,7 @@ export function HeroWithVideo({
   const [codeInput, setCodeInput] = useState("")
   const [codeError, setCodeError] = useState("")
   const [hasRsvpAccess, setHasRsvpAccess] = useState(false)
-  const videoRef = useRef<HTMLIFrameElement>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
   const router = useRouter()
   
   useEffect(() => {
@@ -111,24 +111,43 @@ export function HeroWithVideo({
 
   return (
     <section id="home" className="relative h-screen min-h-dvh w-full overflow-hidden bg-transparent">
-      {/* YouTube Video background with fade effect */}
+      {/* Video background with fade effect */}
       <div 
         className="absolute inset-0 transition-opacity duration-300"
         style={{ opacity: videoOpacity }}
       >
-        <iframe
+        <video
           ref={videoRef}
+          autoPlay
+          loop
+          muted
+          playsInline
+          webkit-playsinline="true"
+          x5-playsinline="true"
+          preload="auto"
+          disablePictureInPicture
           className="absolute inset-0 w-full h-full object-cover"
-          src="https://www.youtube.com/embed/7bOfht-JlO4?autoplay=1&mute=1&loop=1&playlist=7bOfht-JlO4&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1"
-          title="Wedding Video"
-          allow="autoplay; fullscreen"
-          style={{
-            width: '100vw',
-            height: '100vh',
-            objectFit: 'cover',
-            pointerEvents: 'none',
+          poster="/background-main.png"
+          onLoadedData={(e) => {
+            // Force play on mobile devices
+            const video = e.currentTarget
+            video.play().catch((err) => {
+              console.log('Autoplay blocked:', err)
+            })
           }}
-        />
+          onCanPlay={(e) => {
+            // Additional attempt to play when video is ready
+            const video = e.currentTarget
+            if (video.paused) {
+              video.play().catch((err) => {
+                console.log('Autoplay blocked on canPlay:', err)
+              })
+            }
+          }}
+        >
+          <source src="/videos/hero-video.mp4" type="video/mp4" />
+          <source src="/videos/hero-video.webm" type="video/webm" />
+        </video>
       </div>
       
       {/* Fallback static image (visible when video fades out or fails to load) */}

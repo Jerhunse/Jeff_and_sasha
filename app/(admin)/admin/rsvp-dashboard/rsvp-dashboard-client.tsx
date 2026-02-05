@@ -232,7 +232,7 @@ export function RSVPDashboardClient({ initialGuests, couple }: Props) {
 
   const handleExportCSV = () => {
     const csvData = [
-      ["First Name", "Last Name", "Email", "Phone", "RSVP Status", "Plus One Allowed", "Response Date", "Message"]
+      ["First Name", "Last Name", "Email", "Phone", "RSVP Status", "Guest Count", "Guest Names", "Song Request", "Response Date", "Message"]
     ]
 
     guests.forEach(guest => {
@@ -240,6 +240,22 @@ export function RSVPDashboardClient({ initialGuests, couple }: Props) {
       const status = latestResponse ? latestResponse.status : "PENDING"
       const responseDate = latestResponse ? new Date(latestResponse.respondedAt).toLocaleDateString() : "N/A"
       const message = latestResponse?.message || ""
+      
+      // Parse answersJSON to extract song request and guest names
+      let songRequest = ""
+      let guestCount = guest.maxGuestsAllowed
+      let guestNames = ""
+      
+      if (latestResponse?.answersJSON) {
+        try {
+          const answers = JSON.parse(latestResponse.answersJSON)
+          songRequest = answers.songRequest || ""
+          guestCount = answers.confirmedGuestCount || guest.maxGuestsAllowed
+          guestNames = answers.allGuestNames ? answers.allGuestNames.join(", ") : ""
+        } catch (e) {
+          console.error("Failed to parse answers:", e)
+        }
+      }
 
       csvData.push([
         guest.firstName,
@@ -247,7 +263,9 @@ export function RSVPDashboardClient({ initialGuests, couple }: Props) {
         guest.email || "",
         guest.phone || "",
         status,
-        guest.allowPlusOne ? "Yes" : "No",
+        guestCount.toString(),
+        guestNames || `${guest.firstName} ${guest.lastName}`,
+        songRequest,
         responseDate,
         message
       ])
@@ -521,12 +539,20 @@ export function RSVPDashboardClient({ initialGuests, couple }: Props) {
                             <div>
                               <Label className="text-muted-foreground">Additional Details</Label>
                               <div className="mt-2 space-y-2">
-                                {Object.entries(answers).map(([key, value]) => (
-                                  <div key={key} className="text-sm">
-                                    <span className="font-medium capitalize">{key.replace(/_/g, " ")}:</span>{" "}
-                                    <span>{String(value)}</span>
+                                {answers.songRequest && (
+                                  <div className="text-sm bg-muted/50 p-3 rounded-md border">
+                                    <span className="font-medium">🎵 Song Request:</span>{" "}
+                                    <span className="text-primary">{answers.songRequest}</span>
                                   </div>
-                                ))}
+                                )}
+                                {Object.entries(answers)
+                                  .filter(([key]) => key !== "songRequest" && key !== "allGuestNames" && key !== "confirmedGuestCount")
+                                  .map(([key, value]) => (
+                                    <div key={key} className="text-sm">
+                                      <span className="font-medium capitalize">{key.replace(/_/g, " ")}:</span>{" "}
+                                      <span>{String(value)}</span>
+                                    </div>
+                                  ))}
                               </div>
                             </div>
                           )}

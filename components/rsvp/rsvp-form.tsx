@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Heart, Loader2, CheckCircle, Users, Search, Phone as PhoneIcon } from "lucide-react"
+import { Heart, Loader2, CheckCircle, Users, Search, Phone as PhoneIcon, Music, ArrowLeft, Home } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -82,6 +82,11 @@ export function RsvpForm({ guest, couple, isNewGuest = false, sharedCode }: Rsvp
   // Determine max allowed guests for this party
   const maxAllowedGuests = guest?.maxGuestsAllowed || 1
 
+  const handleGoBack = () => {
+    // Navigate to the wedding home page
+    router.push(`/${couple.slug}`)
+  }
+
   const [formData, setFormData] = useState({
     firstName: guest?.firstName || "",
     lastName: guest?.lastName || "",
@@ -89,6 +94,7 @@ export function RsvpForm({ guest, couple, isNewGuest = false, sharedCode }: Rsvp
     email: guest?.email || "",
     phone: guest?.phone || "",
     message: "",
+    songRequest: "",
     // Guest count: total number including primary guest
     confirmedGuestCount: maxAllowedGuests,
     guestNames: [] as string[], // Array of full names for all guests including primary
@@ -230,6 +236,7 @@ export function RsvpForm({ guest, couple, isNewGuest = false, sharedCode }: Rsvp
         email: formData.email,
         phone: formData.phone,
         message: formData.message,
+        songRequest: formData.songRequest,
         confirmedGuestCount: formData.confirmedGuestCount,
         guestNames: formData.guestNames.filter(n => n?.trim()),
         // For backward compatibility with existing API
@@ -282,19 +289,33 @@ export function RsvpForm({ guest, couple, isNewGuest = false, sharedCode }: Rsvp
     <form onSubmit={step === 'lookup' ? handleLookupSubmit : handleSubmit}>
       <Card>
         <CardHeader>
-          <CardTitle className="font-serif text-2xl">
-            {step === 'lookup' 
-              ? "Find Your Invitation"
-              : guest 
-                ? `RSVP for ${guest.firstName} ${guest.lastName}`
-                : "RSVP"
-            }
-          </CardTitle>
-          {step === 'lookup' && (
-            <CardDescription>
-              Enter your name or phone number to get started
-            </CardDescription>
-          )}
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <CardTitle className="font-serif text-2xl">
+                {step === 'lookup' 
+                  ? "Find Your Invitation"
+                  : guest 
+                    ? `RSVP for ${guest.firstName} ${guest.lastName}`
+                    : "RSVP"
+                }
+              </CardTitle>
+              {step === 'lookup' && (
+                <CardDescription>
+                  Enter your name or phone number to get started
+                </CardDescription>
+              )}
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleGoBack}
+              className="flex items-center gap-2"
+            >
+              <Home className="h-4 w-4" />
+              <span className="hidden sm:inline">Back to Home</span>
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-6">
           
@@ -560,6 +581,29 @@ export function RsvpForm({ guest, couple, isNewGuest = false, sharedCode }: Rsvp
                       />
                     </div>
                   </div>
+
+                  {/* Song Request (Optional) */}
+                  {couple.askSongRequest && (
+                    <div className="space-y-2 pt-4 border-t">
+                      <div className="flex items-center gap-2">
+                        <Music className="h-4 w-4 text-gold" />
+                        <Label htmlFor="songRequest" className="text-base">
+                          Song Request (Optional)
+                        </Label>
+                      </div>
+                      <Input
+                        id="songRequest"
+                        value={formData.songRequest}
+                        onChange={(e) =>
+                          setFormData({ ...formData, songRequest: e.target.value })
+                        }
+                        placeholder="Artist - Song Title"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Request a song you'd love to hear at the reception
+                      </p>
+                    </div>
+                  )}
 
                   {/* Message (Optional) */}
                   <div className="space-y-2 pt-4 border-t">

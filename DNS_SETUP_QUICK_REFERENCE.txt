@@ -1,0 +1,94 @@
+╔══════════════════════════════════════════════════════════════╗
+║                                                              ║
+║           DNS CONFIGURATION FOR JEFFANDSASHA.COM             ║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
+
+📋 QUICK REFERENCE - Add these records at IONOS:
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃  STEP 1: DEACTIVATE DOMAIN GUARD                          ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+1. Login: https://my.ionos.com
+2. Go to: Domains & SSL
+3. Select: jeffandsasha.com
+4. Find: Domain Guard section
+5. Click: Deactivate
+6. Confirm: Yes, deactivate
+
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃  STEP 2: ADD DNS RECORDS                                  ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+┌──────────────────────────────────────────────────────────┐
+│ RECORD 1: Root Domain (jeffandsasha.com)                │
+├──────────────────────────────────────────────────────────┤
+│ Type:     A                                              │
+│ Name:     @ (or leave blank)                             │
+│ Value:    76.76.21.21                                    │
+│ TTL:      3600 (or Auto)                                 │
+└──────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────┐
+│ RECORD 2: WWW Subdomain (www.jeffandsasha.com)          │
+├──────────────────────────────────────────────────────────┤
+│ Type:     A                                              │
+│ Name:     www                                            │
+│ Value:    76.76.21.21                                    │
+│ TTL:      3600 (or Auto)                                 │
+└──────────────────────────────────────────────────────────┘
+
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃  STEP 3: WAIT & VERIFY                                    ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+⏱️  Wait: 5-15 minutes (up to 48 hours)
+📧 You'll receive an email from Vercel when complete
+✅ Test: https://dnschecker.org/#A/jeffandsasha.com
+
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃  YOUR LIVE WEBSITE                                        ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+🌐 Primary:   https://jeffandsasha.com
+🌐 WWW:       https://www.jeffandsasha.com
+🔒 SSL:       Auto-provisioned by Vercel (free)
+
+📝 TEMPORARY URL (works now):
+   https://wedding-platform-ebon.vercel.app
+
+
+═══════════════════════════════════════════════════════════════
+
+⚠️  IMPORTANT NOTES:
+
+• Domain Guard MUST be deactivated first
+• Use the EXACT IP: 76.76.21.21
+• Both @ and www records are required
+• DNS changes take 5-15 minutes typically
+• SSL certificate is automatic (nothing to do)
+• You'll get email confirmation from Vercel
+
+═══════════════════════════════════════════════════════════════
+
+✅ CHECKLIST:
+
+□ Deactivated Domain Guard at IONOS
+□ Added A record for @ → 76.76.21.21
+□ Added A record for www → 76.76.21.21
+□ Waited 15 minutes
+□ Checked https://dnschecker.org
+□ Received Vercel verification email
+□ Tested https://jeffandsasha.com
+□ SSL certificate shows (green padlock)
+
+═══════════════════════════════════════════════════════════════
+
+🎉 Once complete, share with your guests:
+   "Visit our wedding website at jeffandsasha.com"
+
+═══════════════════════════════════════════════════════════════

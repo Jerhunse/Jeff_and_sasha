@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { CountdownTimer } from "./countdown-timer"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
@@ -40,6 +40,23 @@ export function HeroCodeGate({
   const [dialogStage, setDialogStage] = useState<DialogStage>(null)
   const [code, setCode] = useState("")
   const [error, setError] = useState("")
+  const [keyboardVisible, setKeyboardVisible] = useState(false)
+
+  // Handle keyboard visibility on mobile
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('visualViewport' in window)) return
+
+    const handleResize = () => {
+      if (window.visualViewport) {
+        // If viewport height is significantly less than window height, keyboard is likely visible
+        const keyboardOpen = window.visualViewport.height < window.innerHeight * 0.75
+        setKeyboardVisible(keyboardOpen)
+      }
+    }
+
+    window.visualViewport?.addEventListener('resize', handleResize)
+    return () => window.visualViewport?.removeEventListener('resize', handleResize)
+  }, [])
 
   const formattedDate = new Date(weddingDate).toLocaleDateString("en-US", {
     weekday: "long",
@@ -116,10 +133,31 @@ export function HeroCodeGate({
           loop
           muted
           playsInline
+          webkit-playsinline="true"
+          x5-playsinline="true"
+          preload="auto"
+          disablePictureInPicture
           className="absolute inset-0 w-full h-full object-cover"
           poster="/background-main.png"
+          onLoadedData={(e) => {
+            // Force play on mobile devices
+            const video = e.currentTarget
+            video.play().catch((err) => {
+              console.log('Autoplay blocked:', err)
+            })
+          }}
+          onCanPlay={(e) => {
+            // Additional attempt to play when video is ready
+            const video = e.currentTarget
+            if (video.paused) {
+              video.play().catch((err) => {
+                console.log('Autoplay blocked on canPlay:', err)
+              })
+            }
+          }}
         >
           <source src="/videos/hero-video.mp4" type="video/mp4" />
+          <source src="/videos/hero-video.webm" type="video/webm" />
         </video>
         
         {/* Dark overlay for text readability */}
@@ -168,7 +206,11 @@ export function HeroCodeGate({
 
         {/* Code Entry Dialog */}
         <Dialog open={dialogStage === "code-entry"} onOpenChange={handleCloseDialog}>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent 
+            className={`sm:max-w-md max-h-[85vh] overflow-y-auto transition-all duration-200 ${
+              keyboardVisible ? 'top-[10%]' : 'top-[30%] sm:top-[50%]'
+            }`}
+          >
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Lock className="h-5 w-5" />
@@ -192,6 +234,8 @@ export function HeroCodeGate({
                   }}
                   className="uppercase"
                   autoFocus
+                  inputMode="text"
+                  autoComplete="off"
                 />
                 {error && (
                   <div className="flex items-start gap-2 text-sm text-destructive">

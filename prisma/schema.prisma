@@ -134,6 +134,13 @@ model Couple {
   maxCapacity     Int?         // Total venue capacity
   timezone        String       @default("America/New_York")
   
+  // RSVP Feature Flags
+  askMealChoice   Boolean      @default(false)
+  mealOptions     String?      // JSON array of meal options
+  askSongRequest  Boolean      @default(true)
+  askBusTransport Boolean      @default(false)
+  busRoutes       String?      // JSON array of bus routes
+  
   // Integrations
   stripeAccountId String?      // Connected Stripe account for cash funds
   googleMapsApiKey String?     // For map embeds
