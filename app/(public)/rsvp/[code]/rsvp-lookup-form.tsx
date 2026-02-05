@@ -2,24 +2,41 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import { Heart, Mail, PenLine } from "lucide-react"
+import { Heart, Mail, Phone as PhoneIcon } from "lucide-react"
 import { RsvpQrCode } from "@/components/wedding/rsvp-qr-code"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 interface RsvpLookupFormProps {
   slug: string
 }
 
+interface GuestMatch {
+  inviteToken: string
+  firstName: string
+  lastName: string
+  phone: string | null
+  maxGuestsAllowed: number
+}
+
 export function RsvpLookupForm({ slug }: RsvpLookupFormProps) {
   const [email, setEmail] = useState("")
   const [phone, setPhone] = useState("")
+  const [name, setName] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [rsvpUrl, setRsvpUrl] = useState("")
+  const [multipleMatches, setMultipleMatches] = useState<GuestMatch[]>([])
+  const [showMultipleDialog, setShowMultipleDialog] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -33,12 +50,14 @@ export function RsvpLookupForm({ slug }: RsvpLookupFormProps) {
     e.preventDefault()
     setError("")
     setLoading(true)
+    setMultipleMatches([])
 
     const trimmedEmail = email.trim()
     const trimmedPhone = phone.replace(/\D/g, "").trim()
+    const trimmedName = name.trim()
 
-    if (!trimmedEmail && !trimmedPhone) {
-      setError("Please enter your email address or phone number")
+    if (!trimmedEmail && !trimmedPhone && !trimmedName) {
+      setError("Please enter your email address, phone number, or name")
       setLoading(false)
       return
     }
@@ -51,27 +70,42 @@ export function RsvpLookupForm({ slug }: RsvpLookupFormProps) {
           slug,
           ...(trimmedEmail && { email: trimmedEmail }),
           ...(trimmedPhone && { phone: trimmedPhone }),
+          ...(trimmedName && { name: trimmedName }),
         }),
       })
 
       const data = await response.json()
 
       if (response.ok && data.found) {
-        if (data.source === "supabase" && data.email) {
+        // Handle multiple matches
+        if (data.multiple && data.guests) {
+          setMultipleMatches(data.guests)
+          setShowMultipleDialog(true)
+        } else if (data.source === "supabase" && data.email) {
           router.push(`/rsvp/email/${encodeURIComponent(data.email.toLowerCase())}?slug=${slug}`)
         } else if (data.inviteToken) {
-          router.push(`/rsvp/${data.inviteToken}`)
+          // Add skipEnvelope parameter to go directly to RSVP form
+          router.push(`/rsvp/${data.inviteToken}?skipEnvelope=true`)
+        } else if (data.guests && data.guests.length === 1) {
+          // Single match from name search - skip envelope
+          router.push(`/rsvp/${data.guests[0].inviteToken}?skipEnvelope=true`)
         } else {
           setError("We found your invitation but couldn't load it. Please contact the couple.")
         }
       } else {
-        setError(data.error || "We couldn't find an invitation for that email or phone number. You can RSVP now without a code, or contact the couple.")
+        setError(data.error || "We couldn't find an invitation for that email, phone number, or name. You can RSVP now without a code, or contact the couple.")
       }
     } catch (err) {
       setError("Something went wrong. Please try again.")
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleSelectGuest = (guest: GuestMatch) => {
+    setShowMultipleDialog(false)
+    // Add skipEnvelope parameter to go directly to RSVP form
+    router.push(`/rsvp/${guest.inviteToken}?skipEnvelope=true`)
   }
 
   return (
@@ -85,74 +119,65 @@ export function RsvpLookupForm({ slug }: RsvpLookupFormProps) {
             RSVP
           </h1>
           <p className="text-lg text-muted-foreground">
-            Choose how you&rsquo;d like to RSVP
+            Find your invitation to get started
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* RSVP now - no code required */}
-          <Card className="border-gold/30 hover:border-gold/50 transition-colors">
-            <CardHeader>
-              <div className="flex items-center gap-2 mb-2">
-                <PenLine className="h-5 w-5 text-primary" />
-                <CardTitle>RSVP now</CardTitle>
+        {/* Search Form */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2 mb-2">
+              <Mail className="h-5 w-5 text-primary" />
+              <CardTitle>Find Your Invitation</CardTitle>
+            </div>
+            <CardDescription>
+              Look up by name, email, or phone to RSVP
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleLookupSubmit} className="space-y-4">
+              <div>
+                <Label htmlFor="name">Name</Label>
+                <Input
+                  id="name"
+                  type="text"
+                  placeholder="John Smith"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="mt-1"
+                />
               </div>
-              <CardDescription>
-                Fill out the form — no invite code needed
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button asChild className="w-full" size="lg">
-                <Link href={`/rsvp/${slug}/new`}>Continue to RSVP form</Link>
+              <div>
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="your@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="phone">Phone number</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  placeholder="(555) 123-4567"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Enter at least one — we&rsquo;ll find your invitation
+              </p>
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Looking up..." : "Find my invitation"}
               </Button>
-            </CardContent>
-          </Card>
-
-          {/* Search by email or phone */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2 mb-2">
-                <Mail className="h-5 w-5 text-primary" />
-                <CardTitle>Find my invitation</CardTitle>
-              </div>
-              <CardDescription>
-                Look up by email or phone to view or update your RSVP
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleLookupSubmit} className="space-y-4">
-                <div>
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="your@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="phone">Phone number</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    placeholder="(555) 123-4567"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="mt-1"
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Enter at least one — we&rsquo;ll find your invitation
-                </p>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Looking up..." : "Find my invitation"}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
+            </form>
+          </CardContent>
+        </Card>
 
         {error && (
           <Card className="mt-6 border-destructive">
@@ -185,6 +210,45 @@ export function RsvpLookupForm({ slug }: RsvpLookupFormProps) {
             />
           </div>
         )}
+
+        {/* Multiple Matches Dialog */}
+        <Dialog open={showMultipleDialog} onOpenChange={setShowMultipleDialog}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Multiple Matches Found</DialogTitle>
+              <DialogDescription>
+                We found multiple guests matching your search. Please select your name:
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-2 mt-4">
+              {multipleMatches.map((guest) => (
+                <Button
+                  key={guest.inviteToken}
+                  variant="outline"
+                  className="w-full justify-start text-left h-auto py-3"
+                  onClick={() => handleSelectGuest(guest)}
+                >
+                  <div className="flex flex-col items-start">
+                    <div className="font-medium">
+                      {guest.firstName} {guest.lastName}
+                    </div>
+                    <div className="text-sm text-muted-foreground flex items-center gap-2">
+                      {guest.phone && (
+                        <span className="flex items-center gap-1">
+                          <PhoneIcon className="h-3 w-3" />
+                          {guest.phone}
+                        </span>
+                      )}
+                      <span className="text-xs">
+                        • {guest.maxGuestsAllowed} guest{guest.maxGuestsAllowed > 1 ? 's' : ''}
+                      </span>
+                    </div>
+                  </div>
+                </Button>
+              ))}
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   )

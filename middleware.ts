@@ -32,20 +32,22 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
+  // TEMPORARILY DISABLED: RSVP gate - allowing all routes for now
+  // TODO: Re-enable when you want to require invite codes
   // In development, skip the gate so you can access the wedding site directly (e.g. localhost:3000/slug)
-  if (process.env.NODE_ENV === "development") {
-    return NextResponse.next()
-  }
+  // if (process.env.NODE_ENV === "development") {
+  //   return NextResponse.next()
+  // }
 
-  // Check for access cookie
-  const hasAccess = request.cookies.has(COOKIE_NAME)
+  // // Check for access cookie
+  // const hasAccess = request.cookies.has(COOKIE_NAME)
 
-  // If no access, redirect to RSVP gate
-  if (!hasAccess) {
-    const url = request.nextUrl.clone()
-    url.pathname = INVITE_CODE_PAGE
-    return NextResponse.redirect(url)
-  }
+  // // If no access, redirect to RSVP gate
+  // if (!hasAccess) {
+  //   const url = request.nextUrl.clone()
+  //   url.pathname = INVITE_CODE_PAGE
+  //   return NextResponse.redirect(url)
+  // }
 
   return NextResponse.next()
 }

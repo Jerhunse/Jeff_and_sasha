@@ -5,6 +5,8 @@ import { Guest, Tag, GuestTag, Household, RsvpStatus } from "@prisma/client"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
+import { BulkTagManager } from "@/components/admin/bulk-tag-manager"
+import { GuestTagManager } from "@/components/admin/guest-tag-manager"
 import {
   Table,
   TableBody,
@@ -21,6 +23,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { Card } from "@/components/ui/card"
 import {
   ChevronLeft,
@@ -34,6 +44,7 @@ import {
   Star,
   Key,
   Copy,
+  Tag as TagIcon,
 } from "lucide-react"
 import Link from "next/link"
 
@@ -41,7 +52,11 @@ type GuestWithRelations = Guest & {
   tags: (GuestTag & {
     tag: Tag
   })[]
-  household: Household | null
+  household: (Household & {
+    _count: {
+      guests: number
+    }
+  }) | null
   address?: {
     city: string
     state: string
@@ -97,6 +112,7 @@ export function GuestListTable({
   totalCount,
 }: GuestListTableProps) {
   const [selectedGuests, setSelectedGuests] = useState<Set<string>>(new Set())
+  const [tagManagerOpen, setTagManagerOpen] = useState<string | null>(null)
 
   const toggleGuestSelection = (guestId: string) => {
     const newSelection = new Set(selectedGuests)
@@ -128,9 +144,10 @@ export function GuestListTable({
               {selectedGuests.size} guest{selectedGuests.size !== 1 ? "s" : ""} selected
             </span>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm">
-                Add Tag
-              </Button>
+              <BulkTagManager 
+                guestIds={Array.from(selectedGuests)} 
+                onComplete={() => setSelectedGuests(new Set())}
+              />
               <Button variant="outline" size="sm">
                 Bulk Edit
               </Button>
@@ -165,14 +182,13 @@ export function GuestListTable({
                 <TableHead>Household</TableHead>
                 <TableHead>RSVP Status</TableHead>
                 <TableHead>Tags</TableHead>
-                <TableHead>Details</TableHead>
                 <TableHead className="w-12"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {guests.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
                     No guests found. Start by importing or adding guests manually.
                   </TableCell>
                 </TableRow>
@@ -236,14 +252,17 @@ export function GuestListTable({
                       </div>
                     </TableCell>
                     <TableCell>
-                      {guest.household ? (
-                        <div className="flex items-center gap-1">
-                          <Users className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-sm">{guest.household.name}</span>
-                        </div>
-                      ) : (
-                        <span className="text-sm text-muted-foreground">-</span>
-                      )}
+                      <div className="flex items-center gap-2">
+                        <Users className="h-3 w-3 text-muted-foreground" />
+                        <span className="text-sm font-medium">
+                          {guest.maxGuestsAllowed}
+                        </span>
+                        {guest.household && (
+                          <span className="text-xs text-muted-foreground">
+                            ({guest.household.name})
+                          </span>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       {getRsvpStatusBadge(guest.rsvpResponses?.[0]?.status)}
@@ -270,16 +289,6 @@ export function GuestListTable({
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex gap-2 text-sm text-muted-foreground">
-                        {guest.allowPlusOne && (
-                          <Badge variant="secondary" className="text-xs">
-                            +1
-                          </Badge>
-                        )}
-                        {/* Dietary restrictions and accommodation info are stored in RSVP responses, not directly on Guest */}
-                      </div>
-                    </TableCell>
-                    <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="sm">
@@ -299,6 +308,32 @@ export function GuestListTable({
                               Edit Guest
                             </Link>
                           </DropdownMenuItem>
+                          <Dialog 
+                            open={tagManagerOpen === guest.id} 
+                            onOpenChange={(open) => setTagManagerOpen(open ? guest.id : null)}
+                          >
+                            <DialogTrigger asChild>
+                              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                <TagIcon className="h-4 w-4 mr-2" />
+                                Manage Tags
+                              </DropdownMenuItem>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>
+                                  Manage Tags for {guest.firstName} {guest.lastName}
+                                </DialogTitle>
+                                <DialogDescription>
+                                  Add or remove tags for this guest
+                                </DialogDescription>
+                              </DialogHeader>
+                              <GuestTagManager 
+                                guestId={guest.id} 
+                                currentTags={guest.tags} 
+                              />
+                            </DialogContent>
+                          </Dialog>
+                          <DropdownMenuSeparator />
                           <DropdownMenuItem
                             onClick={async () => {
                               try {

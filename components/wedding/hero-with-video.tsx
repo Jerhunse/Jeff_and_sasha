@@ -2,9 +2,20 @@
 
 import { useEffect, useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
-import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Calendar, MapPin, ChevronDown } from "lucide-react"
 import { CountdownTimer } from "./countdown-timer"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+
+const REQUIRED_RSVP_CODE = "sj2026"
 
 interface HeroWithVideoProps {
   partner1Name: string
@@ -22,7 +33,20 @@ export function HeroWithVideo({
   weddingSlug,
 }: HeroWithVideoProps) {
   const [videoOpacity, setVideoOpacity] = useState(1)
+  const [showCodeDialog, setShowCodeDialog] = useState(false)
+  const [codeInput, setCodeInput] = useState("")
+  const [codeError, setCodeError] = useState("")
+  const [hasRsvpAccess, setHasRsvpAccess] = useState(false)
   const videoRef = useRef<HTMLIFrameElement>(null)
+  const router = useRouter()
+  
+  useEffect(() => {
+    // Check if user has already entered the RSVP code
+    const rsvpAccess = sessionStorage.getItem("rsvp_access_granted")
+    if (rsvpAccess === "true") {
+      setHasRsvpAccess(true)
+    }
+  }, [])
   
   useEffect(() => {
     const handleScroll = () => {
@@ -48,6 +72,35 @@ export function HeroWithVideo({
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  const handleRsvpClick = () => {
+    // Check if user has RSVP access
+    if (hasRsvpAccess) {
+      router.push(`/rsvp/${weddingSlug}`)
+    } else {
+      // Show code dialog
+      setShowCodeDialog(true)
+      setCodeError("")
+      setCodeInput("")
+    }
+  }
+
+  const handleCodeSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (codeInput.trim().toLowerCase() === REQUIRED_RSVP_CODE.toLowerCase()) {
+      // Grant access
+      sessionStorage.setItem("rsvp_access_granted", "true")
+      setHasRsvpAccess(true)
+      setShowCodeDialog(false)
+      setCodeError("")
+      
+      // Navigate to RSVP page
+      router.push(`/rsvp/${weddingSlug}`)
+    } else {
+      setCodeError("Invalid code. Please try again.")
+    }
+  }
 
   const formattedDate = new Date(weddingDate).toLocaleDateString("en-US", {
     weekday: "long",
@@ -121,7 +174,7 @@ export function HeroWithVideo({
         </div>
 
         <Button asChild size="lg" className="bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 hover:scale-105 text-white font-sans text-xs md:text-[10px] tracking-[0.2em] uppercase px-8 py-3 rounded-full transition-all shadow-lg md:hidden min-h-[44px] min-w-[120px]">
-          <Link href={`/rsvp/${weddingSlug}`}>RSVP</Link>
+          <button onClick={handleRsvpClick}>RSVP</button>
         </Button>
       </div>
 
@@ -129,6 +182,51 @@ export function HeroWithVideo({
       <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-10 animate-bounce">
         <ChevronDown className="h-8 w-8 text-white/70" />
       </div>
+
+      {/* Code Dialog */}
+      <Dialog open={showCodeDialog} onOpenChange={setShowCodeDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-heading text-2xl text-gold">Enter RSVP Code</DialogTitle>
+            <DialogDescription>
+              Please enter your invitation code to access the RSVP page.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleCodeSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="code">Invitation Code</Label>
+              <Input
+                id="code"
+                type="text"
+                placeholder="Enter code"
+                value={codeInput}
+                onChange={(e) => {
+                  setCodeInput(e.target.value)
+                  setCodeError("")
+                }}
+                className="mt-1"
+                autoFocus
+              />
+              {codeError && (
+                <p className="text-sm text-destructive mt-2">{codeError}</p>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setShowCodeDialog(false)}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button type="submit" className="flex-1">
+                Submit
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </section>
   )
 }

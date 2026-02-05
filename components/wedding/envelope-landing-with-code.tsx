@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { RsvpForm } from "@/components/rsvp/rsvp-form"
 import { CountdownTimer } from "@/components/wedding/countdown-timer"
@@ -43,6 +43,7 @@ interface EnvelopeLandingWithCodeProps {
     plusOneName?: string | null
     rsvpStatus: string
     inviteToken: string
+    maxGuestsAllowed?: number
   }
   couple: {
     id: string
@@ -72,6 +73,15 @@ export function EnvelopeLandingWithCode({
   const [isOpen, setIsOpen] = useState(false)
   const [showRsvpForm, setShowRsvpForm] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // Check if we should skip the envelope animation
+  useEffect(() => {
+    const skipEnvelope = searchParams.get('skipEnvelope')
+    if (skipEnvelope === 'true') {
+      setShowRsvpForm(true)
+    }
+  }, [searchParams])
 
   const handleClick = () => {
     if (isOpen) return

@@ -52,7 +52,7 @@ export function FaqSection({ faqs }: FaqSectionProps) {
             className="rounded-lg bg-white/95 dark:bg-neutral-900/95 backdrop-blur-sm border border-white/20 dark:border-white/10 shadow-md"
             style={{
               maskImage: "linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)",
-              webkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)",
+              WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)",
             }}
           >
             <CardContent className="pt-8 text-center py-12">
@@ -79,7 +79,7 @@ export function FaqSection({ faqs }: FaqSectionProps) {
                       className="card-hover rounded-lg bg-white/95 dark:bg-neutral-900/95 backdrop-blur-sm border border-white/20 dark:border-white/10 shadow-md"
                       style={{
                         maskImage: "linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)",
-                        webkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)",
+                        WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)",
                       }}
                     >
                       <CardHeader>
@@ -108,7 +108,7 @@ export function FaqSection({ faqs }: FaqSectionProps) {
           className="mt-12 bg-muted/50 border-border/50"
           style={{
             maskImage: "linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)",
-            webkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)",
+            WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)",
           }}
         >
           <CardContent className="pt-8 text-center">

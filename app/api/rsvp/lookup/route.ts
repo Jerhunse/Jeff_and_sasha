@@ -17,6 +17,7 @@ export async function POST(req: NextRequest) {
     const slug = typeof body.slug === "string" ? body.slug.trim() : ""
     const email = typeof body.email === "string" ? body.email.trim() : ""
     const phone = typeof body.phone === "string" ? normalizePhone(body.phone) : ""
+    const name = typeof body.name === "string" ? body.name.trim() : ""
 
     if (!slug) {
       return NextResponse.json(
@@ -24,9 +25,9 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       )
     }
-    if (!email && !phone) {
+    if (!email && !phone && !name) {
       return NextResponse.json(
-        { error: "Email or phone number is required" },
+        { error: "Email, phone number, or name is required" },
         { status: 400 }
       )
     }
@@ -74,6 +75,8 @@ export async function POST(req: NextRequest) {
           inviteToken: true,
           firstName: true,
           lastName: true,
+          maxGuestsAllowed: true,
+          phone: true,
         },
       })
       if (guestByEmail) {
@@ -83,6 +86,8 @@ export async function POST(req: NextRequest) {
           inviteToken: guestByEmail.inviteToken,
           firstName: guestByEmail.firstName,
           lastName: guestByEmail.lastName,
+          maxGuestsAllowed: guestByEmail.maxGuestsAllowed,
+          phone: guestByEmail.phone,
         })
       }
     }
@@ -125,6 +130,7 @@ export async function POST(req: NextRequest) {
           firstName: true,
           lastName: true,
           phone: true,
+          maxGuestsAllowed: true,
         },
       })
       const match = guestsWithPhone.find(
@@ -137,6 +143,51 @@ export async function POST(req: NextRequest) {
           inviteToken: match.inviteToken,
           firstName: match.firstName,
           lastName: match.lastName,
+          maxGuestsAllowed: match.maxGuestsAllowed,
+          phone: match.phone,
+        })
+      }
+    }
+
+    // 3) Look up by name when provided
+    if (name) {
+      const nameParts = name.split(/\s+/)
+      const firstName = nameParts[0]
+      const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : ""
+
+      // Search for partial matches in first name or last name
+      const guestsByName = await prisma.guest.findMany({
+        where: {
+          coupleId: wedding.id,
+          OR: [
+            { firstName: { contains: firstName, mode: "insensitive" } },
+            { lastName: { contains: name, mode: "insensitive" } },
+            { firstName: { contains: name, mode: "insensitive" } },
+          ],
+        },
+        select: {
+          inviteToken: true,
+          firstName: true,
+          lastName: true,
+          phone: true,
+          maxGuestsAllowed: true,
+        },
+        take: 10, // Limit to 10 results for name search
+      })
+
+      if (guestsByName.length > 0) {
+        // If multiple matches, return all for user to choose
+        return NextResponse.json({
+          found: true,
+          source: "prisma",
+          multiple: guestsByName.length > 1,
+          guests: guestsByName.map((g) => ({
+            inviteToken: g.inviteToken,
+            firstName: g.firstName,
+            lastName: g.lastName,
+            phone: g.phone,
+            maxGuestsAllowed: g.maxGuestsAllowed,
+          })),
         })
       }
     }
@@ -144,7 +195,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         error:
-          "We couldn't find an invitation for that email or phone number. You can RSVP now without a code, or contact the couple.",
+          "We couldn't find an invitation for that email, phone number, or name. You can RSVP now without a code, or contact the couple.",
         found: false,
       },
       { status: 404 }

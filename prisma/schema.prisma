@@ -391,6 +391,7 @@ model Guest {
   // Plus-One Policy
   allowPlusOne    Boolean   @default(false)
   plusOnePolicy   String    @default("none") // none, unnamed, named
+  maxGuestsAllowed Int      @default(1) // Maximum number of guests allowed for this party (including primary guest)
   
   // Import tracking
   importSource    String?   // "csv", "google", "manual"

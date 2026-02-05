@@ -85,6 +85,7 @@ export function InvitationSplash({
   }
 
   function styleFor(id: HotspotId): React.CSSProperties {
+    if (!layout) return {}
     return imageRectToViewportStyle(layout, IMAGE_WIDTH, IMAGE_HEIGHT, HOTSPOTS[id])
   }
 

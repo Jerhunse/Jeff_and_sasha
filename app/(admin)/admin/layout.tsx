@@ -9,8 +9,10 @@ import {
   FileText, 
   Settings,
   Heart,
-  Mail
+  Mail,
+  ClipboardList
 } from "lucide-react"
+import { Toaster } from "sonner"
 
 interface AdminLayoutProps {
   children: React.ReactNode
@@ -30,6 +32,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
 
   const navItems = [
     { href: "/admin", label: "Dashboard", icon: Home },
+    { href: "/admin/rsvp-dashboard", label: "RSVP Dashboard", icon: ClipboardList },
     { href: "/admin/guests", label: "Guests", icon: Users },
     { href: "/admin/invitations", label: "Invitations", icon: Mail },
     { href: "/admin/events", label: "Events", icon: Calendar },
@@ -39,6 +42,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
 
   return (
     <div className="min-h-screen flex">
+      <Toaster position="top-right" />
       {/* Sidebar */}
       <aside className="w-64 border-r bg-muted/30 flex flex-col">
         <div className="p-6 border-b">

@@ -1,4 +1,5 @@
 import NextAuth from "next-auth"
+import type { NextAuthConfig } from "next-auth"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import Google from "next-auth/providers/google"
 import Resend from "next-auth/providers/resend"
@@ -6,7 +7,7 @@ import { prisma } from "@/lib/prisma"
 import type { Role } from "@prisma/client"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  adapter: PrismaAdapter(prisma),
+  adapter: PrismaAdapter(prisma) as NextAuthConfig["adapter"],
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID,
@@ -27,12 +28,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (session.user) {
         const dbUser = await prisma.user.findUnique({
           where: { id: user.id },
-          select: { role: true, weddingId: true, coupleId: true }
+          select: { role: true, coupleId: true }
         })
         
         session.user.id = user.id
         session.user.role = dbUser?.role || 'GUEST'
-        session.user.weddingId = dbUser?.weddingId
         session.user.coupleId = dbUser?.coupleId
       }
       return session
@@ -70,11 +70,11 @@ export async function requireWeddingAccess(weddingId: string) {
   
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { role: true, weddingId: true }
+    select: { role: true, coupleId: true }
   })
   
   const canAccess = 
-    user?.weddingId === weddingId && 
+    user?.coupleId === weddingId && 
     (user?.role === 'OWNER' || user?.role === 'COLLABORATOR')
   
   if (!canAccess) {

@@ -31,15 +31,17 @@ export async function POST(
       status,
       email,
       phone,
+      message,
+      confirmedGuestCount,
+      guestNames,
+      // Backward compatibility
+      plusOneCount,
+      plusOneNames,
       mealChoice,
       dietaryRestrictions,
       songRequest,
       busRequired,
       busRoute,
-      message,
-      plusOneCount,
-      plusOneNames,
-      // Legacy support
       hasPlusOne,
       plusOneName,
     } = body
@@ -59,9 +61,47 @@ export async function POST(
     }
     const prismaStatus = statusMap[status] || "MAYBE"
 
-    // Handle legacy format or new format
-    const actualPlusOneCount = plusOneCount ?? (hasPlusOne ? 1 : 0)
-    const actualPlusOneNames = plusOneNames ?? (plusOneName ? [plusOneName] : [])
+    // Handle new format (confirmedGuestCount + guestNames) or legacy format
+    let totalGuestCount: number
+    let allGuestNames: string[]
+
+    if (confirmedGuestCount && guestNames) {
+      // New format: confirmed count and array of all guest names
+      totalGuestCount = confirmedGuestCount
+      allGuestNames = Array.isArray(guestNames) 
+        ? guestNames.filter((n: string) => n?.trim())
+        : []
+    } else {
+      // Legacy format: main guest + plus ones
+      const actualPlusOneCount = plusOneCount ?? (hasPlusOne ? 1 : 0)
+      const actualPlusOneNames = plusOneNames ?? (plusOneName ? [plusOneName] : [])
+      totalGuestCount = 1 + actualPlusOneCount
+      allGuestNames = [`${guest.firstName} ${guest.lastName}`, ...actualPlusOneNames].filter(n => n?.trim())
+    }
+
+    // Validate guest count doesn't exceed allocated amount
+    if (status === "ATTENDING" && totalGuestCount > guest.maxGuestsAllowed) {
+      return NextResponse.json(
+        { error: `You are allocated ${guest.maxGuestsAllowed} guest${guest.maxGuestsAllowed > 1 ? 's' : ''}, but selected ${totalGuestCount}` },
+        { status: 400 }
+      )
+    }
+
+    // Validate minimum guest count (must be at least 1)
+    if (status === "ATTENDING" && totalGuestCount < 1) {
+      return NextResponse.json(
+        { error: "At least 1 guest is required" },
+        { status: 400 }
+      )
+    }
+
+    // Validate all guest names are provided
+    if (status === "ATTENDING" && allGuestNames.length !== totalGuestCount) {
+      return NextResponse.json(
+        { error: `Please provide names for all ${totalGuestCount} guest${totalGuestCount > 1 ? 's' : ''}` },
+        { status: 400 }
+      )
+    }
 
     // Check capacity if accepting
     if (status === "ATTENDING" && guest.couple.maxCapacity) {
@@ -72,8 +112,7 @@ export async function POST(
         },
       })
 
-      const additionalGuests = 1 + actualPlusOneCount // Main guest + plus ones
-      if (currentAttending + additionalGuests > guest.couple.maxCapacity) {
+      if (currentAttending + totalGuestCount > guest.couple.maxCapacity) {
         return NextResponse.json(
           { error: "Sorry, we've reached maximum capacity" },
           { status: 400 }
@@ -81,34 +120,9 @@ export async function POST(
       }
     }
 
-    // Check plus one policy
-    if (actualPlusOneCount > 0 && !guest.allowPlusOne) {
-      return NextResponse.json(
-        { error: "Plus ones are not allowed for this guest" },
-        { status: 400 }
-      )
-    }
-
-    // Validate plus one names if count > 0
-    if (actualPlusOneCount > 0) {
-      if (actualPlusOneNames.length !== actualPlusOneCount) {
-        return NextResponse.json(
-          { error: `Please provide names for all ${actualPlusOneCount} guest${actualPlusOneCount > 1 ? 's' : ''}` },
-          { status: 400 }
-        )
-      }
-      const missingNames = actualPlusOneNames.filter((name: string) => !name?.trim())
-      if (missingNames.length > 0) {
-        return NextResponse.json(
-          { error: "Please provide names for all guests" },
-          { status: 400 }
-        )
-      }
-    }
-
-    // Store plus one names as comma-separated string
-    const plusOneNameString = actualPlusOneCount > 0 
-      ? actualPlusOneNames.filter((n: string) => n?.trim()).join(", ")
+    // Store all guest names as comma-separated string (includes primary guest)
+    const allGuestNamesString = allGuestNames.length > 0 
+      ? allGuestNames.join(", ")
       : null
 
     // Update guest basic info only (fields that exist on Guest model)
@@ -120,8 +134,12 @@ export async function POST(
       },
     })
 
-    // Prepare RSVP answers JSON
-    const rsvpAnswers: Record<string, any> = {}
+    // Prepare RSVP answers JSON (for any optional fields)
+    const rsvpAnswers: Record<string, any> = {
+      confirmedGuestCount: totalGuestCount,
+      allGuestNames: allGuestNames,
+    }
+    // Legacy fields (if provided)
     if (mealChoice) rsvpAnswers.mealChoice = mealChoice
     if (dietaryRestrictions) rsvpAnswers.dietaryRestrictions = dietaryRestrictions
     if (songRequest) rsvpAnswers.songRequest = songRequest
@@ -143,7 +161,7 @@ export async function POST(
       guestId: guest.id,
       status: prismaStatus, // Use mapped Prisma enum value
       message: message || null,
-      plusOneName: plusOneNameString,
+      plusOneName: allGuestNamesString, // Store all guest names in plusOneName field
       answersJSON: Object.keys(rsvpAnswers).length > 0 ? JSON.stringify(rsvpAnswers) : null,
     }
 
@@ -175,12 +193,12 @@ export async function POST(
     try {
       const guestEmail = email || guest.email
       if (guestEmail) {
-        // Parse plus one names if provided
-        const plusOneNamesArray = actualPlusOneNames.filter((n: string) => n?.trim())
-        const firstPlusOneName = plusOneNamesArray[0] || null
-        const plusOneNameParts = firstPlusOneName ? firstPlusOneName.split(" ") : []
-        const plusOneFirstName = plusOneNameParts[0] || null
-        const plusOneLastName = plusOneNameParts.slice(1).join(" ") || null
+        // Get first additional guest name (after primary) for legacy support
+        const additionalGuests = allGuestNames.slice(1)
+        const firstAdditionalName = additionalGuests[0] || null
+        const additionalNameParts = firstAdditionalName ? firstAdditionalName.split(" ") : []
+        const plusOneFirstName = additionalNameParts[0] || null
+        const plusOneLastName = additionalNameParts.slice(1).join(" ") || null
 
         const supabaseRsvpData = {
           email: guestEmail.toLowerCase().trim(),
@@ -188,7 +206,7 @@ export async function POST(
           last_name: guest.lastName,
           phone: phone || guest.phone || null,
           is_attending: status === "ATTENDING",
-          number_of_guests: 1 + actualPlusOneCount,
+          number_of_guests: totalGuestCount,
           plus_one_first_name: plusOneFirstName,
           plus_one_last_name: plusOneLastName,
         }
@@ -224,19 +242,20 @@ export async function POST(
       console.error("Supabase RSVP sync error:", supabaseError)
     }
 
-    // Store plus one details in guest notes if provided
-    if (actualPlusOneCount > 0 && actualPlusOneNames.length > 0) {
-      const plusOneDetails = {
-        count: actualPlusOneCount,
-        names: actualPlusOneNames.filter((n: string) => n?.trim()),
+    // Store guest details in guest notes if provided
+    if (allGuestNames.length > 0) {
+      const guestDetails = {
+        totalGuests: totalGuestCount,
+        allGuestNames: allGuestNames,
+        confirmedDate: new Date().toISOString(),
       }
 
       await prisma.guest.update({
         where: { id: guest.id },
         data: {
           notes: guest.notes
-            ? `${guest.notes}\n\nAdditional Guests: ${JSON.stringify(plusOneDetails, null, 2)}`
-            : `Additional Guests: ${JSON.stringify(plusOneDetails, null, 2)}`,
+            ? `${guest.notes}\n\nRSVP Details: ${JSON.stringify(guestDetails, null, 2)}`
+            : `RSVP Details: ${JSON.stringify(guestDetails, null, 2)}`,
         },
       })
     }
@@ -270,21 +289,21 @@ export async function POST(
         const websiteUrl = `${baseUrl}/${guest.couple.slug}`
         const rsvpLookupUrl = `${baseUrl}/rsvp/${guest.couple.slug}`
         
-        // Get plus one names from RSVP response
+        // Get all guest names from RSVP response
         const rsvpResponse = await prisma.rSVPResponse.findFirst({
           where: {
             guestId: guest.id,
             eventId: null,
           },
         })
-        const plusOneNames = rsvpResponse?.plusOneName
-          ? rsvpResponse.plusOneName.split(",").map((n: string) => n.trim())
-          : []
         
-        // Parse RSVP answers
+        // Parse answers to get confirmed guest list
         const rsvpAnswers = rsvpResponse?.answersJSON 
           ? JSON.parse(rsvpResponse.answersJSON)
           : {}
+        
+        const confirmedGuestNames = rsvpAnswers.allGuestNames || []
+        const confirmedGuestCount = rsvpAnswers.confirmedGuestCount || totalGuestCount
         
         const emailHtml = generateRSVPConfirmationEmail({
           guestFirstName: guest.firstName,
@@ -307,8 +326,8 @@ export async function POST(
             songRequest: rsvpAnswers.songRequest || null,
             busRequired: rsvpAnswers.busRequired || false,
             busRoute: rsvpAnswers.busRoute || null,
-            plusOneCount: actualPlusOneCount,
-            plusOneNames,
+            plusOneCount: Math.max(0, confirmedGuestCount - 1), // Additional guests
+            plusOneNames: confirmedGuestNames.slice(1), // All guests except primary
             message,
           },
           primaryColor: guest.couple.primaryColor || "#8B5CF6",

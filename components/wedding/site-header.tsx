@@ -4,7 +4,8 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Heart, Menu } from "lucide-react"
 import { useScrollSpy } from "@/hooks/use-scroll-spy"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import {
   Sheet,
   SheetContent,
@@ -12,6 +13,15 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 
 interface SiteHeaderProps {
   weddingSlug: string
@@ -32,9 +42,24 @@ const navItems = [
 
 const sectionIds = ["home", "schedule", "travel", "registry", "faq", "contact"]
 
+const REQUIRED_RSVP_CODE = "sj2026"
+
 export function SiteHeader({ weddingSlug, partner1Name, partner2Name }: SiteHeaderProps) {
   const activeSection = useScrollSpy(sectionIds)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [showCodeDialog, setShowCodeDialog] = useState(false)
+  const [codeInput, setCodeInput] = useState("")
+  const [codeError, setCodeError] = useState("")
+  const [hasRsvpAccess, setHasRsvpAccess] = useState(false)
+  const router = useRouter()
+
+  useEffect(() => {
+    // Check if user has already entered the RSVP code
+    const rsvpAccess = sessionStorage.getItem("rsvp_access_granted")
+    if (rsvpAccess === "true") {
+      setHasRsvpAccess(true)
+    }
+  }, [])
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault()
@@ -74,6 +99,40 @@ export function SiteHeader({ weddingSlug, partner1Name, partner2Name }: SiteHead
     })
   }
 
+  const handleRsvpClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+    
+    // Check if user has RSVP access
+    if (hasRsvpAccess) {
+      router.push(`/rsvp/${weddingSlug}`)
+    } else {
+      // Show code dialog
+      setShowCodeDialog(true)
+      setCodeError("")
+      setCodeInput("")
+    }
+    
+    // Close mobile menu if open
+    setMobileMenuOpen(false)
+  }
+
+  const handleCodeSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (codeInput.trim().toLowerCase() === REQUIRED_RSVP_CODE.toLowerCase()) {
+      // Grant access
+      sessionStorage.setItem("rsvp_access_granted", "true")
+      setHasRsvpAccess(true)
+      setShowCodeDialog(false)
+      setCodeError("")
+      
+      // Navigate to RSVP page
+      router.push(`/rsvp/${weddingSlug}`)
+    } else {
+      setCodeError("Invalid code. Please try again.")
+    }
+  }
+
   return (
     <header className="sticky top-0 z-50 w-full bg-transparent">
       <div className="w-full flex h-14 md:h-16 items-center justify-between px-4 md:px-6 lg:px-10 xl:px-12">
@@ -106,8 +165,13 @@ export function SiteHeader({ weddingSlug, partner1Name, partner2Name }: SiteHead
               </Link>
             )
           })}
-          <Button asChild variant="default" size="sm" className="rounded-full ml-2 bg-primary text-primary-foreground hover:bg-primary/90 font-sans text-[10px] tracking-[0.2em] uppercase min-h-[44px] px-6">
-            <Link href={`/rsvp/${weddingSlug}`}>RSVP</Link>
+          <Button 
+            variant="default" 
+            size="sm" 
+            className="rounded-full ml-2 bg-primary text-primary-foreground hover:bg-primary/90 font-sans text-[10px] tracking-[0.2em] uppercase min-h-[44px] px-6"
+            onClick={handleRsvpClick}
+          >
+            RSVP
           </Button>
         </nav>
 
@@ -142,8 +206,12 @@ export function SiteHeader({ weddingSlug, partner1Name, partner2Name }: SiteHead
                   )
                 })}
                 <div className="pt-4 mt-2 border-t border-border/50">
-                  <Button asChild className="rounded-full w-full min-h-[48px]" size="lg">
-                    <Link href={`/rsvp/${weddingSlug}`}>RSVP</Link>
+                  <Button 
+                    className="rounded-full w-full min-h-[48px]" 
+                    size="lg"
+                    onClick={handleRsvpClick}
+                  >
+                    RSVP
                   </Button>
                 </div>
               </nav>
@@ -151,6 +219,51 @@ export function SiteHeader({ weddingSlug, partner1Name, partner2Name }: SiteHead
           </Sheet>
         </div>
       </div>
+
+      {/* Code Dialog */}
+      <Dialog open={showCodeDialog} onOpenChange={setShowCodeDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-heading text-2xl text-gold">Enter RSVP Code</DialogTitle>
+            <DialogDescription>
+              Please enter your invitation code to access the RSVP page.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleCodeSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="code">Invitation Code</Label>
+              <Input
+                id="code"
+                type="text"
+                placeholder="Enter code"
+                value={codeInput}
+                onChange={(e) => {
+                  setCodeInput(e.target.value)
+                  setCodeError("")
+                }}
+                className="mt-1"
+                autoFocus
+              />
+              {codeError && (
+                <p className="text-sm text-destructive mt-2">{codeError}</p>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setShowCodeDialog(false)}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button type="submit" className="flex-1">
+                Submit
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </header>
   )
 }

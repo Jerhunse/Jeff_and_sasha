@@ -42,7 +42,7 @@ export function ContactSection({ slug, venueName, venueCity, venueState }: Conta
               className="rounded-lg bg-white/95 dark:bg-neutral-900/95 backdrop-blur-sm border border-white/20 dark:border-white/10 shadow-md"
               style={{
                 maskImage: "linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)",
-                webkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)",
+                WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)",
               }}
             >
               <CardHeader>
@@ -89,7 +89,7 @@ export function ContactSection({ slug, venueName, venueCity, venueState }: Conta
               className="bg-muted/50 border-border/50"
               style={{
                 maskImage: "linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)",
-                webkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)",
+                WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)",
               }}
             >
               <CardContent className="pt-6">
@@ -111,7 +111,7 @@ export function ContactSection({ slug, venueName, venueCity, venueState }: Conta
               className="rounded-lg bg-white/95 dark:bg-neutral-900/95 backdrop-blur-sm border border-white/20 dark:border-white/10 shadow-md"
               style={{
                 maskImage: "linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)",
-                webkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)",
+                WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)",
               }}
             >
               <CardHeader>
@@ -194,7 +194,7 @@ export function ContactSection({ slug, venueName, venueCity, venueState }: Conta
               className="mt-6 bg-primary/5 border-primary/20"
               style={{
                 maskImage: "linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)",
-                webkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)",
+                WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)",
               }}
             >
               <CardContent className="pt-6">

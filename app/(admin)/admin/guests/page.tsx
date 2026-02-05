@@ -6,7 +6,7 @@ import { GuestFilters } from "@/components/admin/guest-filters"
 import { GuestActions } from "@/components/admin/guest-actions"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Users, UserCheck, UserX, Clock, Home } from "lucide-react"
+import { Users, UserCheck, UserX, Clock } from "lucide-react"
 
 interface GuestsPageProps {
   searchParams: Promise<{
@@ -98,7 +98,7 @@ export default async function GuestsPage({ searchParams }: GuestsPageProps) {
   const skip = (currentPage - 1) * pageSize
 
   // Fetch guests with relations
-  const [guests, totalCount, tags, households, wedding] = await Promise.all([
+  const [guests, totalCount, tags, households] = await Promise.all([
     prisma.guest.findMany({
       where,
       include: {
@@ -107,7 +107,15 @@ export default async function GuestsPage({ searchParams }: GuestsPageProps) {
             tag: true,
           },
         },
-        household: true,
+        household: {
+          include: {
+            _count: {
+              select: {
+                guests: true,
+              },
+            },
+          },
+        },
         rsvpResponses: {
           where: { eventId: null }, // General RSVP
           orderBy: { respondedAt: "desc" },
@@ -150,17 +158,15 @@ export default async function GuestsPage({ searchParams }: GuestsPageProps) {
       },
       orderBy: { name: "asc" },
     }),
-    prisma.couple.findUnique({
-      where: { id: session.user.coupleId },
-      select: {
-        _count: {
-          select: {
-            guests: true,
-          },
-        },
-      },
-    }),
   ])
+
+  // Calculate total by summing maxGuestsAllowed for all guests
+  const totalGuestsWithQuantity = await prisma.guest.aggregate({
+    where: { coupleId: session.user.coupleId },
+    _sum: {
+      maxGuestsAllowed: true,
+    },
+  })
 
   // Calculate stats - RSVP status is now in RSVPResponse, not Guest
   const [attendingCount, declinedCount, pendingCount] = await Promise.all([
@@ -192,17 +198,10 @@ export default async function GuestsPage({ searchParams }: GuestsPageProps) {
   ])
 
   const stats = {
-    total: wedding?._count.guests || 0,
+    total: totalGuestsWithQuantity._sum.maxGuestsAllowed || 0,
     attending: attendingCount,
     declined: declinedCount,
     pending: pendingCount,
-    households: households.length,
-    children: await prisma.guest.count({
-      where: {
-        coupleId: session.user.coupleId,
-        isChild: true,
-      },
-    }),
   }
 
   const totalPages = Math.ceil(totalCount / pageSize)
@@ -220,7 +219,7 @@ export default async function GuestsPage({ searchParams }: GuestsPageProps) {
       </div>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="p-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium">Total</span>
@@ -252,29 +251,12 @@ export default async function GuestsPage({ searchParams }: GuestsPageProps) {
           </div>
           <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
         </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">Households</span>
-            <Home className="h-4 w-4 text-muted-foreground" />
-          </div>
-          <div className="text-2xl font-bold">{stats.households}</div>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">Children</span>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </div>
-          <div className="text-2xl font-bold">{stats.children}</div>
-        </Card>
       </div>
 
       {/* Actions Bar */}
       <GuestActions
         weddingId={session.user.coupleId}
         tags={tags}
-        households={households}
       />
 
       {/* Filters */}

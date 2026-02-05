@@ -61,7 +61,7 @@ export function HeroCodeGate({
   }
 
   const handleRsvpNow = () => {
-    router.push(`/rsvp/${code}/new`)
+    router.push(`/rsvp/${weddingSlug}`)
   }
 
   const handleAlreadyRsvpd = () => {

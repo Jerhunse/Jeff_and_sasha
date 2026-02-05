@@ -107,6 +107,7 @@ export default async function RsvpPage({ params }: RsvpPageProps) {
           plusOneName,
           rsvpStatus,
           inviteToken: guest.inviteToken,
+          maxGuestsAllowed: guest.maxGuestsAllowed,
         }}
         couple={{
           id: wedding.id,
