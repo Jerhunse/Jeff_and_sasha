@@ -267,7 +267,7 @@ model Guest {
   isChild          Boolean         @default(false)
   isVIP            Boolean         @default(false)
   doNotContact     Boolean         @default(false)
-  inviteToken      String          @unique
+  inviteToken      String          @unique @default(cuid())
   invitedBy        String?
   allowPlusOne     Boolean         @default(false)
   plusOnePolicy    String          @default("none")
