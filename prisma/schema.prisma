@@ -36,7 +36,7 @@ model ActivityLog {
   description String
   meta        String?
   createdAt   DateTime       @default(now())
-  user        User?          @relation(fields: [actorId], references: [id])
+  actor       User?          @relation(fields: [actorId], references: [id])
   couple      Couple         @relation(fields: [coupleId], references: [id], onDelete: Cascade)
 
   @@index([action])

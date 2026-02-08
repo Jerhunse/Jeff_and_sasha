@@ -49,7 +49,7 @@ export async function GET(
           },
           orderBy: { sentAt: "desc" },
         },
-        seatingAssignments: {
+        seats: {
           include: {
             table: {
               select: {
@@ -91,7 +91,7 @@ export async function GET(
       household: guest.household,
       rsvpResponses: guest.rsvpResponses,
       invitations: guest.invitations,
-      seating: guest.seatingAssignments,
+      seating: guest.seats,
     })
   } catch (error: any) {
     console.error("Fetch portal data error:", error)
