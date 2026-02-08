@@ -470,7 +470,7 @@ model Page {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   couple      Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
-  pageSEO     PageSEO?
+  seo         PageSEO?
 
   @@unique([coupleId, slug])
   @@index([coupleId])
