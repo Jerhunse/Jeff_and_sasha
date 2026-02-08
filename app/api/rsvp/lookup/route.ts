@@ -154,14 +154,14 @@ export async function POST(req: NextRequest) {
       const nameParts = name.split(/\s+/).filter((part: string) => part.length > 0)
       
       // Build search conditions based on what was provided
-      const searchConditions = []
+      const searchConditions: any[] = []
       
       if (nameParts.length === 1) {
         // Single word: could be first name or last name
         const singleName = nameParts[0]
         searchConditions.push(
-          { firstName: { contains: singleName, mode: "insensitive" } },
-          { lastName: { contains: singleName, mode: "insensitive" } }
+          { firstName: { contains: singleName, mode: "insensitive" as const } },
+          { lastName: { contains: singleName, mode: "insensitive" as const } }
         )
       } else if (nameParts.length >= 2) {
         // Multiple words: treat as first + last name
@@ -173,16 +173,16 @@ export async function POST(req: NextRequest) {
           // Exact first name + exact last name match
           {
             AND: [
-              { firstName: { contains: firstName, mode: "insensitive" } },
-              { lastName: { contains: lastName, mode: "insensitive" } }
+              { firstName: { contains: firstName, mode: "insensitive" as const } },
+              { lastName: { contains: lastName, mode: "insensitive" as const } }
             ]
           },
           // First name matches
-          { firstName: { contains: firstName, mode: "insensitive" } },
+          { firstName: { contains: firstName, mode: "insensitive" as const } },
           // Last name matches
-          { lastName: { contains: lastName, mode: "insensitive" } },
+          { lastName: { contains: lastName, mode: "insensitive" as const } },
           // Last name matches the full search query (in case they put last name first)
-          { lastName: { contains: name, mode: "insensitive" } }
+          { lastName: { contains: name, mode: "insensitive" as const } }
         )
       }
 
