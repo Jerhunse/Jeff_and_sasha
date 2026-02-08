@@ -8,7 +8,7 @@ datasource db {
 }
 
 model Account {
-  id                String  @id
+  id                String  @id @default(cuid())
   userId            String
   type              String
   provider          String
@@ -27,7 +27,7 @@ model Account {
 }
 
 model ActivityLog {
-  id          String         @id
+  id          String         @id @default(cuid())
   coupleId    String
   actorId     String?
   action      ActivityAction
@@ -46,7 +46,7 @@ model ActivityLog {
 }
 
 model Address {
-  id        String      @id
+  id        String      @id @default(cuid())
   coupleId  String
   line1     String
   line2     String?
@@ -55,7 +55,7 @@ model Address {
   postal    String
   country   String      @default("US")
   createdAt DateTime    @default(now())
-  updatedAt DateTime
+  updatedAt DateTime @updatedAt
   couple    Couple      @relation(fields: [coupleId], references: [id], onDelete: Cascade)
   guests    Guest[]
   households Household[]
@@ -64,7 +64,7 @@ model Address {
 }
 
 model Campaign {
-  id              String         @id
+  id              String         @id @default(cuid())
   coupleId        String
   name            String
   type            CampaignType
@@ -85,7 +85,7 @@ model Campaign {
   bounced         Int            @default(0)
   failed          Int            @default(0)
   createdAt       DateTime       @default(now())
-  updatedAt       DateTime
+  updatedAt       DateTime @updatedAt
   couple          Couple         @relation(fields: [coupleId], references: [id], onDelete: Cascade)
   invitations     Invitation[]
 
@@ -96,7 +96,7 @@ model Campaign {
 }
 
 model CashFund {
-  id                   String                 @id
+  id                   String                 @id @default(cuid())
   coupleId             String
   title                String
   description          String?
@@ -106,7 +106,7 @@ model CashFund {
   stripePriceId        String?
   isActive             Boolean                @default(true)
   createdAt            DateTime               @default(now())
-  updatedAt            DateTime
+  updatedAt            DateTime @updatedAt
   couple               Couple                 @relation(fields: [coupleId], references: [id], onDelete: Cascade)
   contributions        CashFundContribution[]
 
@@ -114,7 +114,7 @@ model CashFund {
 }
 
 model CashFundContribution {
-  id              String   @id
+  id              String   @id @default(cuid())
   cashFundId      String
   name            String
   email           String?
@@ -131,7 +131,7 @@ model CashFundContribution {
 }
 
 model ContactMessage {
-  id         String   @id
+  id         String   @id @default(cuid())
   coupleId   String
   name       String
   email      String
@@ -148,7 +148,7 @@ model ContactMessage {
 }
 
 model Couple {
-  id                 String               @id
+  id                 String               @id @default(cuid())
   slug               String               @unique
   partner1Name       String
   partner2Name       String
@@ -179,7 +179,7 @@ model Couple {
   stripeAccountId    String?
   googleMapsApiKey   String?
   createdAt          DateTime             @default(now())
-  updatedAt          DateTime
+  updatedAt          DateTime @updatedAt
   landingVideoUrl    String?
   askBusTransport    Boolean              @default(false)
   askMealChoice      Boolean              @default(false)
@@ -213,7 +213,7 @@ model Couple {
 }
 
 model Event {
-  id           String          @id
+  id           String          @id @default(cuid())
   coupleId     String
   name         String
   description  String?
@@ -227,7 +227,7 @@ model Event {
   capacity     Int?
   order        Int             @default(0)
   createdAt    DateTime        @default(now())
-  updatedAt    DateTime
+  updatedAt    DateTime @updatedAt
   couple       Couple          @relation(fields: [coupleId], references: [id], onDelete: Cascade)
   rsvpQuestions RSVPQuestion[]
   rsvpResponses RSVPResponse[]
@@ -238,21 +238,21 @@ model Event {
 }
 
 model Faq {
-  id        String   @id
+  id        String   @id @default(cuid())
   coupleId  String
   question  String
   answer    String
   category  String?
   order     Int      @default(0)
   createdAt DateTime @default(now())
-  updatedAt DateTime
+  updatedAt DateTime @updatedAt
   couple    Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
 
   @@index([coupleId])
 }
 
 model Guest {
-  id               String          @id
+  id               String          @id @default(cuid())
   coupleId         String
   userId           String?         @unique
   firstName        String
@@ -277,7 +277,7 @@ model Guest {
   notes            String?
   importance       Int             @default(0)
   createdAt        DateTime        @default(now())
-  updatedAt        DateTime
+  updatedAt        DateTime @updatedAt
   maxGuestsAllowed Int             @default(1)
   address          Address?        @relation(fields: [addressId], references: [id])
   couple           Couple          @relation(fields: [coupleId], references: [id], onDelete: Cascade)
@@ -298,7 +298,7 @@ model Guest {
 }
 
 model GuestActivity {
-  id          String         @id
+  id          String         @id @default(cuid())
   guestId     String
   action      ActivityAction
   description String
@@ -318,7 +318,7 @@ model GuestActivity {
 }
 
 model GuestTag {
-  id      String   @id
+  id      String   @id @default(cuid())
   guestId String
   tagId   String
   addedAt DateTime @default(now())
@@ -332,7 +332,7 @@ model GuestTag {
 }
 
 model HotelBlock {
-  id                String    @id
+  id                String    @id @default(cuid())
   coupleId          String
   name              String
   description       String?
@@ -352,7 +352,7 @@ model HotelBlock {
   amenities         String?
   order             Int       @default(0)
   createdAt         DateTime  @default(now())
-  updatedAt         DateTime
+  updatedAt         DateTime @updatedAt
   imageUrl          String?
   couple            Couple    @relation(fields: [coupleId], references: [id], onDelete: Cascade)
 
@@ -360,14 +360,14 @@ model HotelBlock {
 }
 
 model Household {
-  id        String   @id
+  id        String   @id @default(cuid())
   coupleId  String
   name      String
   addressId String?
   maxGuests Int?
   notes     String?
   createdAt DateTime @default(now())
-  updatedAt DateTime
+  updatedAt DateTime @updatedAt
   guests    Guest[]
   address   Address? @relation(fields: [addressId], references: [id])
   couple    Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
@@ -377,7 +377,7 @@ model Household {
 }
 
 model Invitation {
-  id             String           @id
+  id             String           @id @default(cuid())
   coupleId       String
   campaignId     String?
   guestId        String
@@ -399,7 +399,7 @@ model Invitation {
   errorMessage   String?
   metadata       String?
   createdAt      DateTime         @default(now())
-  updatedAt      DateTime
+  updatedAt      DateTime @updatedAt
   campaign       Campaign?        @relation(fields: [campaignId], references: [id])
   couple         Couple           @relation(fields: [coupleId], references: [id], onDelete: Cascade)
   guest          Guest            @relation(fields: [guestId], references: [id], onDelete: Cascade)
@@ -413,7 +413,7 @@ model Invitation {
 }
 
 model Media {
-  id           String   @id
+  id           String   @id @default(cuid())
   coupleId     String
   url          String
   thumbnailUrl String?
@@ -427,7 +427,7 @@ model Media {
   tags         String[]
   uploadedBy   String?
   createdAt    DateTime @default(now())
-  updatedAt    DateTime
+  updatedAt    DateTime @updatedAt
   couple       Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
 
   @@index([coupleId])
@@ -435,7 +435,7 @@ model Media {
 }
 
 model Message {
-  id              String        @id
+  id              String        @id @default(cuid())
   coupleId        String
   subject         String
   bodyHTML        String
@@ -450,7 +450,7 @@ model Message {
   opened          Int           @default(0)
   failed          Int           @default(0)
   createdAt       DateTime      @default(now())
-  updatedAt       DateTime
+  updatedAt       DateTime @updatedAt
   couple          Couple        @relation(fields: [coupleId], references: [id], onDelete: Cascade)
 
   @@index([coupleId])
@@ -459,7 +459,7 @@ model Message {
 }
 
 model Page {
-  id          String   @id
+  id          String   @id @default(cuid())
   coupleId    String
   type        PageType
   slug        String
@@ -468,7 +468,7 @@ model Page {
   order       Int      @default(0)
   isPublished Boolean  @default(true)
   createdAt   DateTime @default(now())
-  updatedAt   DateTime
+  updatedAt   DateTime @updatedAt
   couple      Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
   pageSEO     PageSEO?
 
@@ -478,19 +478,19 @@ model Page {
 }
 
 model PageSEO {
-  id              String   @id
+  id              String   @id @default(cuid())
   pageId          String   @unique
   metaTitle       String?
   metaDescription String?
   ogImage         String?
   keywords        String?
   createdAt       DateTime @default(now())
-  updatedAt       DateTime
+  updatedAt       DateTime @updatedAt
   page            Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
 }
 
 model RSVPQuestion {
-  id             String       @id
+  id             String       @id @default(cuid())
   coupleId       String
   eventId        String?
   text           String
@@ -502,7 +502,7 @@ model RSVPQuestion {
   order          Int          @default(0)
   visibilityRule String?
   createdAt      DateTime     @default(now())
-  updatedAt      DateTime
+  updatedAt      DateTime @updatedAt
   couple         Couple       @relation(fields: [coupleId], references: [id], onDelete: Cascade)
   event          Event?       @relation(fields: [eventId], references: [id])
 
@@ -512,7 +512,7 @@ model RSVPQuestion {
 }
 
 model RSVPResponse {
-  id             String     @id
+  id             String     @id @default(cuid())
   coupleId       String
   guestId        String
   eventId        String?
@@ -523,7 +523,7 @@ model RSVPResponse {
   plusOneEmail   String?
   plusOneAnswers String?
   respondedAt    DateTime   @default(now())
-  updatedAt      DateTime
+  updatedAt      DateTime @updatedAt
   couple         Couple     @relation(fields: [coupleId], references: [id], onDelete: Cascade)
   event          Event?     @relation(fields: [eventId], references: [id])
   guest          Guest      @relation(fields: [guestId], references: [id], onDelete: Cascade)
@@ -536,7 +536,7 @@ model RSVPResponse {
 }
 
 model RegistryLink {
-  id          String   @id
+  id          String   @id @default(cuid())
   coupleId    String
   label       String
   url         String
@@ -544,20 +544,20 @@ model RegistryLink {
   imageUrl    String?
   order       Int      @default(0)
   createdAt   DateTime @default(now())
-  updatedAt   DateTime
+  updatedAt   DateTime @updatedAt
   couple      Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
 
   @@index([coupleId])
 }
 
 model Seat {
-  id         String   @id
+  id         String   @id @default(cuid())
   tableId    String
   guestId    String
   seatNumber Int?
   notes      String?
   createdAt  DateTime @default(now())
-  updatedAt  DateTime
+  updatedAt  DateTime @updatedAt
   guest      Guest    @relation(fields: [guestId], references: [id], onDelete: Cascade)
   table      Table    @relation(fields: [tableId], references: [id], onDelete: Cascade)
 
@@ -567,13 +567,13 @@ model Seat {
 }
 
 model SeatingChart {
-  id          String   @id
+  id          String   @id @default(cuid())
   coupleId    String
   eventId     String?
   name        String
   description String?
   createdAt   DateTime @default(now())
-  updatedAt   DateTime
+  updatedAt   DateTime @updatedAt
   couple      Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
   event       Event?   @relation(fields: [eventId], references: [id])
   tables      Table[]
@@ -583,7 +583,7 @@ model SeatingChart {
 }
 
 model Session {
-  id           String   @id
+  id           String   @id @default(cuid())
   sessionToken String   @unique
   userId       String
   expires      DateTime
@@ -593,7 +593,7 @@ model Session {
 }
 
 model Table {
-  id             String       @id
+  id             String       @id @default(cuid())
   seatingChartId String
   name           String
   capacity       Int
@@ -601,7 +601,7 @@ model Table {
   x              Float?
   y              Float?
   createdAt      DateTime     @default(now())
-  updatedAt      DateTime
+  updatedAt      DateTime @updatedAt
   seats          Seat[]
   seatingChart   SeatingChart @relation(fields: [seatingChartId], references: [id], onDelete: Cascade)
 
@@ -609,7 +609,7 @@ model Table {
 }
 
 model Tag {
-  id          String     @id
+  id          String     @id @default(cuid())
   coupleId    String
   name        String
   color       String     @default("#6b9c7f")
@@ -617,7 +617,7 @@ model Tag {
   icon        String?
   isSystem    Boolean    @default(false)
   createdAt   DateTime   @default(now())
-  updatedAt   DateTime
+  updatedAt   DateTime @updatedAt
   guests      GuestTag[]
   couple      Couple     @relation(fields: [coupleId], references: [id], onDelete: Cascade)
 
@@ -626,7 +626,7 @@ model Tag {
 }
 
 model User {
-  id            String        @id
+  id            String        @id @default(cuid())
   email         String        @unique
   name          String?
   image         String?
@@ -634,7 +634,7 @@ model User {
   emailVerified DateTime?
   coupleId      String?
   createdAt     DateTime      @default(now())
-  updatedAt     DateTime
+  updatedAt     DateTime @updatedAt
   accounts      Account[]
   activityLogs  ActivityLog[]
   guest         Guest?
@@ -654,7 +654,7 @@ model VerificationToken {
 }
 
 model WeddingPartyMember {
-  id           String           @id
+  id           String           @id @default(cuid())
   coupleId     String
   name         String
   role         WeddingPartyRole
@@ -664,7 +664,7 @@ model WeddingPartyMember {
   relationship String?
   order        Int              @default(0)
   createdAt    DateTime         @default(now())
-  updatedAt    DateTime
+  updatedAt    DateTime @updatedAt
   couple       Couple           @relation(fields: [coupleId], references: [id], onDelete: Cascade)
 
   @@index([coupleId])
