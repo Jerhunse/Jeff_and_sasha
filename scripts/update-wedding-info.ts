@@ -230,7 +230,6 @@ async function updateWeddingInfo() {
           zip: hotel.zip || null,
           website: hotel.website || null,
           distanceFromVenue: hotel.distanceFromVenue,
-          imageUrl: hotel.imageUrl || null,
           order: hotel.order,
         },
       })
