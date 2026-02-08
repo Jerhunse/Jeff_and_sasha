@@ -283,8 +283,8 @@ model Guest {
   couple           Couple          @relation(fields: [coupleId], references: [id], onDelete: Cascade)
   household        Household?      @relation(fields: [householdId], references: [id])
   user             User?           @relation(fields: [userId], references: [id])
-  guestActivities  GuestActivity[]
-  guestTags        GuestTag[]
+  activities       GuestActivity[]
+  tags             GuestTag[]
   invitations      Invitation[]
   rsvpResponses    RSVPResponse[]
   seats            Seat[]
@@ -618,7 +618,7 @@ model Tag {
   isSystem    Boolean    @default(false)
   createdAt   DateTime   @default(now())
   updatedAt   DateTime
-  guestTags   GuestTag[]
+  guests      GuestTag[]
   couple      Couple     @relation(fields: [coupleId], references: [id], onDelete: Cascade)
 
   @@unique([coupleId, name])
