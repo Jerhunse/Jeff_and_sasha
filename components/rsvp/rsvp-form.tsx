@@ -211,17 +211,6 @@ export function RsvpForm({ guest, couple, isNewGuest = false, sharedCode }: Rsvp
         setIsSubmitting(false)
         return
       }
-
-      // If only 1 guest, ensure first and last name are provided
-      if (formData.confirmedGuestCount === 1) {
-        const fullName = formData.guestNames[0].trim()
-        const nameParts = fullName.split(/\s+/)
-        if (nameParts.length < 2) {
-          setError("Please provide both first and last name")
-          setIsSubmitting(false)
-          return
-        }
-      }
     }
 
     try {
@@ -533,14 +522,8 @@ export function RsvpForm({ guest, couple, isNewGuest = false, sharedCode }: Rsvp
                               guestNames: newNames,
                             })
                           }}
-                          placeholder={index === 0 ? "First and Last Name" : "Guest's Full Name"}
-                          disabled={index === 0 && !!guest} // Disable primary guest name if it's pre-filled
+                          placeholder={index === 0 ? "Your Full Name" : "Guest's Full Name"}
                         />
-                        {index === 0 && formData.confirmedGuestCount === 1 && (
-                          <p className="text-xs text-muted-foreground">
-                            Please provide both your first and last name
-                          </p>
-                        )}
                       </div>
                     ))}
                   </div>
