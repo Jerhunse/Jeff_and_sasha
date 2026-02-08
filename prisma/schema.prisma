@@ -20,7 +20,7 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
-  User              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
   @@index([userId])
@@ -36,8 +36,8 @@ model ActivityLog {
   description String
   meta        String?
   createdAt   DateTime       @default(now())
-  User        User?          @relation(fields: [actorId], references: [id])
-  Couple      Couple         @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  user        User?          @relation(fields: [actorId], references: [id])
+  couple      Couple         @relation(fields: [coupleId], references: [id], onDelete: Cascade)
 
   @@index([action])
   @@index([actorId])
@@ -56,9 +56,9 @@ model Address {
   country   String      @default("US")
   createdAt DateTime    @default(now())
   updatedAt DateTime
-  Couple    Couple      @relation(fields: [coupleId], references: [id], onDelete: Cascade)
-  Guest     Guest[]
-  Household Household[]
+  couple    Couple      @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  guests    Guest[]
+  households Household[]
 
   @@index([coupleId])
 }
@@ -86,8 +86,8 @@ model Campaign {
   failed          Int            @default(0)
   createdAt       DateTime       @default(now())
   updatedAt       DateTime
-  Couple          Couple         @relation(fields: [coupleId], references: [id], onDelete: Cascade)
-  Invitation      Invitation[]
+  couple          Couple         @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  invitations     Invitation[]
 
   @@index([coupleId])
   @@index([scheduledAt])
@@ -107,8 +107,8 @@ model CashFund {
   isActive             Boolean                @default(true)
   createdAt            DateTime               @default(now())
   updatedAt            DateTime
-  Couple               Couple                 @relation(fields: [coupleId], references: [id], onDelete: Cascade)
-  CashFundContribution CashFundContribution[]
+  couple               Couple                 @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  contributions        CashFundContribution[]
 
   @@index([coupleId])
 }
@@ -124,7 +124,7 @@ model CashFundContribution {
   stripePaymentId String?  @unique
   status          String   @default("pending")
   createdAt       DateTime @default(now())
-  CashFund        CashFund @relation(fields: [cashFundId], references: [id], onDelete: Cascade)
+  cashFund        CashFund @relation(fields: [cashFundId], references: [id], onDelete: Cascade)
 
   @@index([cashFundId])
   @@index([stripePaymentId])
@@ -141,7 +141,7 @@ model ContactMessage {
   isRead     Boolean  @default(false)
   isResolved Boolean  @default(false)
   createdAt  DateTime @default(now())
-  Couple     Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  couple     Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
 
   @@index([coupleId])
   @@index([isRead])
@@ -186,27 +186,27 @@ model Couple {
   askSongRequest     Boolean              @default(true)
   busRoutes          String?
   mealOptions        String?
-  ActivityLog        ActivityLog[]
-  Address            Address[]
-  Campaign           Campaign[]
-  CashFund           CashFund[]
-  ContactMessage     ContactMessage[]
-  Event              Event[]
-  Faq                Faq[]
-  Guest              Guest[]
-  HotelBlock         HotelBlock[]
-  Household          Household[]
-  Invitation         Invitation[]
-  Media              Media[]
-  Message            Message[]
-  Page               Page[]
-  RSVPQuestion       RSVPQuestion[]
-  RSVPResponse       RSVPResponse[]
-  RegistryLink       RegistryLink[]
-  SeatingChart       SeatingChart[]
-  Tag                Tag[]
-  User               User[]
-  WeddingPartyMember WeddingPartyMember[]
+  activityLogs       ActivityLog[]
+  addresses          Address[]
+  campaigns          Campaign[]
+  cashFunds          CashFund[]
+  contactMessages    ContactMessage[]
+  events             Event[]
+  faqs               Faq[]
+  guests             Guest[]
+  hotels             HotelBlock[]
+  households         Household[]
+  invitations        Invitation[]
+  media              Media[]
+  messages           Message[]
+  pages              Page[]
+  rsvpQuestions      RSVPQuestion[]
+  rsvpResponses      RSVPResponse[]
+  registryLinks      RegistryLink[]
+  seatingCharts      SeatingChart[]
+  tags               Tag[]
+  users              User[]
+  weddingPartyMembers WeddingPartyMember[]
 
   @@index([customDomain])
   @@index([slug])
@@ -228,10 +228,10 @@ model Event {
   order        Int             @default(0)
   createdAt    DateTime        @default(now())
   updatedAt    DateTime
-  Couple       Couple          @relation(fields: [coupleId], references: [id], onDelete: Cascade)
-  RSVPQuestion RSVPQuestion[]
-  RSVPResponse RSVPResponse[]
-  SeatingChart SeatingChart[]
+  couple       Couple          @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  rsvpQuestions RSVPQuestion[]
+  rsvpResponses RSVPResponse[]
+  seatingCharts SeatingChart[]
 
   @@index([coupleId])
   @@index([startTime])
@@ -246,7 +246,7 @@ model Faq {
   order     Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime
-  Couple    Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  couple    Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
 
   @@index([coupleId])
 }
@@ -279,15 +279,15 @@ model Guest {
   createdAt        DateTime        @default(now())
   updatedAt        DateTime
   maxGuestsAllowed Int             @default(1)
-  Address          Address?        @relation(fields: [addressId], references: [id])
-  Couple           Couple          @relation(fields: [coupleId], references: [id], onDelete: Cascade)
-  Household        Household?      @relation(fields: [householdId], references: [id])
-  User             User?           @relation(fields: [userId], references: [id])
-  GuestActivity    GuestActivity[]
-  GuestTag         GuestTag[]
-  Invitation       Invitation[]
-  RSVPResponse     RSVPResponse[]
-  Seat             Seat[]
+  address          Address?        @relation(fields: [addressId], references: [id])
+  couple           Couple          @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  household        Household?      @relation(fields: [householdId], references: [id])
+  user             User?           @relation(fields: [userId], references: [id])
+  guestActivities  GuestActivity[]
+  guestTags        GuestTag[]
+  invitations      Invitation[]
+  rsvpResponses    RSVPResponse[]
+  seats            Seat[]
 
   @@index([addressId])
   @@index([coupleId])
@@ -310,7 +310,7 @@ model GuestActivity {
   undoneAt    DateTime?
   undoneBy    String?
   createdAt   DateTime       @default(now())
-  Guest       Guest          @relation(fields: [guestId], references: [id], onDelete: Cascade)
+  guest       Guest          @relation(fields: [guestId], references: [id], onDelete: Cascade)
 
   @@index([action])
   @@index([createdAt])
@@ -323,8 +323,8 @@ model GuestTag {
   tagId   String
   addedAt DateTime @default(now())
   addedBy String?
-  Guest   Guest    @relation(fields: [guestId], references: [id], onDelete: Cascade)
-  Tag     Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  guest   Guest    @relation(fields: [guestId], references: [id], onDelete: Cascade)
+  tag     Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@unique([guestId, tagId])
   @@index([guestId])
@@ -354,7 +354,7 @@ model HotelBlock {
   createdAt         DateTime  @default(now())
   updatedAt         DateTime
   imageUrl          String?
-  Couple            Couple    @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  couple            Couple    @relation(fields: [coupleId], references: [id], onDelete: Cascade)
 
   @@index([coupleId])
 }
@@ -368,9 +368,9 @@ model Household {
   notes     String?
   createdAt DateTime @default(now())
   updatedAt DateTime
-  Guest     Guest[]
-  Address   Address? @relation(fields: [addressId], references: [id])
-  Couple    Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  guests    Guest[]
+  address   Address? @relation(fields: [addressId], references: [id])
+  couple    Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
 
   @@index([addressId])
   @@index([coupleId])
@@ -400,9 +400,9 @@ model Invitation {
   metadata       String?
   createdAt      DateTime         @default(now())
   updatedAt      DateTime
-  Campaign       Campaign?        @relation(fields: [campaignId], references: [id])
-  Couple         Couple           @relation(fields: [coupleId], references: [id], onDelete: Cascade)
-  Guest          Guest            @relation(fields: [guestId], references: [id], onDelete: Cascade)
+  campaign       Campaign?        @relation(fields: [campaignId], references: [id])
+  couple         Couple           @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  guest          Guest            @relation(fields: [guestId], references: [id], onDelete: Cascade)
 
   @@unique([campaignId, guestId])
   @@index([campaignId])
@@ -428,7 +428,7 @@ model Media {
   uploadedBy   String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime
-  Couple       Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  couple       Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
 
   @@index([coupleId])
   @@index([tags])
@@ -451,7 +451,7 @@ model Message {
   failed          Int           @default(0)
   createdAt       DateTime      @default(now())
   updatedAt       DateTime
-  Couple          Couple        @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  couple          Couple        @relation(fields: [coupleId], references: [id], onDelete: Cascade)
 
   @@index([coupleId])
   @@index([scheduledAt])
@@ -469,8 +469,8 @@ model Page {
   isPublished Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime
-  Couple      Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
-  PageSEO     PageSEO?
+  couple      Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  pageSEO     PageSEO?
 
   @@unique([coupleId, slug])
   @@index([coupleId])
@@ -486,7 +486,7 @@ model PageSEO {
   keywords        String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime
-  Page            Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  page            Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
 }
 
 model RSVPQuestion {
@@ -503,8 +503,8 @@ model RSVPQuestion {
   visibilityRule String?
   createdAt      DateTime     @default(now())
   updatedAt      DateTime
-  Couple         Couple       @relation(fields: [coupleId], references: [id], onDelete: Cascade)
-  Event          Event?       @relation(fields: [eventId], references: [id])
+  couple         Couple       @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  event          Event?       @relation(fields: [eventId], references: [id])
 
   @@index([coupleId])
   @@index([eventId])
@@ -524,9 +524,9 @@ model RSVPResponse {
   plusOneAnswers String?
   respondedAt    DateTime   @default(now())
   updatedAt      DateTime
-  Couple         Couple     @relation(fields: [coupleId], references: [id], onDelete: Cascade)
-  Event          Event?     @relation(fields: [eventId], references: [id])
-  Guest          Guest      @relation(fields: [guestId], references: [id], onDelete: Cascade)
+  couple         Couple     @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  event          Event?     @relation(fields: [eventId], references: [id])
+  guest          Guest      @relation(fields: [guestId], references: [id], onDelete: Cascade)
 
   @@unique([guestId, eventId])
   @@index([coupleId])
@@ -545,7 +545,7 @@ model RegistryLink {
   order       Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime
-  Couple      Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  couple      Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
 
   @@index([coupleId])
 }
@@ -558,8 +558,8 @@ model Seat {
   notes      String?
   createdAt  DateTime @default(now())
   updatedAt  DateTime
-  Guest      Guest    @relation(fields: [guestId], references: [id], onDelete: Cascade)
-  Table      Table    @relation(fields: [tableId], references: [id], onDelete: Cascade)
+  guest      Guest    @relation(fields: [guestId], references: [id], onDelete: Cascade)
+  table      Table    @relation(fields: [tableId], references: [id], onDelete: Cascade)
 
   @@unique([tableId, guestId])
   @@index([guestId])
@@ -574,9 +574,9 @@ model SeatingChart {
   description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime
-  Couple      Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
-  Event       Event?   @relation(fields: [eventId], references: [id])
-  Table       Table[]
+  couple      Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  event       Event?   @relation(fields: [eventId], references: [id])
+  tables      Table[]
 
   @@index([coupleId])
   @@index([eventId])
@@ -587,7 +587,7 @@ model Session {
   sessionToken String   @unique
   userId       String
   expires      DateTime
-  User         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
@@ -602,8 +602,8 @@ model Table {
   y              Float?
   createdAt      DateTime     @default(now())
   updatedAt      DateTime
-  Seat           Seat[]
-  SeatingChart   SeatingChart @relation(fields: [seatingChartId], references: [id], onDelete: Cascade)
+  seats          Seat[]
+  seatingChart   SeatingChart @relation(fields: [seatingChartId], references: [id], onDelete: Cascade)
 
   @@index([seatingChartId])
 }
@@ -618,8 +618,8 @@ model Tag {
   isSystem    Boolean    @default(false)
   createdAt   DateTime   @default(now())
   updatedAt   DateTime
-  GuestTag    GuestTag[]
-  Couple      Couple     @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  guestTags   GuestTag[]
+  couple      Couple     @relation(fields: [coupleId], references: [id], onDelete: Cascade)
 
   @@unique([coupleId, name])
   @@index([coupleId])
@@ -635,11 +635,11 @@ model User {
   coupleId      String?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime
-  Account       Account[]
-  ActivityLog   ActivityLog[]
-  Guest         Guest?
-  Session       Session[]
-  Couple        Couple?       @relation(fields: [coupleId], references: [id])
+  accounts      Account[]
+  activityLogs  ActivityLog[]
+  guest         Guest?
+  sessions      Session[]
+  couple        Couple?       @relation(fields: [coupleId], references: [id])
 
   @@index([coupleId])
   @@index([email])
@@ -665,7 +665,7 @@ model WeddingPartyMember {
   order        Int              @default(0)
   createdAt    DateTime         @default(now())
   updatedAt    DateTime
-  Couple       Couple           @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  couple       Couple           @relation(fields: [coupleId], references: [id], onDelete: Cascade)
 
   @@index([coupleId])
 }
