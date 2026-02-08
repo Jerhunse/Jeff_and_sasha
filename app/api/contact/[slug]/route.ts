@@ -18,8 +18,18 @@ export async function POST(
 
     // Validate required fields
     if (!name || !email || !message) {
-      return NextResponse.redirect(
-        new URL(`/${slug}/contact?error=missing_fields`, request.url)
+      return NextResponse.json(
+        { error: "Please fill in all required fields (name, email, and message)." },
+        { status: 400 }
+      )
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      return NextResponse.json(
+        { error: "Please enter a valid email address." },
+        { status: 400 }
       )
     }
 
@@ -29,13 +39,14 @@ export async function POST(
     })
 
     if (!wedding) {
-      return NextResponse.redirect(
-        new URL(`/${slug}/contact?error=not_found`, request.url)
+      return NextResponse.json(
+        { error: "Wedding not found." },
+        { status: 404 }
       )
     }
 
-    // Create contact message
-    await prisma.contactMessage.create({
+    // Create contact message in database
+    const contactMessage = await prisma.contactMessage.create({
       data: {
         coupleId: wedding.id,
         name,
@@ -45,6 +56,8 @@ export async function POST(
         message,
       },
     })
+
+    console.log(`Contact message created: ID ${contactMessage.id} from ${name} (${email})`)
 
     // Send email notification to the couple
     const emailSubject = subject || `New message from ${name} - ${wedding.partner1Name} & ${wedding.partner2Name} Wedding`
@@ -91,28 +104,44 @@ This message was sent from your wedding website contact form.
 Reply directly to this email to respond to ${name}.
     `
 
+    // Send email notification
+    let emailSent = false
+    let emailError = null
+    
     try {
-      await sendEmail({
+      const emailResult = await sendEmail({
         to: "sashaplusjeff@gmail.com",
         subject: emailSubject,
         html: emailHtml,
         text: emailText,
         replyTo: email,
       })
-    } catch (emailError) {
-      console.error("Failed to send contact form email:", emailError)
-      // Don't fail the form submission if email fails
+      
+      if (emailResult?.success !== false) {
+        emailSent = true
+        console.log(`Email notification sent for contact message ID ${contactMessage.id}`)
+      } else {
+        emailError = emailResult?.error || 'Unknown error'
+        console.error(`Failed to send email for contact message ID ${contactMessage.id}:`, emailError)
+      }
+    } catch (error: any) {
+      emailError = error.message
+      console.error(`Exception sending email for contact message ID ${contactMessage.id}:`, error)
     }
 
-    // Redirect to success page
-    return NextResponse.redirect(
-      new URL(`/${slug}/contact?success=true`, request.url)
-    )
+    // Return success even if email fails (message is saved in database)
+    return NextResponse.json({
+      success: true,
+      message: "Your message has been received. We'll get back to you soon!",
+      emailSent,
+      ...(emailError && { emailWarning: "Message saved but notification email may not have been delivered." })
+    })
+    
   } catch (error) {
     console.error("Error submitting contact form:", error)
-    const { slug } = await params
-    return NextResponse.redirect(
-      new URL(`/${slug}/contact?error=server_error`, request.url)
+    return NextResponse.json(
+      { error: "An unexpected error occurred. Please try again or contact us directly." },
+      { status: 500 }
     )
   }
 }

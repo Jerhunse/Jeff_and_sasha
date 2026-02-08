@@ -1,6 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { HelpCircle } from "lucide-react"
 
 interface Faq {
   id: string
@@ -32,7 +30,7 @@ export function FaqSection({ faqs }: FaqSectionProps) {
       <div className="relative z-10 max-w-4xl mx-auto px-6 py-20">
         {/* Header — matches timeline section */}
         <header className="text-center mb-16 md:mb-24">
-          <h2 className="font-heading text-4xl md:text-5xl lg:text-7xl text-gold mb-4 drop-shadow-sm">
+          <h2 className="font-heading text-4xl md:text-5xl lg:text-7xl text-black mb-4 drop-shadow-sm">
             Frequently Asked Questions
           </h2>
           <p className="font-sans text-base md:text-xl lg:text-2xl tracking-[0.2em] uppercase text-foreground/90">
@@ -48,19 +46,11 @@ export function FaqSection({ faqs }: FaqSectionProps) {
         </header>
 
         {faqs.length === 0 ? (
-          <Card 
-            className="rounded-lg bg-white/95 dark:bg-neutral-900/95 backdrop-blur-sm border border-white/20 dark:border-white/10 shadow-md"
-            style={{
-              maskImage: "linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)",
-              WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)",
-            }}
-          >
-            <CardContent className="pt-8 text-center py-12">
-              <p className="font-serif italic text-muted-foreground">
-                Have a question? Reach out to us and we&rsquo;ll get back to you soon!
-              </p>
-            </CardContent>
-          </Card>
+          <div className="text-center py-12">
+            <p className="font-serif italic text-muted-foreground">
+              Have a question? Reach out to us and we&rsquo;ll get back to you soon!
+            </p>
+          </div>
         ) : (
           <div className="space-y-8">
             {categories.map((category) => (
@@ -72,31 +62,20 @@ export function FaqSection({ faqs }: FaqSectionProps) {
                     </Badge>
                   </div>
                 )}
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {faqsByCategory[category].map((faq) => (
-                    <Card 
-                      key={faq.id} 
-                      className="card-hover rounded-lg bg-white/95 dark:bg-neutral-900/95 backdrop-blur-sm border border-white/20 dark:border-white/10 shadow-md"
-                      style={{
-                        maskImage: "linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)",
-                        WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)",
-                      }}
-                    >
-                      <CardHeader>
-                        <CardTitle className="font-serif text-base md:text-lg lg:text-xl text-foreground flex items-start gap-2 md:gap-3">
-                          <span className="text-gold mt-1 font-sans text-sm md:text-base">Q:</span>
-                          <span className="flex-1">{faq.question}</span>
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="flex items-start gap-2 md:gap-3">
-                          <span className="text-gold font-semibold mt-1 font-sans text-sm md:text-base">A:</span>
-                          <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap text-sm md:text-base flex-1">
-                            {faq.answer}
-                          </p>
-                        </div>
-                      </CardContent>
-                    </Card>
+                    <div key={faq.id} className="space-y-2">
+                      <div className="font-serif text-base md:text-lg lg:text-xl flex items-start gap-2 md:gap-3">
+                        <span className="text-gold mt-1 font-sans text-sm md:text-base">Q:</span>
+                        <span className="flex-1" style={{ color: '#8b1a1a' }}>{faq.question}</span>
+                      </div>
+                      <div className="flex items-start gap-2 md:gap-3">
+                        <span className="text-gold font-semibold mt-1 font-sans text-sm md:text-base">A:</span>
+                        <p className="leading-relaxed whitespace-pre-wrap text-sm md:text-base flex-1" style={{ color: '#2d3e1f' }}>
+                          {faq.answer}
+                        </p>
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -104,20 +83,12 @@ export function FaqSection({ faqs }: FaqSectionProps) {
           </div>
         )}
 
-        <Card 
-          className="mt-12 bg-muted/50 border-border/50"
-          style={{
-            maskImage: "linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)",
-            WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)",
-          }}
-        >
-          <CardContent className="pt-8 text-center">
-            <p className="font-medium mb-2">Still have questions?</p>
-            <p className="text-sm font-serif italic text-muted-foreground">
-              Feel free to reach out to us directly. We&rsquo;re happy to help!
-            </p>
-          </CardContent>
-        </Card>
+        <div className="mt-12 text-center">
+          <p className="font-medium mb-2">Still have questions?</p>
+          <p className="text-sm font-serif italic text-muted-foreground">
+            Feel free to reach out to us directly. We&rsquo;re happy to help!
+          </p>
+        </div>
       </div>
     </section>
   )

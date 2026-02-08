@@ -35,9 +35,6 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
     { href: "/admin/rsvp-dashboard", label: "RSVP Dashboard", icon: ClipboardList },
     { href: "/admin/guests", label: "Guests", icon: Users },
     { href: "/admin/invitations", label: "Invitations", icon: Mail },
-    { href: "/admin/events", label: "Events", icon: Calendar },
-    { href: "/admin/pages", label: "Pages", icon: FileText },
-    { href: "/admin/settings", label: "Settings", icon: Settings },
   ]
 
   return (
@@ -48,7 +45,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
         <div className="p-6 border-b">
           <Link href="/admin" className="flex items-center gap-2">
             <Heart className="h-6 w-6 text-primary fill-primary" />
-            <span className="font-serif text-xl font-bold">Wedding Admin</span>
+            <span className="font-sans text-xl font-bold">Wedding Admin</span>
           </Link>
         </div>
 
@@ -60,7 +57,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
                 <Link key={item.href} href={item.href}>
                   <Button
                     variant="ghost"
-                    className="w-full justify-start gap-3"
+                    className="w-full justify-start gap-3 font-sans"
                   >
                     <Icon className="h-4 w-4" />
                     {item.label}

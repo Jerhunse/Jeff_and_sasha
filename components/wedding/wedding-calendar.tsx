@@ -53,15 +53,23 @@ export function WeddingCalendar({
 
   const dayNames = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"]
 
-  // Function to format date for iCalendar
+  // Function to format date for iCalendar (all-day event format: YYYYMMDD)
   const formatICSDate = (date: Date): string => {
     const year = date.getFullYear()
     const month = String(date.getMonth() + 1).padStart(2, '0')
     const day = String(date.getDate()).padStart(2, '0')
-    const hours = String(date.getHours()).padStart(2, '0')
-    const minutes = String(date.getMinutes()).padStart(2, '0')
-    const seconds = String(date.getSeconds()).padStart(2, '0')
-    return `${year}${month}${day}T${hours}${minutes}${seconds}`
+    return `${year}${month}${day}`
+  }
+
+  // Function to format timestamp for iCalendar (UTC format)
+  const formatICSTimestamp = (date: Date): string => {
+    const year = date.getUTCFullYear()
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0')
+    const day = String(date.getUTCDate()).padStart(2, '0')
+    const hours = String(date.getUTCHours()).padStart(2, '0')
+    const minutes = String(date.getUTCMinutes()).padStart(2, '0')
+    const seconds = String(date.getUTCSeconds()).padStart(2, '0')
+    return `${year}${month}${day}T${hours}${minutes}${seconds}Z`
   }
 
   // Function to generate and download .ics file
@@ -85,10 +93,11 @@ export function WeddingCalendar({
       location += ` ${venueZip}`
     }
 
-    // Create start and end times (assuming 4 hour event)
+    // Create start date (all-day event)
     const startDate = new Date(weddingDate)
+    // For all-day events, end date is the next day
     const endDate = new Date(weddingDate)
-    endDate.setHours(endDate.getHours() + 4)
+    endDate.setDate(endDate.getDate() + 1)
 
     // Generate ICS content
     const icsContent = [
@@ -98,9 +107,9 @@ export function WeddingCalendar({
       'CALSCALE:GREGORIAN',
       'METHOD:PUBLISH',
       'BEGIN:VEVENT',
-      `DTSTART:${formatICSDate(startDate)}`,
-      `DTEND:${formatICSDate(endDate)}`,
-      `DTSTAMP:${formatICSDate(new Date())}`,
+      `DTSTART;VALUE=DATE:${formatICSDate(startDate)}`,
+      `DTEND;VALUE=DATE:${formatICSDate(endDate)}`,
+      `DTSTAMP:${formatICSTimestamp(new Date())}`,
       `SUMMARY:${coupleNames} Wedding`,
       `DESCRIPTION:Join us for the wedding celebration of ${coupleNames}`,
       `LOCATION:${location}`,
@@ -150,7 +159,7 @@ export function WeddingCalendar({
           <div className="flex flex-col items-center lg:items-start">
             {/* Header */}
             <div className="text-center lg:text-left mb-6 md:mb-8">
-              <h2 className="font-sans text-lg md:text-xl lg:text-2xl tracking-wider mb-2" style={{ color: "#D4C8B8" }}>
+              <h2 className="font-sans text-lg md:text-xl lg:text-2xl tracking-wider mb-2 text-black">
                 SAVE THE DATE
               </h2>
               <p className="font-sans text-sm md:text-base tracking-widest" style={{ color: "#D4C8B8" }}>

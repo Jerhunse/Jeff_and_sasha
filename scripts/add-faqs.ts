@@ -46,7 +46,7 @@ async function addFAQs() {
       },
       {
         question: 'What is the schedule for the day?',
-        answer: 'Ceremony: 4:00 PM\n\nCocktail Hour: 4:30 PM\n\nGrand Entrance & Dinner: 5:30 PM\n\nFirst Dances: 6:30 PM (dance floor opens after)\n\nCake Cutting: 7:00 PM\n\nSend Off: 9:00 PM',
+        answer: 'Ceremony: 4:00 PM\n\nCocktail Hour: 4:30 PM\n\nGrand Entrance & Dinner: 5:30 PM\n\nDances & Speeches: 6:30 PM\n\nCake Cutting: 7:00 PM\n\nSend Off: 9:00 PM',
         category: null,
         order: 3,
       },

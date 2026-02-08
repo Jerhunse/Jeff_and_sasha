@@ -232,7 +232,7 @@ export function EnvelopeLanding({
         ) : (
           <div className="w-full max-w-2xl px-4 py-8">
             <div className="text-center mb-8">
-              <h1 className="font-cursive text-4xl md:text-5xl text-gold mb-2">
+              <h1 className="font-cursive text-4xl md:text-5xl text-black mb-2">
                 RSVP
               </h1>
               <p className="text-xl text-muted-foreground">

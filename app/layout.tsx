@@ -4,7 +4,7 @@ import {
   Cormorant_Garamond,
   EB_Garamond,
   Dancing_Script,
-  Pinyon_Script,
+  Italianno,
 } from "next/font/google";
 import "../src/styles/theme.css";
 import "./globals.css";
@@ -37,7 +37,7 @@ const dancingScript = Dancing_Script({
   display: "swap",
 });
 
-const pinyonScript = Pinyon_Script({
+const italianno = Italianno({
   variable: "--font-heading",
   subsets: ["latin"],
   display: "swap",
@@ -63,7 +63,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} ${cormorant.variable} ${ebGaramond.variable} ${dancingScript.variable} ${pinyonScript.variable} font-sans antialiased`}
+        className={`${inter.variable} ${cormorant.variable} ${ebGaramond.variable} ${dancingScript.variable} ${italianno.variable} font-sans antialiased`}
       >
         <TextureLayer />
         <ConditionalNav />

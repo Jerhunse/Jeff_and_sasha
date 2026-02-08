@@ -36,7 +36,7 @@ export default async function RsvpNewPage({ params }: RsvpNewPageProps) {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/20 mb-6">
             <Heart className="h-8 w-8 text-gold fill-gold" />
           </div>
-          <h1 className="font-cursive text-4xl md:text-5xl text-gold mb-2">
+          <h1 className="font-cursive text-4xl md:text-5xl text-black mb-2">
             RSVP
           </h1>
           <p className="text-xl text-muted-foreground">

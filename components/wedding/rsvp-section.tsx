@@ -1,9 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { RsvpQrCode } from "@/components/wedding/rsvp-qr-code"
 import { Heart, Calendar } from "lucide-react"
 
 interface RsvpSectionProps {
@@ -19,14 +17,6 @@ export function RsvpSection({
   partner2Name = "",
   rsvpDeadline,
 }: RsvpSectionProps) {
-  const [rsvpUrl, setRsvpUrl] = useState("")
-
-  useEffect(() => {
-    // Get the current URL for the QR code
-    if (typeof window !== "undefined") {
-      setRsvpUrl(`${window.location.origin}/rsvp/${weddingSlug}`)
-    }
-  }, [weddingSlug])
 
   const coupleNames =
     partner1Name && partner2Name
@@ -41,7 +31,7 @@ export function RsvpSection({
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gold/20 mb-6">
             <Heart className="h-8 w-8 text-gold fill-gold" />
           </div>
-          <h2 className="font-heading text-4xl md:text-5xl lg:text-7xl text-gold mb-4 drop-shadow-sm">
+          <h2 className="font-heading text-4xl md:text-5xl lg:text-7xl text-black mb-4 drop-shadow-sm">
             RSVP
           </h2>
           {coupleNames && (
@@ -90,18 +80,6 @@ export function RsvpSection({
               </Link>
             </Button>
           </div>
-
-          {/* QR Code */}
-          {rsvpUrl && (
-            <div className="pt-12 border-t border-gold/20">
-              <RsvpQrCode
-                rsvpUrl={rsvpUrl}
-                title="Scan to RSVP"
-                description="Point your phone's camera at this code to quickly access the RSVP form"
-                size={200}
-              />
-            </div>
-          )}
         </div>
 
         {/* Footer */}

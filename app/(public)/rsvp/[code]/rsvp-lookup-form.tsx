@@ -1,13 +1,12 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Heart, Mail, Phone as PhoneIcon } from "lucide-react"
-import { RsvpQrCode } from "@/components/wedding/rsvp-qr-code"
 import {
   Dialog,
   DialogContent,
@@ -34,17 +33,9 @@ export function RsvpLookupForm({ slug }: RsvpLookupFormProps) {
   const [name, setName] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
-  const [rsvpUrl, setRsvpUrl] = useState("")
   const [multipleMatches, setMultipleMatches] = useState<GuestMatch[]>([])
   const [showMultipleDialog, setShowMultipleDialog] = useState(false)
   const router = useRouter()
-
-  useEffect(() => {
-    // Get the current URL for the QR code
-    if (typeof window !== "undefined") {
-      setRsvpUrl(`${window.location.origin}/rsvp/${slug}`)
-    }
-  }, [slug])
 
   const handleLookupSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -115,7 +106,7 @@ export function RsvpLookupForm({ slug }: RsvpLookupFormProps) {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/20 mb-6">
             <Heart className="h-8 w-8 text-gold fill-gold" />
           </div>
-          <h1 className="font-cursive text-4xl md:text-5xl text-gold mb-2">
+          <h1 className="font-cursive text-4xl md:text-5xl text-black mb-2">
             RSVP
           </h1>
           <p className="text-lg text-muted-foreground">
@@ -198,18 +189,6 @@ export function RsvpLookupForm({ slug }: RsvpLookupFormProps) {
             </a>
           </p>
         </div>
-
-        {/* QR Code Section */}
-        {rsvpUrl && (
-          <div className="mt-12">
-            <RsvpQrCode
-              rsvpUrl={rsvpUrl}
-              title="Share this QR Code"
-              description="Guests can scan this code to quickly access the RSVP page"
-              size={220}
-            />
-          </div>
-        )}
 
         {/* Multiple Matches Dialog */}
         <Dialog open={showMultipleDialog} onOpenChange={setShowMultipleDialog}>

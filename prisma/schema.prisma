@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,45 +7,8 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ============================================
-// Authentication & User Management
-// ============================================
-
-enum Role {
-  OWNER        // Couple getting married
-  COLLABORATOR // Helpers (parents, wedding planner)
-  VENDOR       // Photographers, caterers, etc.
-  GUEST        // Wedding guests
-}
-
-model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  name          String?
-  image         String?
-  role          Role      @default(GUEST)
-  
-  // Auth
-  emailVerified DateTime?
-  accounts      Account[]
-  sessions      Session[]
-  
-  // Relations
-  coupleId      String?
-  couple        Couple?   @relation(fields: [coupleId], references: [id])
-  
-  guestProfile  Guest?
-  activityLogs  ActivityLog[]
-  
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
-  @@index([email])
-  @@index([coupleId])
-}
-
 model Account {
-  id                String  @id @default(cuid())
+  id                String  @id
   userId            String
   type              String
   provider          String
@@ -60,21 +20,629 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  User              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
   @@index([userId])
 }
 
+model ActivityLog {
+  id          String         @id
+  coupleId    String
+  actorId     String?
+  action      ActivityAction
+  entityType  String?
+  entityId    String?
+  description String
+  meta        String?
+  createdAt   DateTime       @default(now())
+  User        User?          @relation(fields: [actorId], references: [id])
+  Couple      Couple         @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+
+  @@index([action])
+  @@index([actorId])
+  @@index([coupleId])
+  @@index([createdAt])
+}
+
+model Address {
+  id        String      @id
+  coupleId  String
+  line1     String
+  line2     String?
+  city      String
+  state     String
+  postal    String
+  country   String      @default("US")
+  createdAt DateTime    @default(now())
+  updatedAt DateTime
+  Couple    Couple      @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  Guest     Guest[]
+  Household Household[]
+
+  @@index([coupleId])
+}
+
+model Campaign {
+  id              String         @id
+  coupleId        String
+  name            String
+  type            CampaignType
+  status          CampaignStatus @default(DRAFT)
+  subject         String?
+  templateId      String?
+  customHTML      String?
+  customText      String?
+  smsMessage      String?
+  segmentJSON     String?
+  scheduledAt     DateTime?
+  sentAt          DateTime?
+  totalRecipients Int            @default(0)
+  sent            Int            @default(0)
+  delivered       Int            @default(0)
+  opened          Int            @default(0)
+  clicked         Int            @default(0)
+  bounced         Int            @default(0)
+  failed          Int            @default(0)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime
+  Couple          Couple         @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  Invitation      Invitation[]
+
+  @@index([coupleId])
+  @@index([scheduledAt])
+  @@index([status])
+  @@index([type])
+}
+
+model CashFund {
+  id                   String                 @id
+  coupleId             String
+  title                String
+  description          String?
+  imageUrl             String?
+  goal                 Float?
+  received             Float                  @default(0)
+  stripePriceId        String?
+  isActive             Boolean                @default(true)
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime
+  Couple               Couple                 @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  CashFundContribution CashFundContribution[]
+
+  @@index([coupleId])
+}
+
+model CashFundContribution {
+  id              String   @id
+  cashFundId      String
+  name            String
+  email           String?
+  message         String?
+  amount          Float
+  currency        String   @default("usd")
+  stripePaymentId String?  @unique
+  status          String   @default("pending")
+  createdAt       DateTime @default(now())
+  CashFund        CashFund @relation(fields: [cashFundId], references: [id], onDelete: Cascade)
+
+  @@index([cashFundId])
+  @@index([stripePaymentId])
+}
+
+model ContactMessage {
+  id         String   @id
+  coupleId   String
+  name       String
+  email      String
+  phone      String?
+  subject    String?
+  message    String
+  isRead     Boolean  @default(false)
+  isResolved Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  Couple     Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+
+  @@index([coupleId])
+  @@index([isRead])
+}
+
+model Couple {
+  id                 String               @id
+  slug               String               @unique
+  partner1Name       String
+  partner2Name       String
+  weddingDate        DateTime
+  venueName          String?
+  venueAddress       String?
+  venueCity          String?
+  venueState         String?
+  venueZip           String?
+  venueCountry       String?
+  primaryColor       String               @default("#6b9c7f")
+  secondaryColor     String               @default("#f5f5f0")
+  accentColor        String               @default("#d4a574")
+  fontHeading        String               @default("Playfair Display")
+  fontBody           String               @default("Inter")
+  cornerRadius       String               @default("medium")
+  showFlorals        Boolean              @default(true)
+  heroImageUrl       String?
+  logoImageUrl       String?
+  privacyMode        PrivacyMode          @default(PUBLIC)
+  sitePassword       String?
+  isPublished        Boolean              @default(false)
+  customDomain       String?
+  allowPlusOnes      Boolean              @default(true)
+  rsvpDeadline       DateTime?
+  maxCapacity        Int?
+  timezone           String               @default("America/New_York")
+  stripeAccountId    String?
+  googleMapsApiKey   String?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime
+  landingVideoUrl    String?
+  askBusTransport    Boolean              @default(false)
+  askMealChoice      Boolean              @default(false)
+  askSongRequest     Boolean              @default(true)
+  busRoutes          String?
+  mealOptions        String?
+  ActivityLog        ActivityLog[]
+  Address            Address[]
+  Campaign           Campaign[]
+  CashFund           CashFund[]
+  ContactMessage     ContactMessage[]
+  Event              Event[]
+  Faq                Faq[]
+  Guest              Guest[]
+  HotelBlock         HotelBlock[]
+  Household          Household[]
+  Invitation         Invitation[]
+  Media              Media[]
+  Message            Message[]
+  Page               Page[]
+  RSVPQuestion       RSVPQuestion[]
+  RSVPResponse       RSVPResponse[]
+  RegistryLink       RegistryLink[]
+  SeatingChart       SeatingChart[]
+  Tag                Tag[]
+  User               User[]
+  WeddingPartyMember WeddingPartyMember[]
+
+  @@index([customDomain])
+  @@index([slug])
+}
+
+model Event {
+  id           String          @id
+  coupleId     String
+  name         String
+  description  String?
+  startTime    DateTime
+  endTime      DateTime?
+  location     String?
+  address      String?
+  venue        String?
+  attire       String?
+  visibility   EventVisibility @default(PUBLIC)
+  capacity     Int?
+  order        Int             @default(0)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime
+  Couple       Couple          @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  RSVPQuestion RSVPQuestion[]
+  RSVPResponse RSVPResponse[]
+  SeatingChart SeatingChart[]
+
+  @@index([coupleId])
+  @@index([startTime])
+}
+
+model Faq {
+  id        String   @id
+  coupleId  String
+  question  String
+  answer    String
+  category  String?
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+  Couple    Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+
+  @@index([coupleId])
+}
+
+model Guest {
+  id               String          @id
+  coupleId         String
+  userId           String?         @unique
+  firstName        String
+  lastName         String
+  email            String?
+  phone            String?
+  addressId        String?
+  householdId      String?
+  isPrimaryContact Boolean         @default(true)
+  relationship     String?
+  age              Int?
+  isChild          Boolean         @default(false)
+  isVIP            Boolean         @default(false)
+  doNotContact     Boolean         @default(false)
+  inviteToken      String          @unique
+  invitedBy        String?
+  allowPlusOne     Boolean         @default(false)
+  plusOnePolicy    String          @default("none")
+  importSource     String?
+  importedAt       DateTime?
+  originalData     String?
+  notes            String?
+  importance       Int             @default(0)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime
+  maxGuestsAllowed Int             @default(1)
+  Address          Address?        @relation(fields: [addressId], references: [id])
+  Couple           Couple          @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  Household        Household?      @relation(fields: [householdId], references: [id])
+  User             User?           @relation(fields: [userId], references: [id])
+  GuestActivity    GuestActivity[]
+  GuestTag         GuestTag[]
+  Invitation       Invitation[]
+  RSVPResponse     RSVPResponse[]
+  Seat             Seat[]
+
+  @@index([addressId])
+  @@index([coupleId])
+  @@index([email])
+  @@index([householdId])
+  @@index([inviteToken])
+  @@index([lastName])
+}
+
+model GuestActivity {
+  id          String         @id
+  guestId     String
+  action      ActivityAction
+  description String
+  changes     String?
+  userId      String?
+  userName    String?
+  canUndo     Boolean        @default(false)
+  undoData    String?
+  undoneAt    DateTime?
+  undoneBy    String?
+  createdAt   DateTime       @default(now())
+  Guest       Guest          @relation(fields: [guestId], references: [id], onDelete: Cascade)
+
+  @@index([action])
+  @@index([createdAt])
+  @@index([guestId])
+}
+
+model GuestTag {
+  id      String   @id
+  guestId String
+  tagId   String
+  addedAt DateTime @default(now())
+  addedBy String?
+  Guest   Guest    @relation(fields: [guestId], references: [id], onDelete: Cascade)
+  Tag     Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([guestId, tagId])
+  @@index([guestId])
+  @@index([tagId])
+}
+
+model HotelBlock {
+  id                String    @id
+  coupleId          String
+  name              String
+  description       String?
+  address           String?
+  city              String?
+  state             String?
+  zip               String?
+  phone             String?
+  website           String?
+  code              String?
+  startDate         DateTime?
+  endDate           DateTime?
+  deadline          DateTime?
+  specialRate       String?
+  mapPin            String?
+  distanceFromVenue String?
+  amenities         String?
+  order             Int       @default(0)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime
+  imageUrl          String?
+  Couple            Couple    @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+
+  @@index([coupleId])
+}
+
+model Household {
+  id        String   @id
+  coupleId  String
+  name      String
+  addressId String?
+  maxGuests Int?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+  Guest     Guest[]
+  Address   Address? @relation(fields: [addressId], references: [id])
+  Couple    Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+
+  @@index([addressId])
+  @@index([coupleId])
+}
+
+model Invitation {
+  id             String           @id
+  coupleId       String
+  campaignId     String?
+  guestId        String
+  token          String           @unique
+  status         InvitationStatus @default(PENDING)
+  sentViaEmail   Boolean          @default(false)
+  sentViaSMS     Boolean          @default(false)
+  emailAddress   String?
+  phoneNumber    String?
+  sentAt         DateTime?
+  deliveredAt    DateTime?
+  openedAt       DateTime?
+  clickedAt      DateTime?
+  bouncedAt      DateTime?
+  repliedAt      DateTime?
+  unsubscribedAt DateTime?
+  openCount      Int              @default(0)
+  clickCount     Int              @default(0)
+  errorMessage   String?
+  metadata       String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime
+  Campaign       Campaign?        @relation(fields: [campaignId], references: [id])
+  Couple         Couple           @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  Guest          Guest            @relation(fields: [guestId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, guestId])
+  @@index([campaignId])
+  @@index([coupleId])
+  @@index([guestId])
+  @@index([status])
+  @@index([token])
+}
+
+model Media {
+  id           String   @id
+  coupleId     String
+  url          String
+  thumbnailUrl String?
+  filename     String
+  mimeType     String
+  size         Int
+  width        Int?
+  height       Int?
+  alt          String?
+  caption      String?
+  tags         String[]
+  uploadedBy   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime
+  Couple       Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+
+  @@index([coupleId])
+  @@index([tags])
+}
+
+model Message {
+  id              String        @id
+  coupleId        String
+  subject         String
+  bodyHTML        String
+  bodyText        String?
+  segmentJSON     String?
+  scheduledAt     DateTime?
+  sentAt          DateTime?
+  status          MessageStatus @default(DRAFT)
+  totalRecipients Int           @default(0)
+  sent            Int           @default(0)
+  delivered       Int           @default(0)
+  opened          Int           @default(0)
+  failed          Int           @default(0)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime
+  Couple          Couple        @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+
+  @@index([coupleId])
+  @@index([scheduledAt])
+  @@index([status])
+}
+
+model Page {
+  id          String   @id
+  coupleId    String
+  type        PageType
+  slug        String
+  title       String
+  contentJSON String
+  order       Int      @default(0)
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+  Couple      Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  PageSEO     PageSEO?
+
+  @@unique([coupleId, slug])
+  @@index([coupleId])
+  @@index([type])
+}
+
+model PageSEO {
+  id              String   @id
+  pageId          String   @unique
+  metaTitle       String?
+  metaDescription String?
+  ogImage         String?
+  keywords        String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime
+  Page            Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+}
+
+model RSVPQuestion {
+  id             String       @id
+  coupleId       String
+  eventId        String?
+  text           String
+  description    String?
+  type           QuestionType
+  options        String[]
+  placeholder    String?
+  required       Boolean      @default(false)
+  order          Int          @default(0)
+  visibilityRule String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime
+  Couple         Couple       @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  Event          Event?       @relation(fields: [eventId], references: [id])
+
+  @@index([coupleId])
+  @@index([eventId])
+  @@index([order])
+}
+
+model RSVPResponse {
+  id             String     @id
+  coupleId       String
+  guestId        String
+  eventId        String?
+  status         RsvpStatus @default(PENDING)
+  answersJSON    String?
+  message        String?
+  plusOneName    String?
+  plusOneEmail   String?
+  plusOneAnswers String?
+  respondedAt    DateTime   @default(now())
+  updatedAt      DateTime
+  Couple         Couple     @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  Event          Event?     @relation(fields: [eventId], references: [id])
+  Guest          Guest      @relation(fields: [guestId], references: [id], onDelete: Cascade)
+
+  @@unique([guestId, eventId])
+  @@index([coupleId])
+  @@index([eventId])
+  @@index([guestId])
+  @@index([status])
+}
+
+model RegistryLink {
+  id          String   @id
+  coupleId    String
+  label       String
+  url         String
+  description String?
+  imageUrl    String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+  Couple      Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+
+  @@index([coupleId])
+}
+
+model Seat {
+  id         String   @id
+  tableId    String
+  guestId    String
+  seatNumber Int?
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime
+  Guest      Guest    @relation(fields: [guestId], references: [id], onDelete: Cascade)
+  Table      Table    @relation(fields: [tableId], references: [id], onDelete: Cascade)
+
+  @@unique([tableId, guestId])
+  @@index([guestId])
+  @@index([tableId])
+}
+
+model SeatingChart {
+  id          String   @id
+  coupleId    String
+  eventId     String?
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+  Couple      Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  Event       Event?   @relation(fields: [eventId], references: [id])
+  Table       Table[]
+
+  @@index([coupleId])
+  @@index([eventId])
+}
+
 model Session {
-  id           String   @id @default(cuid())
+  id           String   @id
   sessionToken String   @unique
   userId       String
   expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  User         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
+}
+
+model Table {
+  id             String       @id
+  seatingChartId String
+  name           String
+  capacity       Int
+  shape          String?
+  x              Float?
+  y              Float?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime
+  Seat           Seat[]
+  SeatingChart   SeatingChart @relation(fields: [seatingChartId], references: [id], onDelete: Cascade)
+
+  @@index([seatingChartId])
+}
+
+model Tag {
+  id          String     @id
+  coupleId    String
+  name        String
+  color       String     @default("#6b9c7f")
+  description String?
+  icon        String?
+  isSystem    Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime
+  GuestTag    GuestTag[]
+  Couple      Couple     @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+
+  @@unique([coupleId, name])
+  @@index([coupleId])
+}
+
+model User {
+  id            String        @id
+  email         String        @unique
+  name          String?
+  image         String?
+  role          Role          @default(GUEST)
+  emailVerified DateTime?
+  coupleId      String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime
+  Account       Account[]
+  ActivityLog   ActivityLog[]
+  Guest         Guest?
+  Session       Session[]
+  Couple        Couple?       @relation(fields: [coupleId], references: [id])
+
+  @@index([coupleId])
+  @@index([email])
 }
 
 model VerificationToken {
@@ -85,893 +653,22 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-// ============================================
-// Core Wedding/Couple Model
-// ============================================
-
-enum PrivacyMode {
-  PUBLIC          // Anyone can view
-  PASSWORD        // Requires password
-  INVITE_ONLY     // Only guests with invite token
-}
-
-model Couple {
-  id              String       @id @default(cuid())
-  slug            String       @unique // URL slug (e.g., "jeff-and-sasha")
-  
-  // Basic Info
-  partner1Name    String
-  partner2Name    String
-  weddingDate     DateTime
-  venueName       String?
-  venueAddress    String?
-  venueCity       String?
-  venueState      String?
-  venueZip        String?
-  venueCountry    String?
-  
-  // Theme & Branding
-  primaryColor    String       @default("#6b9c7f")
-  secondaryColor  String       @default("#f5f5f0")
-  accentColor     String       @default("#d4a574")
-  fontHeading     String       @default("Playfair Display")
-  fontBody        String       @default("Inter")
-  cornerRadius    String       @default("medium") // small, medium, large
-  showFlorals     Boolean      @default(true)
-  heroImageUrl    String?
-  logoImageUrl    String?
-  landingVideoUrl String?      // Video URL for landing page animation
-  
-  // Privacy & Security
-  privacyMode     PrivacyMode  @default(PUBLIC)
-  sitePassword    String?      // Hashed password for PASSWORD mode
-  isPublished     Boolean      @default(false)
-  customDomain    String?      // e.g., "jeffandsasha.com"
-  
-  // Settings
-  allowPlusOnes   Boolean      @default(true)
-  rsvpDeadline    DateTime?
-  maxCapacity     Int?         // Total venue capacity
-  timezone        String       @default("America/New_York")
-  
-  // RSVP Feature Flags
-  askMealChoice   Boolean      @default(false)
-  mealOptions     String?      // JSON array of meal options
-  askSongRequest  Boolean      @default(true)
-  askBusTransport Boolean      @default(false)
-  busRoutes       String?      // JSON array of bus routes
-  
-  // Integrations
-  stripeAccountId String?      // Connected Stripe account for cash funds
-  googleMapsApiKey String?     // For map embeds
-  
-  // Relations
-  users           User[]
-  guests          Guest[]
-  households      Household[]
-  addresses       Address[]
-  tags            Tag[]
-  pages           Page[]
-  media           Media[]
-  events          Event[]
-  campaigns       Campaign[]
-  invitations     Invitation[]
-  rsvpQuestions   RSVPQuestion[]
-  rsvpResponses   RSVPResponse[]
-  hotels          HotelBlock[]
-  registryLinks   RegistryLink[]
-  cashFunds       CashFund[]
-  faqs            Faq[]
-  weddingParty    WeddingPartyMember[]
-  contactMessages ContactMessage[]
-  seatingCharts   SeatingChart[]
-  messages        Message[]
-  activityLogs    ActivityLog[]
-  
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-  
-  @@index([slug])
-  @@index([customDomain])
-}
-
-// ============================================
-// Address Model
-// ============================================
-
-model Address {
-  id              String      @id @default(cuid())
-  coupleId        String
-  couple          Couple      @relation(fields: [coupleId], references: [id], onDelete: Cascade)
-  
-  line1           String
-  line2           String?
-  city            String
-  state           String
-  postal          String
-  country         String      @default("US")
-  
-  // Relations
-  households      Household[]
-  guests          Guest[]
-  
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  
-  @@index([coupleId])
-}
-
-// ============================================
-// CMS - Pages & Content
-// ============================================
-
-enum PageType {
-  HOME
-  STORY
-  SCHEDULE
-  TRAVEL
-  REGISTRY
-  FAQ
-  GALLERY
-  PARTY
-  CONTACT
-  CUSTOM
-}
-
-model Page {
-  id          String    @id @default(cuid())
-  coupleId    String
-  couple      Couple    @relation(fields: [coupleId], references: [id], onDelete: Cascade)
-  
-  type        PageType
-  slug        String    // e.g., "our-story", "travel", "schedule"
-  title       String
-  contentJSON String    // JSON structure of sections
-  order       Int       @default(0)
-  isPublished Boolean   @default(true)
-  
-  seo         PageSEO?
-  
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  
-  @@unique([coupleId, slug])
-  @@index([coupleId])
-  @@index([type])
-}
-
-model PageSEO {
-  id              String   @id @default(cuid())
-  pageId          String   @unique
-  page            Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
-  
-  metaTitle       String?
-  metaDescription String?
-  ogImage         String?
-  keywords        String?
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-}
-
-// ============================================
-// Media Library
-// ============================================
-
-model Media {
-  id          String   @id @default(cuid())
-  coupleId    String
-  couple      Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
-  
-  url         String
-  thumbnailUrl String?
-  filename    String
-  mimeType    String
-  size        Int      // bytes
-  width       Int?
-  height      Int?
-  
-  alt         String?
-  caption     String?
-  tags        String[] // Array of tags for filtering
-  
-  uploadedBy  String?  // User ID
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  @@index([coupleId])
-  @@index([tags])
-}
-
-// ============================================
-// Events & Schedule
-// ============================================
-
-enum EventVisibility {
-  PUBLIC       // Visible to all guests
-  PRIVATE      // Only specific tags
-  INVITE_ONLY  // Must be explicitly invited
-}
-
-model Event {
-  id              String           @id @default(cuid())
-  coupleId        String
-  couple          Couple           @relation(fields: [coupleId], references: [id], onDelete: Cascade)
-  
-  name            String           // "Ceremony", "Reception", "Rehearsal Dinner"
-  description     String?
-  startTime       DateTime
-  endTime         DateTime?
-  
-  location        String?
-  address         String?
-  venue           String?
-  
-  attire          String?          // "Black Tie", "Cocktail", etc.
-  visibility      EventVisibility  @default(PUBLIC)
-  capacity        Int?             // Event-specific capacity
-  
-  // Relations
-  rsvpQuestions   RSVPQuestion[]
-  rsvpResponses   RSVPResponse[]
-  seatingCharts   SeatingChart[]
-  
-  order           Int              @default(0)
-  
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  
-  @@index([coupleId])
-  @@index([startTime])
-}
-
-// ============================================
-// Guest Management
-// ============================================
-
-enum RsvpStatus {
-  PENDING
-  YES
-  NO
-  MAYBE
-}
-
-model Household {
-  id              String   @id @default(cuid())
-  coupleId        String
-  couple          Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
-  
-  name            String   // e.g., "The Smith Family"
-  
-  // Address (optional reference)
-  addressId       String?
-  address         Address? @relation(fields: [addressId], references: [id])
-  
-  maxGuests       Int?     // Maximum allowed from this household
-  notes           String?
-  
-  // Relations
-  guests          Guest[]
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  @@index([coupleId])
-  @@index([addressId])
-}
-
-model Guest {
-  id              String    @id @default(cuid())
-  coupleId        String
-  couple          Couple    @relation(fields: [coupleId], references: [id], onDelete: Cascade)
-  
-  userId          String?   @unique
-  user            User?     @relation(fields: [userId], references: [id])
-  
-  // Basic Info
-  firstName       String
-  lastName        String
-  email           String?
-  phone           String?
-  
-  // Address (optional individual address)
-  addressId       String?
-  address         Address?  @relation(fields: [addressId], references: [id])
-  
-  // Household
-  householdId     String?
-  household       Household? @relation(fields: [householdId], references: [id])
-  isPrimaryContact Boolean   @default(true)
-  relationship    String?   // "spouse", "child", "parent"
-  
-  // Guest Details
-  age             Int?
-  isChild         Boolean   @default(false)
-  isVIP           Boolean   @default(false)
-  doNotContact    Boolean   @default(false)
-  
-  // Invitation
-  inviteToken     String    @unique @default(cuid()) // Unique token for RSVP link
-  invitedBy       String?   // Guest ID who invited them (for plus-ones)
-  
-  // Plus-One Policy
-  allowPlusOne    Boolean   @default(false)
-  plusOnePolicy   String    @default("none") // none, unnamed, named
-  maxGuestsAllowed Int      @default(1) // Maximum number of guests allowed for this party (including primary guest)
-  
-  // Import tracking
-  importSource    String?   // "csv", "google", "manual"
-  importedAt      DateTime?
-  originalData    String?   // JSON of original import data
-  
-  // CRM
-  notes           String?
-  importance      Int       @default(0)
-  
-  // Relations
-  tags            GuestTag[]
-  invitations     Invitation[]
-  rsvpResponses   RSVPResponse[]
-  seatingAssignments Seat[]
-  activities      GuestActivity[]
-  
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  
-  @@index([coupleId])
-  @@index([householdId])
-  @@index([addressId])
-  @@index([inviteToken])
-  @@index([email])
-  @@index([lastName])
-}
-
-// ============================================
-// Tags & Groups
-// ============================================
-
-model Tag {
-  id              String   @id @default(cuid())
-  coupleId        String
-  couple          Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
-  
-  name            String
-  color           String   @default("#6b9c7f")
-  description     String?
-  icon            String?  // lucide icon name
-  
-  isSystem        Boolean  @default(false)
-  
-  guests          GuestTag[]
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  @@unique([coupleId, name])
-  @@index([coupleId])
-}
-
-model GuestTag {
-  id              String   @id @default(cuid())
-  guestId         String
-  guest           Guest    @relation(fields: [guestId], references: [id], onDelete: Cascade)
-  
-  tagId           String
-  tag             Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
-  
-  addedAt         DateTime @default(now())
-  addedBy         String?  // User ID
-  
-  @@unique([guestId, tagId])
-  @@index([guestId])
-  @@index([tagId])
-}
-
-// ============================================
-// Campaigns & Invitations
-// ============================================
-
-enum CampaignType {
-  SAVE_THE_DATE
-  INVITATION
-  REMINDER
-  UPDATE
-  THANK_YOU
-}
-
-enum CampaignStatus {
-  DRAFT
-  SCHEDULED
-  SENDING
-  SENT
-  PAUSED
-  CANCELLED
-}
-
-model Campaign {
-  id              String         @id @default(cuid())
-  coupleId        String
-  couple          Couple         @relation(fields: [coupleId], references: [id], onDelete: Cascade)
-  
-  name            String         // Internal name
-  type            CampaignType
-  status          CampaignStatus @default(DRAFT)
-  
-  // Content
-  subject         String?        // Email subject
-  templateId      String?        // Reference to template
-  customHTML      String?        // Custom HTML content
-  customText      String?        // Plain text version
-  smsMessage      String?        // SMS content
-  
-  // Targeting
-  segmentJSON     String?        // JSON rules for segment (tags, status, etc.)
-  
-  // Scheduling
-  scheduledAt     DateTime?
-  sentAt          DateTime?
-  
-  // Stats
-  totalRecipients Int            @default(0)
-  sent            Int            @default(0)
-  delivered       Int            @default(0)
-  opened          Int            @default(0)
-  clicked         Int            @default(0)
-  bounced         Int            @default(0)
-  failed          Int            @default(0)
-  
-  // Relations
-  invitations     Invitation[]
-  
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  
-  @@index([coupleId])
-  @@index([type])
-  @@index([status])
-  @@index([scheduledAt])
-}
-
-enum InvitationStatus {
-  PENDING
-  SCHEDULED
-  SENT
-  DELIVERED
-  OPENED
-  CLICKED
-  REPLIED
-  BOUNCED
-  FAILED
-  UNSUBSCRIBED
-}
-
-model Invitation {
-  id              String           @id @default(cuid())
-  coupleId        String
-  couple          Couple           @relation(fields: [coupleId], references: [id], onDelete: Cascade)
-  
-  campaignId      String?
-  campaign        Campaign?        @relation(fields: [campaignId], references: [id])
-  
-  guestId         String
-  guest           Guest            @relation(fields: [guestId], references: [id], onDelete: Cascade)
-  
-  token           String           @unique @default(cuid()) // Unique token for tracking
-  
-  status          InvitationStatus @default(PENDING)
-  
-  // Delivery
-  sentViaEmail    Boolean          @default(false)
-  sentViaSMS      Boolean          @default(false)
-  emailAddress    String?
-  phoneNumber     String?
-  
-  // Tracking
-  sentAt          DateTime?
-  deliveredAt     DateTime?
-  openedAt        DateTime?
-  clickedAt       DateTime?
-  bouncedAt       DateTime?
-  repliedAt       DateTime?
-  unsubscribedAt  DateTime?
-  
-  openCount       Int              @default(0)
-  clickCount      Int              @default(0)
-  
-  // Metadata
-  errorMessage    String?
-  metadata        String?          // JSON for additional data
-  
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  
-  @@unique([campaignId, guestId])
-  @@index([coupleId])
-  @@index([campaignId])
-  @@index([guestId])
-  @@index([token])
-  @@index([status])
-}
-
-// ============================================
-// RSVP System
-// ============================================
-
-enum QuestionType {
-  TEXT              // Free text
-  TEXTAREA          // Long text
-  SINGLE_SELECT     // Radio buttons
-  MULTI_SELECT      // Checkboxes
-  YES_NO            // Boolean
-  MEAL_CHOICE       // Meal selection
-  DIETARY           // Dietary restrictions
-  PLUS_ONE          // Plus-one capture
-  NUMBER            // Numeric input
-  DATE              // Date picker
-  EMAIL             // Email input
-  PHONE             // Phone input
-}
-
-model RSVPQuestion {
-  id              String       @id @default(cuid())
-  coupleId        String
-  couple          Couple       @relation(fields: [coupleId], references: [id], onDelete: Cascade)
-  
-  eventId         String?      // Null = applies to all events
-  event           Event?       @relation(fields: [eventId], references: [id])
-  
-  text            String       // Question text
-  description     String?      // Help text
-  type            QuestionType
-  options         String[]     // For SELECT types
-  placeholder     String?
-  
-  required        Boolean      @default(false)
-  order           Int          @default(0)
-  
-  // Conditional visibility
-  visibilityRule  String?      // JSON rule (e.g., show only for tag "Wedding Party")
-  
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-  
-  @@index([coupleId])
-  @@index([eventId])
-  @@index([order])
-}
-
-model RSVPResponse {
-  id              String     @id @default(cuid())
-  coupleId        String
-  couple          Couple     @relation(fields: [coupleId], references: [id], onDelete: Cascade)
-  
-  guestId         String
-  guest           Guest      @relation(fields: [guestId], references: [id], onDelete: Cascade)
-  
-  eventId         String?    // Null = general RSVP
-  event           Event?     @relation(fields: [eventId], references: [id])
-  
-  status          RsvpStatus @default(PENDING)
-  answersJSON     String?    // JSON object of question_id: answer
-  
-  message         String?    // Guest message/notes
-  
-  // Plus-one details (if applicable)
-  plusOneName     String?
-  plusOneEmail    String?
-  plusOneAnswers  String?    // JSON for plus-one's answers
-  
-  respondedAt     DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
-  
-  @@index([coupleId])
-  @@index([guestId])
-  @@index([eventId])
-  @@index([status])
-  @@unique([guestId, eventId])
-}
-
-// ============================================
-// Seating Arrangements
-// ============================================
-
-model SeatingChart {
-  id              String   @id @default(cuid())
-  coupleId        String
-  couple          Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
-  
-  eventId         String?
-  event           Event?   @relation(fields: [eventId], references: [id])
-  
-  name            String   // e.g., "Reception", "Ceremony"
-  description     String?
-  
-  tables          Table[]
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  @@index([coupleId])
-  @@index([eventId])
-}
-
-model Table {
-  id              String        @id @default(cuid())
-  seatingChartId  String
-  seatingChart    SeatingChart  @relation(fields: [seatingChartId], references: [id], onDelete: Cascade)
-  
-  name            String        // e.g., "Table 1", "Head Table"
-  capacity        Int
-  shape           String?       // "round", "rectangle", "oval"
-  
-  // Position on canvas
-  x               Float?
-  y               Float?
-  
-  seats           Seat[]
-  
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  
-  @@index([seatingChartId])
-}
-
-model Seat {
-  id              String   @id @default(cuid())
-  tableId         String
-  table           Table    @relation(fields: [tableId], references: [id], onDelete: Cascade)
-  
-  guestId         String
-  guest           Guest    @relation(fields: [guestId], references: [id], onDelete: Cascade)
-  
-  seatNumber      Int?
-  notes           String?  // e.g., "needs wheelchair access"
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  @@unique([tableId, guestId])
-  @@index([tableId])
-  @@index([guestId])
-}
-
-// ============================================
-// Hotels & Travel
-// ============================================
-
-model HotelBlock {
-  id              String    @id @default(cuid())
-  coupleId        String
-  couple          Couple    @relation(fields: [coupleId], references: [id], onDelete: Cascade)
-  
-  name            String
-  description     String?
-  
-  address         String?
-  city            String?
-  state           String?
-  zip             String?
-  phone           String?
-  website         String?
-  
-  // Room Block Details
-  code            String?   // Booking code
-  startDate       DateTime?
-  endDate         DateTime?
-  deadline        DateTime? // Booking deadline
-  specialRate     String?
-  
-  // Map
-  mapPin          String?   // Lat,Lng for map marker
-  distanceFromVenue String?
-  amenities       String?
-  
-  order           Int       @default(0)
-  
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  
-  @@index([coupleId])
-}
-
-// ============================================
-// Registry
-// ============================================
-
-model RegistryLink {
-  id              String   @id @default(cuid())
-  coupleId        String
-  couple          Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
-  
-  label           String   // "Amazon", "Crate & Barrel"
-  url             String
-  description     String?
-  imageUrl        String?
-  
-  order           Int      @default(0)
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  @@index([coupleId])
-}
-
-model CashFund {
-  id              String               @id @default(cuid())
-  coupleId        String
-  couple          Couple               @relation(fields: [coupleId], references: [id], onDelete: Cascade)
-  
-  title           String
-  description     String?
-  imageUrl        String?
-  
-  goal            Float?               // Target amount
-  received        Float                @default(0) // Amount received
-  
-  stripePriceId   String?              // Stripe Price ID
-  isActive        Boolean              @default(true)
-  
-  contributions   CashFundContribution[]
-  
-  createdAt       DateTime             @default(now())
-  updatedAt       DateTime             @updatedAt
-  
-  @@index([coupleId])
-}
-
-model CashFundContribution {
-  id              String   @id @default(cuid())
-  cashFundId      String
-  cashFund        CashFund @relation(fields: [cashFundId], references: [id], onDelete: Cascade)
-  
-  name            String
-  email           String?
-  message         String?
-  
-  amount          Float
-  currency        String   @default("usd")
-  stripePaymentId String?  @unique
-  status          String   @default("pending") // pending, completed, failed
-  
-  createdAt       DateTime @default(now())
-  
-  @@index([cashFundId])
-  @@index([stripePaymentId])
-}
-
-// ============================================
-// FAQs
-// ============================================
-
-model Faq {
-  id          String   @id @default(cuid())
-  coupleId    String
-  couple      Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
-  
-  question    String
-  answer      String
-  category    String?
-  
-  order       Int      @default(0)
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  @@index([coupleId])
-}
-
-// ============================================
-// Wedding Party
-// ============================================
-
-enum WeddingPartyRole {
-  BRIDE
-  GROOM
-  BRIDESMAID
-  GROOMSMAN
-  MAID_OF_HONOR
-  BEST_MAN
-  OFFICIANT
-  FLOWER_GIRL
-  RING_BEARER
-  USHER
-  READER
-  OTHER
-}
-
 model WeddingPartyMember {
-  id              String           @id @default(cuid())
-  coupleId        String
-  couple          Couple           @relation(fields: [coupleId], references: [id], onDelete: Cascade)
-  
-  name            String
-  role            WeddingPartyRole
-  roleLabel       String?          // Custom role label if OTHER
-  bio             String?
-  imageUrl        String?
-  relationship    String?          // e.g., "Sister of the bride"
-  
-  order           Int              @default(0)
-  
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  
+  id           String           @id
+  coupleId     String
+  name         String
+  role         WeddingPartyRole
+  roleLabel    String?
+  bio          String?
+  imageUrl     String?
+  relationship String?
+  order        Int              @default(0)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime
+  Couple       Couple           @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+
   @@index([coupleId])
 }
-
-// ============================================
-// Messages & Communications
-// ============================================
-
-enum MessageStatus {
-  DRAFT
-  SCHEDULED
-  SENDING
-  SENT
-  FAILED
-}
-
-model Message {
-  id              String        @id @default(cuid())
-  coupleId        String
-  couple          Couple        @relation(fields: [coupleId], references: [id], onDelete: Cascade)
-  
-  subject         String
-  bodyHTML        String
-  bodyText        String?
-  
-  // Targeting
-  segmentJSON     String?       // JSON rules for segment
-  
-  // Scheduling
-  scheduledAt     DateTime?
-  sentAt          DateTime?
-  
-  status          MessageStatus @default(DRAFT)
-  
-  // Stats
-  totalRecipients Int           @default(0)
-  sent            Int           @default(0)
-  delivered       Int           @default(0)
-  opened          Int           @default(0)
-  failed          Int           @default(0)
-  
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  
-  @@index([coupleId])
-  @@index([status])
-  @@index([scheduledAt])
-}
-
-// ============================================
-// Contact Messages
-// ============================================
-
-model ContactMessage {
-  id          String   @id @default(cuid())
-  coupleId    String
-  couple      Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
-  
-  name        String
-  email       String
-  phone       String?
-  subject     String?
-  message     String
-  
-  isRead      Boolean  @default(false)
-  isResolved  Boolean  @default(false)
-  
-  createdAt   DateTime @default(now())
-  
-  @@index([coupleId])
-  @@index([isRead])
-}
-
-// ============================================
-// Activity Log
-// ============================================
 
 enum ActivityAction {
   CREATED
@@ -989,54 +686,109 @@ enum ActivityAction {
   SEATING_UPDATED
 }
 
-model ActivityLog {
-  id              String         @id @default(cuid())
-  coupleId        String
-  couple          Couple         @relation(fields: [coupleId], references: [id], onDelete: Cascade)
-  
-  actorId         String?        // User who performed the action
-  actor           User?          @relation(fields: [actorId], references: [id])
-  
-  action          ActivityAction
-  entityType      String?        // Guest, Event, Page, etc.
-  entityId        String?        // ID of affected entity
-  
-  description     String
-  meta            String?        // JSON metadata
-  
-  createdAt       DateTime       @default(now())
-  
-  @@index([coupleId])
-  @@index([actorId])
-  @@index([action])
-  @@index([createdAt])
+enum CampaignStatus {
+  DRAFT
+  SCHEDULED
+  SENDING
+  SENT
+  PAUSED
+  CANCELLED
 }
 
-// ============================================
-// Guest Activity (Specific to Guests)
-// ============================================
-
-model GuestActivity {
-  id              String         @id @default(cuid())
-  guestId         String
-  guest           Guest          @relation(fields: [guestId], references: [id], onDelete: Cascade)
-  
-  action          ActivityAction
-  description     String
-  changes         String?        // JSON of what changed
-  
-  userId          String?        // Who made the change
-  userName        String?
-  
-  canUndo         Boolean        @default(false)
-  undoData        String?
-  undoneAt        DateTime?
-  undoneBy        String?
-  
-  createdAt       DateTime       @default(now())
-  
-  @@index([guestId])
-  @@index([action])
-  @@index([createdAt])
+enum CampaignType {
+  SAVE_THE_DATE
+  INVITATION
+  REMINDER
+  UPDATE
+  THANK_YOU
 }
 
+enum EventVisibility {
+  PUBLIC
+  PRIVATE
+  INVITE_ONLY
+}
+
+enum InvitationStatus {
+  PENDING
+  SCHEDULED
+  SENT
+  DELIVERED
+  OPENED
+  CLICKED
+  REPLIED
+  BOUNCED
+  FAILED
+  UNSUBSCRIBED
+}
+
+enum MessageStatus {
+  DRAFT
+  SCHEDULED
+  SENDING
+  SENT
+  FAILED
+}
+
+enum PageType {
+  HOME
+  STORY
+  SCHEDULE
+  TRAVEL
+  REGISTRY
+  FAQ
+  GALLERY
+  PARTY
+  CONTACT
+  CUSTOM
+}
+
+enum PrivacyMode {
+  PUBLIC
+  PASSWORD
+  INVITE_ONLY
+}
+
+enum QuestionType {
+  TEXT
+  TEXTAREA
+  SINGLE_SELECT
+  MULTI_SELECT
+  YES_NO
+  MEAL_CHOICE
+  DIETARY
+  PLUS_ONE
+  NUMBER
+  DATE
+  EMAIL
+  PHONE
+}
+
+enum Role {
+  OWNER
+  COLLABORATOR
+  VENDOR
+  GUEST
+}
+
+enum RsvpStatus {
+  PENDING
+  YES
+  NO
+  MAYBE
+}
+
+enum WeddingPartyRole {
+  BRIDE
+  GROOM
+  BRIDESMAID
+  GROOMSMAN
+  MAID_OF_HONOR
+  BEST_MAN
+  OFFICIANT
+  FLOWER_GIRL
+  RING_BEARER
+  USHER
+  READER
+  OTHER
+}

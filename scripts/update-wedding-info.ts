@@ -79,8 +79,8 @@ async function updateWeddingInfo() {
         order: 2,
       },
       {
-        name: 'First Dances',
-        description: 'Our first dance as a couple, then parent dances. Dance floor opens after.',
+        name: 'Dances & Speeches',
+        description: 'Our first dance as a couple, then parent dances, followed by speeches. Dance floor opens after.',
         startTime: new Date(`${baseDate}T18:30:00-04:00`),
         endTime: new Date(`${baseDate}T19:00:00-04:00`),
         location: 'The Venue at Stillwater Pond',
@@ -138,6 +138,7 @@ async function updateWeddingInfo() {
         zip: '',
         website: 'https://www.marriott.com/hotels/travel/atccy-courtyard-carrollton/',
         distanceFromVenue: '~13 miles (25 minutes)',
+        imageUrl: '/hotels/courtyard-carrollton.jpg',
         order: 0,
       },
       {
@@ -148,6 +149,7 @@ async function updateWeddingInfo() {
         zip: '',
         website: 'https://www.hilton.com/en/hotels/atlcthx-hampton-carrollton/',
         distanceFromVenue: '~17 miles (28 minutes)',
+        imageUrl: '/hotels/hampton-inn-carrollton.jpg',
         order: 1,
       },
       {
@@ -158,6 +160,7 @@ async function updateWeddingInfo() {
         zip: '',
         website: 'https://www.ihg.com/holidayinnexpress/hotels/us/en/carrollton/atlcw/hoteldetail',
         distanceFromVenue: '~17 miles (28 minutes)',
+        imageUrl: '/hotels/holiday-inn-express-carrollton-west.avif',
         order: 2,
       },
       {
@@ -168,6 +171,7 @@ async function updateWeddingInfo() {
         zip: '',
         website: 'https://www.hilton.com/en/hotels/atlbrhx-hampton-bremen/',
         distanceFromVenue: '~8 miles (15 minutes)',
+        imageUrl: '/hotels/hampton-inn-bremen.avif',
         order: 3,
       },
       {
@@ -178,6 +182,7 @@ async function updateWeddingInfo() {
         zip: '',
         website: 'https://www.ihg.com/holidayinnexpress/hotels/us/en/bremen/atlbr/hoteldetail',
         distanceFromVenue: '~8 miles (15 minutes)',
+        imageUrl: '/hotels/holiday-inn-express-bremen.avif',
         order: 4,
       },
       {
@@ -188,6 +193,7 @@ async function updateWeddingInfo() {
         zip: '',
         website: 'https://www.wyndhamhotels.com/microtel/bremen-georgia/microtel-inn-and-suites-bremen/overview',
         distanceFromVenue: '~8 miles (15 minutes)',
+        imageUrl: '/hotels/microtel-bremen.webp',
         order: 5,
       },
       {
@@ -198,6 +204,7 @@ async function updateWeddingInfo() {
         zip: '',
         website: 'https://www.ihg.com/holidayinnexpress/hotels/us/en/villa-rica/atlvr/hoteldetail',
         distanceFromVenue: '~9 miles (15 minutes)',
+        imageUrl: '/hotels/holiday-inn-express-villa-rica.jpeg',
         order: 6,
       },
       {
@@ -207,6 +214,7 @@ async function updateWeddingInfo() {
         state: 'GA',
         zip: '',
         distanceFromVenue: '~13 miles (20 minutes)',
+        imageUrl: '/hotels/fairfield-plantation-resort.png',
         order: 7,
       },
     ]
@@ -222,6 +230,7 @@ async function updateWeddingInfo() {
           zip: hotel.zip || null,
           website: hotel.website || null,
           distanceFromVenue: hotel.distanceFromVenue,
+          imageUrl: hotel.imageUrl || null,
           order: hotel.order,
         },
       })

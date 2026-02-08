@@ -101,7 +101,7 @@ export function ConditionalNav() {
                 </SheetTrigger>
                 <SheetContent side="right" className="w-[300px] sm:w-[400px]">
                   <SheetHeader>
-                    <SheetTitle className="font-heading text-2xl text-gold">
+                    <SheetTitle className="font-heading text-2xl text-black">
                       {weddingData.partner1Name} & {weddingData.partner2Name}
                     </SheetTitle>
                   </SheetHeader>

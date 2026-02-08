@@ -18,7 +18,7 @@ export default async function Home() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="text-center p-8 max-w-md">
-        <h1 className="font-cursive text-4xl text-gold mb-4">Wedding Platform</h1>
+        <h1 className="font-cursive text-4xl text-black mb-4">Wedding Platform</h1>
         <p className="text-muted-foreground mb-8">
           No wedding site found. Please contact the administrator.
         </p>

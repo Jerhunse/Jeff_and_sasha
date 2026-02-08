@@ -40,7 +40,7 @@ export function RsvpGateLanding({
         <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary/15 mb-8">
           <Heart className="h-10 w-10 text-gold fill-gold" aria-hidden />
         </div>
-        <h1 className="font-cursive text-4xl md:text-5xl text-gold mb-3">
+        <h1 className="font-cursive text-4xl md:text-5xl text-black mb-3">
           You&apos;re Invited
         </h1>
         {(partner1Name || partner2Name) && (

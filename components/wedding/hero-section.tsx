@@ -108,7 +108,7 @@ export function HeroSection({
         <p className="font-cormorant italic text-lg md:text-xl lg:text-2xl text-white/95 mb-4 md:mb-6 tracking-[0.2em]">
           Save the Date
         </p>
-        <h1 className="font-heading text-5xl sm:text-6xl md:text-[100px] lg:text-[120px] xl:text-[140px] text-white mb-6 md:mb-8 leading-none">
+        <h1 className="font-heading text-5xl sm:text-6xl md:text-[100px] lg:text-[120px] xl:text-[140px] text-black mb-6 md:mb-8 leading-none">
           {coupleNames}
         </h1>
         <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 lg:gap-12 text-white/95">

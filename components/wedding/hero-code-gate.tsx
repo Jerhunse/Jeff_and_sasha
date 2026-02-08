@@ -171,7 +171,7 @@ export function HeroCodeGate({
           </div>
 
           {/* Couple names */}
-          <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-white mb-8 leading-tight animate-fade-in-up animate-delay-200">
+          <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-black mb-8 leading-tight animate-fade-in-up animate-delay-200">
             <span className="block">{partner1Name}</span>
             <span className="block text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-normal my-2">&</span>
             <span className="block">{partner2Name}</span>

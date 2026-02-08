@@ -14,31 +14,13 @@
   margin-right: auto;
 }
 
-/* Page background – sits behind everything.
- * Uses custom image with subtle overlay for text readability. */
+/* Page background – sits behind everything. */
 .texture-layer {
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background: var(--bg-linen) url("/background-main.png") center center;
-  background-size: cover;
-  background-attachment: fixed;
-  background-repeat: no-repeat;
-}
-
-.texture-layer::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  /* Subtle overlay to ensure text readability while preserving floral aesthetic */
-  background: linear-gradient(
-    to bottom,
-    rgba(237, 231, 220, 0.4) 0%,
-    rgba(237, 231, 220, 0.2) 50%,
-    rgba(237, 231, 220, 0.3) 100%
-  );
-  opacity: 1;
+  background: #D4D9C3;
 }
 
 /* App wrapper keeps content above texture */

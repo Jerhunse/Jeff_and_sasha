@@ -134,7 +134,7 @@ export function SiteHeader({ weddingSlug, partner1Name, partner2Name }: SiteHead
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-transparent">
+    <header className="sticky top-0 z-50 w-full bg-gradient-to-b from-black/40 via-black/20 to-transparent backdrop-blur-[2px]">
       <div className="w-full flex h-14 md:h-16 items-center justify-between px-4 md:px-6 lg:px-10 xl:px-12">
         {/* Left: branding — left-justified */}
         <Link 
@@ -143,13 +143,13 @@ export function SiteHeader({ weddingSlug, partner1Name, partner2Name }: SiteHead
           onClick={handleLogoClick}
         >
           <Heart className="h-5 w-5 md:h-6 md:w-6 text-gold fill-gold" />
-          <span className="font-heading text-xl md:text-2xl text-white">
+          <span className="font-heading text-xl md:text-2xl text-black">
             Jeff & Sasha
           </span>
         </Link>
 
         {/* Right: nav — right-justified */}
-        <nav className="hidden md:flex items-center justify-end gap-4 lg:gap-6 xl:gap-8 text-sm font-medium text-white shrink-0">
+        <nav className="hidden md:flex items-center justify-end gap-4 lg:gap-6 xl:gap-8 text-sm font-medium text-black shrink-0">
           {navItems.map((item) => {
             const isActive = activeSection === item.href.replace("#", "")
             return (
@@ -185,7 +185,7 @@ export function SiteHeader({ weddingSlug, partner1Name, partner2Name }: SiteHead
             </SheetTrigger>
             <SheetContent side="right" className="w-[300px] sm:w-[400px]">
               <SheetHeader>
-                <SheetTitle className="font-heading text-2xl text-gold">
+                <SheetTitle className="font-heading text-2xl text-black">
                   Jeff & Sasha
                 </SheetTitle>
               </SheetHeader>
@@ -224,7 +224,7 @@ export function SiteHeader({ weddingSlug, partner1Name, partner2Name }: SiteHead
       <Dialog open={showCodeDialog} onOpenChange={setShowCodeDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="font-heading text-2xl text-gold">Enter RSVP Code</DialogTitle>
+            <DialogTitle className="font-heading text-2xl text-black">Enter RSVP Code</DialogTitle>
             <DialogDescription>
               Please enter your invitation code to access the RSVP page.
             </DialogDescription>

@@ -61,12 +61,12 @@ export function CountdownTimer({ targetDate, compact = false }: CountdownTimerPr
 
   const TimeUnit = ({ value, label }: { value: number; label: string }) => (
     <div className="flex flex-col items-center">
-      <div className={cardStyle}>
-        <div className="text-2xl md:text-4xl font-serif font-bold text-primary text-center">{value}</div>
-      </div>
-      <div className="text-xs md:text-sm font-medium text-muted-foreground mt-1 md:mt-2 uppercase tracking-wider">
+      <span className="font-serif text-4xl lg:text-5xl text-gold tabular-nums">
+        {value.toString().padStart(2, '0')}
+      </span>
+      <span className="text-[10px] uppercase tracking-widest mt-2 text-zinc-400">
         {label}
-      </div>
+      </span>
     </div>
   )
 
@@ -96,11 +96,11 @@ export function CountdownTimer({ targetDate, compact = false }: CountdownTimerPr
   }
 
   return (
-    <div className="flex gap-2 md:gap-4 justify-center">
+    <div className="grid grid-cols-4 gap-4 lg:gap-8 w-full max-w-md">
       <TimeUnit value={timeLeft.days} label="Days" />
       <TimeUnit value={timeLeft.hours} label="Hours" />
-      <TimeUnit value={timeLeft.minutes} label="Min" />
-      <TimeUnit value={timeLeft.seconds} label="Sec" />
+      <TimeUnit value={timeLeft.minutes} label="Minutes" />
+      <TimeUnit value={timeLeft.seconds} label="Seconds" />
     </div>
   )
 }
