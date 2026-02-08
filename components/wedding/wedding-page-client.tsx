@@ -99,6 +99,13 @@ export function WeddingPageClient({ wedding, weddingSchema }: WeddingPageClientP
           attire={wedding.events[0]?.attire ?? undefined}
         />
 
+        {/* Registry Section */}
+        <RegistrySection
+          registryLinks={wedding.registryLinks}
+          cashFunds={wedding.cashFunds}
+          slug={wedding.slug}
+        />
+
         {/* Dresscode Section */}
         <DresscodeSection
           partner1Name={wedding.partner1Name}
@@ -121,13 +128,6 @@ export function WeddingPageClient({ wedding, weddingSchema }: WeddingPageClientP
           partner1Name={wedding.partner1Name}
           partner2Name={wedding.partner2Name}
           rsvpDeadline={wedding.rsvpDeadline}
-        />
-
-        {/* Registry Section */}
-        <RegistrySection
-          registryLinks={wedding.registryLinks}
-          cashFunds={wedding.cashFunds}
-          slug={wedding.slug}
         />
 
         {/* FAQ Section */}
