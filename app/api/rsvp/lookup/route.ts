@@ -151,7 +151,7 @@ export async function POST(req: NextRequest) {
 
     // 3) Look up by name when provided
     if (name) {
-      const nameParts = name.split(/\s+/).filter(part => part.length > 0)
+      const nameParts = name.split(/\s+/).filter((part: string) => part.length > 0)
       
       // Build search conditions based on what was provided
       const searchConditions = []
