@@ -381,7 +381,7 @@ model Invitation {
   coupleId       String
   campaignId     String?
   guestId        String
-  token          String           @unique
+  token          String           @unique @default(cuid())
   status         InvitationStatus @default(PENDING)
   sentViaEmail   Boolean          @default(false)
   sentViaSMS     Boolean          @default(false)
