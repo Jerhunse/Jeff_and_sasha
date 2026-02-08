@@ -121,7 +121,7 @@ Reply directly to this email to respond to ${name}.
         emailSent = true
         console.log(`Email notification sent for contact message ID ${contactMessage.id}`)
       } else {
-        emailError = emailResult?.error || 'Unknown error'
+        emailError = (emailResult && 'error' in emailResult) ? emailResult.error : 'Unknown error'
         console.error(`Failed to send email for contact message ID ${contactMessage.id}:`, emailError)
       }
     } catch (error: any) {
