@@ -255,6 +255,9 @@ export function RsvpForm({ guest, couple, isNewGuest = false, sharedCode }: Rsvp
     }
   }
 
+  // Check if guest has already RSVPed (status is not PENDING)
+  const hasAlreadyRsvped = guest && guest.rsvpStatus !== "PENDING"
+
   if (isSuccess) {
     return (
       <Card>
@@ -268,6 +271,72 @@ export function RsvpForm({ guest, couple, isNewGuest = false, sharedCode }: Rsvp
             <p className="text-sm text-muted-foreground">
               Redirecting you to the wedding website...
             </p>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  // Show already RSVPed message if guest has already submitted
+  if (hasAlreadyRsvped) {
+    return (
+      <Card>
+        <CardHeader>
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <CardTitle className="font-serif text-2xl">
+                RSVP Already Submitted
+              </CardTitle>
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleGoBack}
+              className="flex items-center gap-2"
+            >
+              <Home className="h-4 w-4" />
+              <span className="hidden sm:inline">Back to Home</span>
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-12 space-y-4">
+            <CheckCircle className="h-16 w-16 text-gold mx-auto mb-4" />
+            <h3 className="text-xl font-semibold mb-2">
+              You've Already RSVPed
+            </h3>
+            <div className="bg-muted/30 rounded-lg p-6 space-y-3 max-w-md mx-auto">
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Status:</span>
+                <span className="font-semibold">
+                  {guest.rsvpStatus === "ATTENDING" ? "✓ Attending" : "✗ Declined"}
+                </span>
+              </div>
+              {guest.email && (
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Email:</span>
+                  <span className="font-medium">{guest.email}</span>
+                </div>
+              )}
+              {guest.phone && (
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Phone:</span>
+                  <span className="font-medium">{guest.phone}</span>
+                </div>
+              )}
+            </div>
+            <p className="text-muted-foreground mt-6">
+              If you need to make changes to your RSVP, please contact the couple directly.
+            </p>
+            <Button
+              onClick={handleGoBack}
+              size="lg"
+              className="mt-6"
+            >
+              <Home className="mr-2 h-4 w-4" />
+              Return to Wedding Website
+            </Button>
           </div>
         </CardContent>
       </Card>
