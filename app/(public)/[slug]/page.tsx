@@ -10,21 +10,21 @@ async function getAllWeddingData(slug: string) {
   const wedding = await prisma.couple.findUnique({
     where: { slug },
     include: {
-      events: {
+      Event: {
         where: { visibility: "PUBLIC" },
         orderBy: { startTime: "asc" },
       },
-      hotels: {
+      HotelBlock: {
         orderBy: { order: "asc" },
       },
-      registryLinks: {
+      RegistryLink: {
         orderBy: { order: "asc" },
       },
-      cashFunds: {
+      CashFund: {
         where: { isActive: true },
         orderBy: { createdAt: "asc" },
       },
-      faqs: {
+      Faq: {
         orderBy: { order: "asc" },
       },
     },
@@ -36,14 +36,22 @@ async function getAllWeddingData(slug: string) {
 
   // Deduplicate events by startTime + name + location (keep first of each)
   const seen = new Set<string>()
-  const uniqueEvents = wedding.events.filter((e) => {
+  const uniqueEvents = wedding.Event.filter((e) => {
     const key = `${e.startTime.getTime()}-${e.name}-${e.location ?? ""}`
     if (seen.has(key)) return false
     seen.add(key)
     return true
   })
 
-  return { ...wedding, events: uniqueEvents }
+  // Map PascalCase Prisma relation names to camelCase for the client
+  return {
+    ...wedding,
+    events: uniqueEvents,
+    hotels: wedding.HotelBlock,
+    registryLinks: wedding.RegistryLink,
+    cashFunds: wedding.CashFund,
+    faqs: wedding.Faq,
+  }
 }
 
 export default async function WeddingHomePage({ params }: HomePageProps) {
