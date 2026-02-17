@@ -47,6 +47,7 @@ import {
   Tag as TagIcon,
 } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 type GuestWithRelations = Guest & {
   tags: (GuestTag & {
@@ -111,8 +112,10 @@ export function GuestListTable({
   totalPages,
   totalCount,
 }: GuestListTableProps) {
+  const router = useRouter()
   const [selectedGuests, setSelectedGuests] = useState<Set<string>>(new Set())
   const [tagManagerOpen, setTagManagerOpen] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const toggleGuestSelection = (guestId: string) => {
     const newSelection = new Set(selectedGuests)
@@ -380,8 +383,38 @@ export function GuestListTable({
                           <DropdownMenuItem>Send Invite</DropdownMenuItem>
                           <DropdownMenuItem>Add to Household</DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-destructive">
-                            Delete Guest
+                          <DropdownMenuItem
+                            className="text-destructive focus:text-destructive"
+                            disabled={deletingId === guest.id}
+                            onSelect={async (e) => {
+                              e.preventDefault()
+                              if (
+                                !confirm(
+                                  `Are you sure you want to delete ${guest.firstName} ${guest.lastName}? This cannot be undone.`
+                                )
+                              )
+                                return
+                              setDeletingId(guest.id)
+                              try {
+                                const response = await fetch(
+                                  `/api/admin/guests/${guest.id}`,
+                                  { method: "DELETE" }
+                                )
+                                const data = await response.json()
+                                if (response.ok && data.success) {
+                                  router.refresh()
+                                } else {
+                                  alert(data.error ?? "Failed to delete guest")
+                                }
+                              } catch (err) {
+                                console.error("Delete guest error:", err)
+                                alert("Failed to delete guest. Please try again.")
+                              } finally {
+                                setDeletingId(null)
+                              }
+                            }}
+                          >
+                            {deletingId === guest.id ? "Deleting…" : "Delete Guest"}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

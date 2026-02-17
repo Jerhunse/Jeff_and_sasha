@@ -1,18 +1,7 @@
 import { redirect } from "next/navigation"
 import { auth } from "@/lib/auth"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { 
-  Home, 
-  Users, 
-  Calendar, 
-  FileText, 
-  Settings,
-  Heart,
-  Mail,
-  ClipboardList
-} from "lucide-react"
 import { Toaster } from "sonner"
+import { AdminSidebar } from "@/components/admin/admin-sidebar"
 
 interface AdminLayoutProps {
   children: React.ReactNode
@@ -30,51 +19,16 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
     redirect("/")
   }
 
-  const navItems = [
-    { href: "/admin", label: "Dashboard", icon: Home },
-    { href: "/admin/rsvp-dashboard", label: "RSVP Dashboard", icon: ClipboardList },
-    { href: "/admin/guests", label: "Guests", icon: Users },
-    { href: "/admin/invitations", label: "Invitations", icon: Mail },
-  ]
-
   return (
     <div className="min-h-screen flex">
       <Toaster position="top-right" />
-      {/* Sidebar */}
-      <aside className="w-64 border-r bg-muted/30 flex flex-col">
-        <div className="p-6 border-b">
-          <Link href="/admin" className="flex items-center gap-2">
-            <Heart className="h-6 w-6 text-primary fill-primary" />
-            <span className="font-sans text-xl font-bold">Wedding Admin</span>
-          </Link>
-        </div>
-
-        <nav className="flex-1 p-4">
-          <div className="space-y-2">
-            {navItems.map((item) => {
-              const Icon = item.icon
-              return (
-                <Link key={item.href} href={item.href}>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start gap-3 font-sans"
-                  >
-                    <Icon className="h-4 w-4" />
-                    {item.label}
-                  </Button>
-                </Link>
-              )
-            })}
-          </div>
-        </nav>
-
-        <div className="p-4 border-t">
-          <div className="text-sm">
-            <p className="font-medium">{session.user.name || session.user.email}</p>
-            <p className="text-muted-foreground capitalize">{session.user.role.toLowerCase()}</p>
-          </div>
-        </div>
-      </aside>
+      <AdminSidebar
+        user={{
+          name: session.user.name,
+          email: session.user.email,
+          role: session.user.role,
+        }}
+      />
 
       {/* Main Content */}
       <main className="flex-1 overflow-auto">
