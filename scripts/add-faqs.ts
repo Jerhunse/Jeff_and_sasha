@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import { nanoid } from 'nanoid'
 
 const prisma = new PrismaClient()
 
@@ -40,13 +41,13 @@ async function addFAQs() {
       },
       {
         question: 'What time should I arrive?',
-        answer: 'The ceremony begins at 4:00 PM.\nWe recommend arriving 15–30 minutes early to get settled.',
+        answer: 'The ceremony begins at 3:00 PM.\nWe recommend arriving 15–30 minutes early to get settled.',
         category: null,
         order: 2,
       },
       {
         question: 'What is the schedule for the day?',
-        answer: 'Ceremony: 4:00 PM\n\nCocktail Hour: 4:30 PM\n\nGrand Entrance & Dinner: 5:30 PM\n\nDances & Speeches: 6:30 PM\n\nCake Cutting: 7:00 PM\n\nSend Off: 9:00 PM',
+        answer: 'Guests Begin Arriving: 2:30 PM\n\nCeremony: 3:00 PM\n\nCocktail Hour: 3:30 PM\n\nGrand Entrance & Welcome Prayer: 4:00 PM\n\nSpecial Speech: 5:00 PM\n\nFirst Dance & Parent Dances: 5:15 PM\n\nOpen Dancing: 6:00 PM - 10:00 PM\n\nGrand Send-Off: 10:00 PM',
         category: null,
         order: 3,
       },
@@ -140,11 +141,13 @@ async function addFAQs() {
     for (const faq of faqs) {
       await prisma.faq.create({
         data: {
+          id: nanoid(),
           coupleId: wedding.id,
           question: faq.question,
           answer: faq.answer,
           category: faq.category,
           order: faq.order,
+          updatedAt: new Date(),
         },
       })
     }
