@@ -59,6 +59,11 @@ interface EnvelopeLandingWithCodeProps {
     busRoutes?: string | null
     maxCapacity?: number | null
   }
+  existingRsvp?: {
+    status: string
+    message?: string | null
+    answersJSON?: string | null
+  } | null
 }
 
 export function EnvelopeLandingWithCode({
@@ -69,6 +74,7 @@ export function EnvelopeLandingWithCode({
   weddingDetails,
   guest,
   couple,
+  existingRsvp,
 }: EnvelopeLandingWithCodeProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [showRsvpForm, setShowRsvpForm] = useState(false)
@@ -275,7 +281,7 @@ export function EnvelopeLandingWithCode({
                   <CountdownTimer targetDate={couple.weddingDate} compact />
                 </div>
               </div>
-              <RsvpForm guest={guest} couple={couple} />
+              <RsvpForm guest={guest} couple={couple} existingRsvp={existingRsvp} />
             </div>
           </div>
         )}

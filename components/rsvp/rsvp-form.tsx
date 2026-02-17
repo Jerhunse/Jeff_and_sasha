@@ -52,13 +52,19 @@ interface RsvpFormProps {
     busRoutes?: string | null
     maxCapacity?: number | null
   }
+  existingRsvp?: {
+    status: string
+    message?: string | null
+    answersJSON?: string | null
+  } | null
 }
 
-export function RsvpForm({ guest, couple, isNewGuest = false, sharedCode }: RsvpFormProps & { isNewGuest?: boolean; sharedCode?: string }) {
+export function RsvpForm({ guest, couple, isNewGuest = false, sharedCode, existingRsvp }: RsvpFormProps & { isNewGuest?: boolean; sharedCode?: string }) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isEditing, setIsEditing] = useState(false)
   
   // If guest is already provided (from invite link), skip lookup
   // Otherwise start with lookup step
@@ -82,6 +88,11 @@ export function RsvpForm({ guest, couple, isNewGuest = false, sharedCode }: Rsvp
   // Determine max allowed guests for this party
   const maxAllowedGuests = guest?.maxGuestsAllowed || 1
 
+  // Parse existing RSVP data if available
+  const existingRsvpData = existingRsvp?.answersJSON ? JSON.parse(existingRsvp.answersJSON) : null
+  const existingGuestNames = existingRsvpData?.allGuestNames || []
+  const existingSongRequest = existingRsvpData?.songRequest || null
+
   const handleGoBack = () => {
     // Navigate to the wedding home page
     router.push(`/${couple.slug}`)
@@ -93,11 +104,11 @@ export function RsvpForm({ guest, couple, isNewGuest = false, sharedCode }: Rsvp
     status: guest?.rsvpStatus === "PENDING" ? "" : guest?.rsvpStatus || "",
     email: guest?.email || "",
     phone: guest?.phone || "",
-    message: "",
-    songRequest: "",
+    message: existingRsvp?.message || "",
+    songRequest: existingRsvpData?.songRequest || "",
     // Guest count: total number including primary guest
-    confirmedGuestCount: maxAllowedGuests,
-    guestNames: [] as string[], // Array of full names for all guests including primary
+    confirmedGuestCount: existingRsvpData?.confirmedGuestCount || maxAllowedGuests,
+    guestNames: existingGuestNames.length > 0 ? existingGuestNames : ([] as string[]), // Array of full names for all guests including primary
   })
 
   const handleLookupSubmit = async (e: React.FormEvent) => {
@@ -205,7 +216,7 @@ export function RsvpForm({ guest, couple, isNewGuest = false, sharedCode }: Rsvp
       }
 
       // Validate all guest names are provided
-      const missingNames = formData.guestNames.filter((name) => !name?.trim())
+      const missingNames = formData.guestNames.filter((name: string) => !name?.trim())
       if (missingNames.length > 0) {
         setError(`Please provide names for all ${formData.confirmedGuestCount} guest${formData.confirmedGuestCount > 1 ? 's' : ''}`)
         setIsSubmitting(false)
@@ -227,10 +238,10 @@ export function RsvpForm({ guest, couple, isNewGuest = false, sharedCode }: Rsvp
         message: formData.message,
         songRequest: formData.songRequest,
         confirmedGuestCount: formData.confirmedGuestCount,
-        guestNames: formData.guestNames.filter(n => n?.trim()),
+        guestNames: formData.guestNames.filter((n: string) => n?.trim()),
         // For backward compatibility with existing API
         plusOneCount: Math.max(0, formData.confirmedGuestCount - 1),
-        plusOneNames: formData.guestNames.slice(1).filter(n => n?.trim()),
+        plusOneNames: formData.guestNames.slice(1).filter((n: string) => n?.trim()),
       }
 
       const response = await fetch(endpoint, {
@@ -266,7 +277,7 @@ export function RsvpForm({ guest, couple, isNewGuest = false, sharedCode }: Rsvp
             <CheckCircle className="h-16 w-16 text-white mx-auto mb-4" />
             <h2 className="text-2xl font-bold mb-2">Thank You!</h2>
             <p className="text-muted-foreground mb-4">
-              Your RSVP has been submitted successfully.
+              Your RSVP has been {isEditing ? "updated" : "submitted"} successfully.
             </p>
             <p className="text-sm text-muted-foreground">
               Redirecting you to the wedding website...
@@ -277,15 +288,15 @@ export function RsvpForm({ guest, couple, isNewGuest = false, sharedCode }: Rsvp
     )
   }
 
-  // Show already RSVPed message if guest has already submitted
-  if (hasAlreadyRsvped) {
+  // Show already RSVPed message if guest has already submitted and not editing
+  if (hasAlreadyRsvped && !isEditing) {
     return (
       <Card>
         <CardHeader>
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
               <CardTitle className="font-serif text-2xl">
-                RSVP Already Submitted
+                Your RSVP
               </CardTitle>
             </div>
             <Button
@@ -301,42 +312,86 @@ export function RsvpForm({ guest, couple, isNewGuest = false, sharedCode }: Rsvp
           </div>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-12 space-y-4">
-            <CheckCircle className="h-16 w-16 text-gold mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">
-              You've Already RSVPed
-            </h3>
-            <div className="bg-muted/30 rounded-lg p-6 space-y-3 max-w-md mx-auto">
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Status:</span>
-                <span className="font-semibold">
-                  {guest.rsvpStatus === "ATTENDING" ? "✓ Attending" : "✗ Declined"}
+          <div className="py-8 space-y-6">
+            <div className="text-center">
+              <CheckCircle className="h-16 w-16 text-gold mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-2">
+                Thank You for Your Response!
+              </h3>
+              <p className="text-muted-foreground">
+                Here are your RSVP details:
+              </p>
+            </div>
+            
+            <div className="bg-muted/30 rounded-lg p-6 space-y-4 max-w-md mx-auto">
+              <div className="flex justify-between items-start">
+                <span className="text-muted-foreground font-medium">Status:</span>
+                <span className="font-semibold text-right">
+                  {guest.rsvpStatus === "ATTENDING" ? "✓ Attending" : "✗ Not Attending"}
                 </span>
               </div>
-              {guest.email && (
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Email:</span>
-                  <span className="font-medium">{guest.email}</span>
+              
+              {existingGuestNames.length > 0 && (
+                <div className="flex justify-between items-start">
+                  <span className="text-muted-foreground font-medium">Guest Names:</span>
+                  <div className="text-right">
+                    {existingGuestNames.map((name: string, idx: number) => (
+                      <div key={idx} className="font-medium">{name}</div>
+                    ))}
+                  </div>
                 </div>
               )}
+
+              {existingSongRequest && (
+                <div className="flex justify-between items-start">
+                  <span className="text-muted-foreground font-medium">Song Request:</span>
+                  <span className="font-medium text-right max-w-[200px]">{existingSongRequest}</span>
+                </div>
+              )}
+
+              {existingRsvp?.message && (
+                <div className="flex flex-col gap-1">
+                  <span className="text-muted-foreground font-medium">Message:</span>
+                  <p className="text-sm font-medium bg-background/50 p-3 rounded">
+                    {existingRsvp.message}
+                  </p>
+                </div>
+              )}
+
+              {guest.email && (
+                <div className="flex justify-between items-start pt-2 border-t border-muted">
+                  <span className="text-muted-foreground text-sm">Email:</span>
+                  <span className="font-medium text-sm">{guest.email}</span>
+                </div>
+              )}
+              
               {guest.phone && (
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Phone:</span>
-                  <span className="font-medium">{guest.phone}</span>
+                <div className="flex justify-between items-start">
+                  <span className="text-muted-foreground text-sm">Phone:</span>
+                  <span className="font-medium text-sm">{guest.phone}</span>
                 </div>
               )}
             </div>
-            <p className="text-muted-foreground mt-6">
-              If you need to make changes to your RSVP, please contact the couple directly.
-            </p>
-            <Button
-              onClick={handleGoBack}
-              size="lg"
-              className="mt-6"
-            >
-              <Home className="mr-2 h-4 w-4" />
-              Return to Wedding Website
-            </Button>
+
+            <div className="flex flex-col gap-3 max-w-md mx-auto pt-4">
+              <Button
+                onClick={() => setIsEditing(true)}
+                size="lg"
+                className="w-full"
+                variant="default"
+              >
+                Update My RSVP
+              </Button>
+              <Button
+                onClick={handleGoBack}
+                size="lg"
+                variant="outline"
+                className="w-full"
+              >
+                <Home className="mr-2 h-4 w-4" />
+                Return to Wedding Website
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>

@@ -89,6 +89,13 @@ export default async function RsvpPage({ params }: RsvpPageProps) {
     const plusOneName = rsvpResponse?.plusOneName || null
     const plusOneUsed = !!plusOneName
 
+    // Pass existing RSVP data for editing
+    const existingRsvp = rsvpResponse ? {
+      status: rsvpStatus,
+      message: rsvpResponse.message,
+      answersJSON: rsvpResponse.answersJSON,
+    } : null
+
     return (
       <EnvelopeLandingWithCode
         partner1Name={wedding.partner1Name}
@@ -123,6 +130,7 @@ export default async function RsvpPage({ params }: RsvpPageProps) {
           busRoutes: null,
           maxCapacity: wedding.maxCapacity,
         }}
+        existingRsvp={existingRsvp}
       />
     )
   }
