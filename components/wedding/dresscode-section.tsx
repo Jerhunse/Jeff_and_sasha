@@ -30,7 +30,7 @@ export function DresscodeSection({
               alt="Woman in a floor-length emerald green satin evening gown"
               width={800}
               height={1000}
-              className="w-full h-full object-cover object-top grayscale-[20%] hover:grayscale-0 transition-all duration-1000"
+              className="w-full h-full object-cover object-bottom grayscale-[20%] hover:grayscale-0 transition-all duration-1000"
             />
           </div>
 
@@ -110,10 +110,6 @@ export function DresscodeSection({
             <div className="flex flex-col items-center gap-4">
               <div className="w-24 h-24 rounded-full bg-[#c5a059] shadow-inner border-4 border-white" />
               <span className="text-xs uppercase tracking-widest font-bold">Gold</span>
-            </div>
-            <div className="flex flex-col items-center gap-4">
-              <div className="w-24 h-24 rounded-full bg-[#0e4b3a] shadow-inner border-4 border-white" />
-              <span className="text-xs uppercase tracking-widest font-bold">Emerald</span>
             </div>
             <div className="flex flex-col items-center gap-4">
               <div className="w-24 h-24 rounded-full bg-[#5a1010] shadow-inner border-4 border-white" />

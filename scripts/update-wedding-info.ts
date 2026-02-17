@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import { nanoid } from 'nanoid'
 
 const prisma = new PrismaClient()
 
@@ -18,7 +19,7 @@ async function updateWeddingInfo() {
     console.log(`Found wedding: ${wedding.partner1Name} & ${wedding.partner2Name}`)
 
     // Wedding date: June 26, 2026
-    const weddingDate = new Date('2026-06-26T16:00:00.000Z') // 4pm ceremony
+    const weddingDate = new Date('2026-06-26T15:00:00.000Z') // 3pm ceremony
 
     // Update wedding details
     await prisma.couple.update({
@@ -43,15 +44,15 @@ async function updateWeddingInfo() {
 
     console.log('Cleared existing events')
 
-    // Create schedule events — timeline starts with ceremony at 4pm
+    // Create schedule events — timeline starts with guests arriving at 2:30pm
     const baseDate = '2026-06-26'
 
     const events = [
       {
-        name: 'Ceremony',
-        description: 'Join us as we exchange our vows and begin our journey together.',
-        startTime: new Date(`${baseDate}T16:00:00-04:00`),
-        endTime: new Date(`${baseDate}T16:30:00-04:00`),
+        name: 'Guests Begin Arriving',
+        description: 'Please arrive early to find your seat before the ceremony begins.',
+        startTime: new Date(`${baseDate}T14:30:00-04:00`),
+        endTime: new Date(`${baseDate}T15:00:00-04:00`),
         location: 'The Venue at Stillwater Pond',
         address: '175 Pollard Rd, Temple, GA 30179',
         attire: 'Semi-Formal',
@@ -59,61 +60,83 @@ async function updateWeddingInfo() {
         order: 0,
       },
       {
-        name: 'Cocktail Hour',
-        description: 'Enjoy drinks and hors d\'oeuvres while we take photos with the wedding party.',
-        startTime: new Date(`${baseDate}T16:30:00-04:00`),
-        endTime: new Date(`${baseDate}T17:30:00-04:00`),
+        name: 'Ceremony Begins',
+        description: 'The ceremony will begin promptly at 3:00 PM. Join us as we exchange our vows and begin our journey together.',
+        startTime: new Date(`${baseDate}T15:00:00-04:00`),
+        endTime: new Date(`${baseDate}T15:30:00-04:00`),
         location: 'The Venue at Stillwater Pond',
         address: '175 Pollard Rd, Temple, GA 30179',
         visibility: 'PUBLIC' as const,
         order: 1,
       },
       {
-        name: 'Grand Entrance & Dinner',
-        description: 'Grand entrance followed by dinner service.',
-        startTime: new Date(`${baseDate}T17:30:00-04:00`),
-        endTime: new Date(`${baseDate}T18:30:00-04:00`),
+        name: 'Cocktail Hour',
+        description: 'Enjoy drinks and hors d\'oeuvres while we take photos with the wedding party.',
+        startTime: new Date(`${baseDate}T15:30:00-04:00`),
+        endTime: new Date(`${baseDate}T16:00:00-04:00`),
         location: 'The Venue at Stillwater Pond',
         address: '175 Pollard Rd, Temple, GA 30179',
         visibility: 'PUBLIC' as const,
         order: 2,
       },
       {
-        name: 'Dances & Speeches',
-        description: 'Our first dance as a couple, then parent dances, followed by speeches. Dance floor opens after.',
-        startTime: new Date(`${baseDate}T18:30:00-04:00`),
-        endTime: new Date(`${baseDate}T19:00:00-04:00`),
+        name: 'Grand Entrance & Welcome Prayer',
+        description: 'Grand entrance followed by welcome prayer. Dinner to follow.',
+        startTime: new Date(`${baseDate}T16:00:00-04:00`),
+        endTime: new Date(`${baseDate}T17:00:00-04:00`),
         location: 'The Venue at Stillwater Pond',
         address: '175 Pollard Rd, Temple, GA 30179',
         visibility: 'PUBLIC' as const,
         order: 3,
       },
       {
-        name: 'Cake Cutting',
-        description: 'Join us for the traditional cake cutting ceremony.',
-        startTime: new Date(`${baseDate}T19:00:00-04:00`),
-        endTime: new Date(`${baseDate}T19:15:00-04:00`),
+        name: 'Special Speech',
+        description: null,
+        startTime: new Date(`${baseDate}T17:00:00-04:00`),
+        endTime: new Date(`${baseDate}T17:15:00-04:00`),
         location: 'The Venue at Stillwater Pond',
         address: '175 Pollard Rd, Temple, GA 30179',
         visibility: 'PUBLIC' as const,
         order: 4,
       },
       {
-        name: 'Send Off',
-        description: 'Help us celebrate with a grand send-off as we begin our new life together!',
-        startTime: new Date(`${baseDate}T21:00:00-04:00`),
-        endTime: new Date(`${baseDate}T21:30:00-04:00`),
+        name: 'First Dance & Parent Dances',
+        description: 'Dance floor opens immediately after.',
+        startTime: new Date(`${baseDate}T17:15:00-04:00`),
+        endTime: new Date(`${baseDate}T18:00:00-04:00`),
         location: 'The Venue at Stillwater Pond',
         address: '175 Pollard Rd, Temple, GA 30179',
         visibility: 'PUBLIC' as const,
         order: 5,
+      },
+      {
+        name: 'Open Dancing Continues',
+        description: 'Dancing will continue through the evening.',
+        startTime: new Date(`${baseDate}T18:00:00-04:00`),
+        endTime: new Date(`${baseDate}T22:00:00-04:00`),
+        location: 'The Venue at Stillwater Pond',
+        address: '175 Pollard Rd, Temple, GA 30179',
+        visibility: 'PUBLIC' as const,
+        order: 6,
+      },
+      {
+        name: 'Grand Send-Off',
+        description: 'Help us celebrate with a grand send-off as we begin our new life together! The celebration concludes at 10:00 PM.',
+        startTime: new Date(`${baseDate}T22:00:00-04:00`),
+        endTime: new Date(`${baseDate}T22:30:00-04:00`),
+        location: 'The Venue at Stillwater Pond',
+        address: '175 Pollard Rd, Temple, GA 30179',
+        visibility: 'PUBLIC' as const,
+        order: 7,
       },
     ]
 
     for (const event of events) {
       await prisma.event.create({
         data: {
+          id: nanoid(),
           coupleId: wedding.id,
+          updatedAt: new Date(),
           ...event,
         },
       })
@@ -222,7 +245,9 @@ async function updateWeddingInfo() {
     for (const hotel of hotels) {
       await prisma.hotelBlock.create({
         data: {
+          id: nanoid(),
           coupleId: wedding.id,
+          updatedAt: new Date(),
           name: hotel.name,
           address: hotel.address,
           city: hotel.city,
@@ -230,6 +255,7 @@ async function updateWeddingInfo() {
           zip: hotel.zip || null,
           website: hotel.website || null,
           distanceFromVenue: hotel.distanceFromVenue,
+          imageUrl: hotel.imageUrl || null,
           order: hotel.order,
         },
       })
