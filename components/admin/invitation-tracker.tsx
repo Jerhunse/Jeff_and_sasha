@@ -36,8 +36,6 @@ import { SendInvitationsDialog } from "./send-invitations-dialog"
 type GuestWithInvitations = Guest & {
   invitations: Invitation[]
   household: Household | null
-  saveTheDateOpened?: boolean | null
-  saveTheDateSent?: boolean | string | Date | null
   inviteViewed?: boolean | null
   inviteSent?: boolean | string | Date | null
   rsvpStatus?: RsvpStatus | null
@@ -48,63 +46,38 @@ interface InvitationTrackerProps {
   guests: GuestWithInvitations[]
 }
 
-function getInvitationStatusBadge(guest: GuestWithInvitations, type: "STD" | "INVITE") {
-  if (type === "STD") {
-    if (guest.saveTheDateOpened) {
-      return (
-        <Badge variant="default" className="gap-1">
-          <Eye className="h-3 w-3" />
-          Opened
-        </Badge>
-      )
-    }
-    if (guest.saveTheDateSent) {
-      return (
-        <Badge variant="secondary" className="gap-1">
-          <Send className="h-3 w-3" />
-          Sent
-        </Badge>
-      )
-    }
+function getInvitationStatusBadge(guest: GuestWithInvitations) {
+  // Check RSVP status first
+  if (guest.rsvpStatus !== "PENDING") {
     return (
-      <Badge variant="outline" className="gap-1">
-        <Clock className="h-3 w-3" />
-        Pending
-      </Badge>
-    )
-  } else {
-    // INVITE
-    if (guest.rsvpStatus !== "PENDING") {
-      return (
-        <Badge variant="default" className="gap-1 bg-green-600">
-          <CheckCircle className="h-3 w-3" />
-          Replied
-        </Badge>
-      )
-    }
-    if (guest.inviteViewed) {
-      return (
-        <Badge variant="default" className="gap-1 bg-blue-600">
-          <Eye className="h-3 w-3" />
-          Opened
-        </Badge>
-      )
-    }
-    if (guest.inviteSent) {
-      return (
-        <Badge variant="secondary" className="gap-1">
-          <Send className="h-3 w-3" />
-          Sent
-        </Badge>
-      )
-    }
-    return (
-      <Badge variant="outline" className="gap-1">
-        <Clock className="h-3 w-3" />
-        Pending
+      <Badge variant="default" className="gap-1 bg-green-600">
+        <CheckCircle className="h-3 w-3" />
+        Replied
       </Badge>
     )
   }
+  if (guest.inviteViewed) {
+    return (
+      <Badge variant="default" className="gap-1 bg-blue-600">
+        <Eye className="h-3 w-3" />
+        Opened
+      </Badge>
+    )
+  }
+  if (guest.inviteSent) {
+    return (
+      <Badge variant="secondary" className="gap-1">
+        <Send className="h-3 w-3" />
+        Sent
+      </Badge>
+    )
+  }
+  return (
+    <Badge variant="outline" className="gap-1">
+      <Clock className="h-3 w-3" />
+      Pending
+    </Badge>
+  )
 }
 
 function getRsvpStatusBadge(status: RsvpStatus | null | undefined) {
@@ -147,7 +120,7 @@ export function InvitationTracker({ guests }: InvitationTrackerProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [filterStatus, setFilterStatus] = useState<string>("all")
   const [showSendDialog, setShowSendDialog] = useState(false)
-  const [sendType, setSendType] = useState<"SAVE_THE_DATE" | "INVITATION">("SAVE_THE_DATE")
+  const [sendType, setSendType] = useState<"SAVE_THE_DATE" | "INVITATION">("INVITATION")
 
   const toggleGuestSelection = (guestId: string) => {
     const newSelection = new Set(selectedGuests)
@@ -182,15 +155,6 @@ export function InvitationTracker({ guests }: InvitationTrackerProps) {
     // Status filter
     if (filterStatus !== "all") {
       switch (filterStatus) {
-        case "std-pending":
-          if (guest.saveTheDateSent) return false
-          break
-        case "std-sent":
-          if (!guest.saveTheDateSent || guest.saveTheDateOpened) return false
-          break
-        case "std-opened":
-          if (!guest.saveTheDateOpened) return false
-          break
         case "invite-pending":
           if (guest.inviteSent) return false
           break
@@ -235,9 +199,6 @@ export function InvitationTracker({ guests }: InvitationTrackerProps) {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Guests</SelectItem>
-              <SelectItem value="std-pending">STD - Pending</SelectItem>
-              <SelectItem value="std-sent">STD - Sent</SelectItem>
-              <SelectItem value="std-opened">STD - Opened</SelectItem>
               <SelectItem value="invite-pending">Invite - Pending</SelectItem>
               <SelectItem value="invite-sent">Invite - Sent</SelectItem>
               <SelectItem value="invite-opened">Invite - Opened</SelectItem>
@@ -257,14 +218,6 @@ export function InvitationTracker({ guests }: InvitationTrackerProps) {
               selected
             </span>
             <div className="flex gap-2">
-              <Button
-                variant="default"
-                size="sm"
-                onClick={() => handleSendInvitations("SAVE_THE_DATE")}
-              >
-                <Mail className="mr-2 h-4 w-4" />
-                Send Save the Date
-              </Button>
               <Button
                 variant="default"
                 size="sm"
@@ -302,7 +255,6 @@ export function InvitationTracker({ guests }: InvitationTrackerProps) {
                 </TableHead>
                 <TableHead>Guest</TableHead>
                 <TableHead>Contact</TableHead>
-                <TableHead>Save the Date</TableHead>
                 <TableHead>Invitation</TableHead>
                 <TableHead>RSVP</TableHead>
               </TableRow>
@@ -311,7 +263,7 @@ export function InvitationTracker({ guests }: InvitationTrackerProps) {
               {filteredGuests.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={6}
+                    colSpan={5}
                     className="text-center py-12 text-muted-foreground"
                   >
                     No guests found.
@@ -354,15 +306,7 @@ export function InvitationTracker({ guests }: InvitationTrackerProps) {
                       </div>
                     </TableCell>
                     <TableCell>
-                      {getInvitationStatusBadge(guest, "STD")}
-                      {guest.saveTheDateSent && (typeof guest.saveTheDateSent === "string" || guest.saveTheDateSent instanceof Date) && (
-                        <div className="text-xs text-muted-foreground mt-1">
-                          {new Date(guest.saveTheDateSent).toLocaleDateString()}
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {getInvitationStatusBadge(guest, "INVITE")}
+                      {getInvitationStatusBadge(guest)}
                       {guest.inviteSent && (typeof guest.inviteSent === "string" || guest.inviteSent instanceof Date) && (
                         <div className="text-xs text-muted-foreground mt-1">
                           {new Date(guest.inviteSent).toLocaleDateString()}
