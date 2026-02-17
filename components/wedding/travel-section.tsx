@@ -114,11 +114,6 @@ export function TravelSection({
             <div className="w-20 h-0.5 bg-primary mx-auto mb-6" />
             <p className="text-foreground text-base md:text-lg font-normal leading-relaxed">
               We have selected several hotels near our venue for your comfort.
-              Please mention the{" "}
-              <span className="text-primary font-bold">
-                Everly-Miller Wedding
-              </span>{" "}
-              when booking to receive a special rate.
             </p>
           </div>
 
