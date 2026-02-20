@@ -20,7 +20,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
   }
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex" data-admin>
       <Toaster position="top-right" />
       <AdminSidebar
         user={{

@@ -4,7 +4,6 @@ import {
   Cormorant_Garamond,
   EB_Garamond,
   Dancing_Script,
-  Italianno,
 } from "next/font/google";
 import "../src/styles/theme.css";
 import "./globals.css";
@@ -37,13 +36,6 @@ const dancingScript = Dancing_Script({
   display: "swap",
 });
 
-const italianno = Italianno({
-  variable: "--font-heading",
-  subsets: ["latin"],
-  display: "swap",
-  weight: "400",
-});
-
 export const metadata: Metadata = {
   title: "Our Wedding | Jeff & Sasha",
   description: "Join us in celebrating our special day",
@@ -63,7 +55,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} ${cormorant.variable} ${ebGaramond.variable} ${dancingScript.variable} ${italianno.variable} font-sans antialiased`}
+        className={`${inter.variable} ${cormorant.variable} ${ebGaramond.variable} ${dancingScript.variable} font-sans antialiased`}
       >
         <TextureLayer />
         <ConditionalNav />
