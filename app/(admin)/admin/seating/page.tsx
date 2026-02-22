@@ -209,6 +209,7 @@ export default async function SeatingPage() {
             where: { eventId: null },
             select: {
               status: true,
+              plusOneName: true,
             },
             take: 1,
           },
@@ -234,10 +235,11 @@ export default async function SeatingPage() {
   const guests = primaryGuests.flatMap(guest => {
     const plusOnesAsGuests = (guest.plusOnes || []).map(plusOne => ({
       ...plusOne,
-      household: guest.household, // Inherit household from parent
-      allowPlusOne: false, // Plus-ones typically can't have their own plus-ones
-      parentGuestId: guest.id, // Track the parent relationship
-      plusOnes: [], // Plus-ones don't have nested plus-ones
+      maxGuestsAllowed: 1,
+      household: guest.household,
+      allowPlusOne: false,
+      parentGuestId: guest.id,
+      plusOnes: [],
     }))
     
     return [guest, ...plusOnesAsGuests]
