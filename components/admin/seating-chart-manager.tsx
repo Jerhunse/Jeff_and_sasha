@@ -37,7 +37,8 @@ type Guest = {
   email: string | null
   allowPlusOne: boolean
   maxGuestsAllowed?: number | null
-  parentGuestId?: string | null
+  parentGuestId: string | null
+  notes: string | null
   household: {
     id: string
     name: string
