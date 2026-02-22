@@ -54,7 +54,7 @@ export default async function GuestDetailPage({ params }: GuestDetailPageProps) 
         include: {
           guests: {
             where: {
-              id: { not: id } // Exclude current guest
+              id: { not: id }
             },
             select: {
               id: true,
@@ -66,6 +66,12 @@ export default async function GuestDetailPage({ params }: GuestDetailPageProps) 
       },
       rsvpResponses: {
         orderBy: { respondedAt: 'desc' },
+      },
+      parentGuest: {
+        select: { id: true, firstName: true, lastName: true },
+      },
+      plusOnes: {
+        select: { id: true, firstName: true, lastName: true, email: true, phone: true },
       },
     },
   })
@@ -239,6 +245,50 @@ export default async function GuestDetailPage({ params }: GuestDetailPageProps) 
                         className="block text-sm hover:underline"
                       >
                         {member.firstName} {member.lastName}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Plus Ones / Parent Guest Relationship */}
+        {(guest.plusOnes.length > 0 || guest.parentGuest) && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Guest Connections</CardTitle>
+              <CardDescription>Parent-guest and plus-one relationships</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {guest.parentGuest && (
+                <div>
+                  <Label className="text-muted-foreground">Invited By (Parent Guest)</Label>
+                  <div className="mt-2">
+                    <Link
+                      href={`/admin/guests/${guest.parentGuest.id}`}
+                      className="flex items-center gap-2 text-sm hover:underline font-medium"
+                    >
+                      <Users className="h-3 w-3 text-muted-foreground" />
+                      {guest.parentGuest.firstName} {guest.parentGuest.lastName}
+                    </Link>
+                  </div>
+                </div>
+              )}
+              {guest.plusOnes.length > 0 && (
+                <div>
+                  <Label className="text-muted-foreground">Plus Ones ({guest.plusOnes.length})</Label>
+                  <div className="space-y-2 mt-2">
+                    {guest.plusOnes.map((po) => (
+                      <Link
+                        key={po.id}
+                        href={`/admin/guests/${po.id}`}
+                        className="flex items-center gap-2 text-sm hover:underline"
+                      >
+                        <Users className="h-3 w-3 text-muted-foreground" />
+                        <span className="font-medium">{po.firstName} {po.lastName}</span>
+                        {po.email && <span className="text-muted-foreground">({po.email})</span>}
                       </Link>
                     ))}
                   </div>

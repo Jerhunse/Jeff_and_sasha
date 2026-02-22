@@ -12,6 +12,8 @@ import {
   Heart,
   PanelLeftClose,
   PanelLeft,
+  QrCode,
+  Armchair,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -19,7 +21,9 @@ const navItems = [
   { href: "/admin", label: "Dashboard", icon: Home },
   { href: "/admin/rsvp-dashboard", label: "RSVP Dashboard", icon: ClipboardList },
   { href: "/admin/guests", label: "Guests", icon: Users },
+  { href: "/admin/seating", label: "Seating Chart", icon: Armchair },
   { href: "/admin/invitations", label: "Invitations", icon: Mail },
+  { href: "/admin/qr-code", label: "QR Codes", icon: QrCode },
 ]
 
 interface AdminSidebarProps {

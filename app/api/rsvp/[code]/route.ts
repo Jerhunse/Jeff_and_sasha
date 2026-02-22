@@ -105,14 +105,36 @@ export async function POST(
 
     // Check capacity if accepting
     if (status === "ATTENDING" && guest.couple.maxCapacity) {
-      const currentAttending = await prisma.rSVPResponse.count({
+      // Count actual people attending from PRIMARY guests only (not plus-ones)
+      // Plus-ones are already included in their parent's confirmedGuestCount
+      const attendingResponses = await prisma.rSVPResponse.findMany({
         where: {
           coupleId: guest.coupleId,
           status: "YES",
+          guest: {
+            parentGuestId: null, // Only count primary guests' responses
+          },
+        },
+        select: {
+          answersJSON: true,
         },
       })
 
-      if (currentAttending + totalGuestCount > guest.couple.maxCapacity) {
+      let currentAttendingPeople = 0
+      for (const response of attendingResponses) {
+        if (response.answersJSON) {
+          try {
+            const answers = JSON.parse(response.answersJSON)
+            currentAttendingPeople += answers.confirmedGuestCount || 1
+          } catch {
+            currentAttendingPeople += 1
+          }
+        } else {
+          currentAttendingPeople += 1
+        }
+      }
+
+      if (currentAttendingPeople + totalGuestCount > guest.couple.maxCapacity) {
         return NextResponse.json(
           { error: "Sorry, we've reached maximum capacity" },
           { status: 400 }
@@ -167,26 +189,14 @@ export async function POST(
 
     let createdOrUpdatedResponse
     if (existingResponse) {
-      // #region agent log
-      fetch('http://127.0.0.1:7243/ingest/6974ce6d-9584-4f07-a5a2-5f3775ab8144',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/api/rsvp/[code]/route.ts:145',message:'Updating existing RSVP response',data:{responseId:existingResponse.id,status:prismaStatus,guestId:guest.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'G'})}).catch(()=>{});
-      // #endregion
       createdOrUpdatedResponse = await prisma.rSVPResponse.update({
         where: { id: existingResponse.id },
         data: rsvpData,
       })
-      // #region agent log
-      fetch('http://127.0.0.1:7243/ingest/6974ce6d-9584-4f07-a5a2-5f3775ab8144',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/api/rsvp/[code]/route.ts:150',message:'RSVP response updated successfully',data:{responseId:createdOrUpdatedResponse.id,status:createdOrUpdatedResponse.status},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'H'})}).catch(()=>{});
-      // #endregion
     } else {
-      // #region agent log
-      fetch('http://127.0.0.1:7243/ingest/6974ce6d-9584-4f07-a5a2-5f3775ab8144',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/api/rsvp/[code]/route.ts:154',message:'Creating new RSVP response',data:{guestId:guest.id,status:prismaStatus,coupleId:guest.coupleId},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'I'})}).catch(()=>{});
-      // #endregion
       createdOrUpdatedResponse = await prisma.rSVPResponse.create({
         data: rsvpData,
       })
-      // #region agent log
-      fetch('http://127.0.0.1:7243/ingest/6974ce6d-9584-4f07-a5a2-5f3775ab8144',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/api/rsvp/[code]/route.ts:159',message:'RSVP response created successfully',data:{responseId:createdOrUpdatedResponse.id,status:createdOrUpdatedResponse.status,guestId:createdOrUpdatedResponse.guestId},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'J'})}).catch(()=>{});
-      // #endregion
     }
 
     // Also save to Supabase rsvp table for compatibility

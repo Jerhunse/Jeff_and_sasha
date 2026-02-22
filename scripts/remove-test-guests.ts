@@ -2,97 +2,58 @@ import { PrismaClient } from "@prisma/client"
 
 const prisma = new PrismaClient()
 
-async function removeTestGuests() {
-  try {
-    console.log("🔍 Searching for test guests...")
+async function main() {
+  console.log("🗑️  Removing obvious test guests...\n")
 
-    // Find test guests by email or name
-    const testGuestEmails = [
-      "jane@example.com",
-      "bob@example.com", 
-      "john@example.com"
-    ]
+  const testGuests = await prisma.guest.findMany({
+    where: {
+      OR: [
+        { firstName: 'Jane', lastName: 'Doe' },
+        { firstName: 'John', lastName: 'Smith' },
+        { firstName: 'Bob', lastName: 'Johnson' },
+      ],
+    },
+  })
 
-    const testGuestNames = [
-      { firstName: "Jane", lastName: "Doe" },
-      { firstName: "Bob", lastName: "Johnson" },
-      { firstName: "John", lastName: "Smith" }
-    ]
-
-    // Find guests by email
-    const guestsByEmail = await prisma.guest.findMany({
-      where: {
-        email: {
-          in: testGuestEmails
-        }
-      },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true
-      }
-    })
-
-    // Find guests by name (in case email doesn't match exactly)
-    const guestsByName = await prisma.guest.findMany({
-      where: {
-        OR: testGuestNames.map(name => ({
-          firstName: name.firstName,
-          lastName: name.lastName
-        }))
-      },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true
-      }
-    })
-
-    // Combine and deduplicate
-    const allTestGuests = [...guestsByEmail, ...guestsByName]
-    const uniqueGuests = Array.from(
-      new Map(allTestGuests.map(g => [g.id, g])).values()
-    )
-
-    if (uniqueGuests.length === 0) {
-      console.log("✅ No test guests found. Database is already clean!")
-      return
-    }
-
-    console.log(`\n📋 Found ${uniqueGuests.length} test guest(s):`)
-    uniqueGuests.forEach(guest => {
-      console.log(`   - ${guest.firstName} ${guest.lastName} (${guest.email || "no email"})`)
-    })
-
-    console.log("\n🗑️  Deleting test guests...")
-
-    // Delete the guests
-    const deleteResult = await prisma.guest.deleteMany({
-      where: {
-        id: {
-          in: uniqueGuests.map(g => g.id)
-        }
-      }
-    })
-
-    console.log(`\n✅ Successfully deleted ${deleteResult.count} test guest(s)!`)
-
-  } catch (error) {
-    console.error("❌ Error removing test guests:", error)
-    throw error
-  } finally {
-    await prisma.$disconnect()
+  if (testGuests.length === 0) {
+    console.log("✅ No test guests found!")
+    return
   }
+
+  console.log(`Found ${testGuests.length} test guests:`)
+  for (const g of testGuests) {
+    console.log(`  - ${g.firstName} ${g.lastName} (ID: ${g.id})`)
+  }
+
+  console.log("\n🗑️  Deleting...")
+  
+  const deleted = await prisma.guest.deleteMany({
+    where: {
+      OR: [
+        { firstName: 'Jane', lastName: 'Doe' },
+        { firstName: 'John', lastName: 'Smith' },
+        { firstName: 'Bob', lastName: 'Johnson' },
+      ],
+    },
+  })
+
+  console.log(`✅ Deleted ${deleted.count} test guests`)
+
+  // Show new count
+  const remaining = await prisma.guest.count({
+    where: { coupleId: 'cmgn7015b0000y44c73zxrwpc' },
+  })
+
+  console.log(`\n📊 New total guest count: ${remaining}`)
+  console.log(`Target: 182`)
+  console.log(`Difference: ${remaining - 182}`)
 }
 
-removeTestGuests()
-  .then(() => {
-    console.log("\n✨ Cleanup complete!")
-    process.exit(0)
-  })
-  .catch((error) => {
-    console.error(error)
+main()
+  .catch((e) => {
+    console.error("❌ Error:", e)
     process.exit(1)
+  })
+  .finally(async () => {
+    await prisma.$disconnect()
   })

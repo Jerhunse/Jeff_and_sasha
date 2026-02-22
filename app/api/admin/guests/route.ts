@@ -32,14 +32,20 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    // Fetch guests with RSVP responses
+    // Fetch guests with RSVP responses and plus-one relationships
     const guests = await prisma.guest.findMany({
       where: { coupleId },
       include: {
         rsvpResponses: {
           orderBy: { respondedAt: 'desc' },
           take: 1
-        }
+        },
+        parentGuest: {
+          select: { id: true, firstName: true, lastName: true }
+        },
+        plusOnes: {
+          select: { id: true, firstName: true, lastName: true }
+        },
       },
       orderBy: { lastName: 'asc' }
     })
@@ -73,6 +79,7 @@ export async function POST(request: NextRequest) {
       allowPlusOne = false,
       maxGuestsAllowed = 1,
       notes,
+      parentGuestId,
     } = body
 
     if (!firstName?.trim() || !lastName?.trim()) {
@@ -95,6 +102,8 @@ export async function POST(request: NextRequest) {
         maxGuestsAllowed: maxGuestsAllowed || 1,
         notes: notes?.trim() || null,
         importSource: "manual",
+        parentGuestId: parentGuestId || null,
+        isPrimaryContact: !parentGuestId,
       },
     })
 

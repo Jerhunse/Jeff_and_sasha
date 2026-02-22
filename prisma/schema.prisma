@@ -261,6 +261,7 @@ model Guest {
   phone            String?
   addressId        String?
   householdId      String?
+  parentGuestId    String?
   isPrimaryContact Boolean         @default(true)
   relationship     String?
   age              Int?
@@ -283,6 +284,8 @@ model Guest {
   couple           Couple          @relation(fields: [coupleId], references: [id], onDelete: Cascade)
   household        Household?      @relation(fields: [householdId], references: [id])
   user             User?           @relation(fields: [userId], references: [id])
+  parentGuest      Guest?          @relation("GuestPlusOnes", fields: [parentGuestId], references: [id])
+  plusOnes          Guest[]         @relation("GuestPlusOnes")
   activities       GuestActivity[]
   tags             GuestTag[]
   invitations      Invitation[]
@@ -295,6 +298,7 @@ model Guest {
   @@index([householdId])
   @@index([inviteToken])
   @@index([lastName])
+  @@index([parentGuestId])
 }
 
 model GuestActivity {

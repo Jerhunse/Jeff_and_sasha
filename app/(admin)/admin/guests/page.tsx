@@ -39,6 +39,7 @@ export default async function GuestsPage({ searchParams }: GuestsPageProps) {
   // Build filter conditions
   const where: any = {
     coupleId: session.user.coupleId,
+    parentGuestId: null, // Only show main guests, not plus-ones
   }
 
   if (search) {
@@ -117,18 +118,25 @@ export default async function GuestsPage({ searchParams }: GuestsPageProps) {
           },
         },
         rsvpResponses: {
-          where: { eventId: null }, // General RSVP
+          where: { eventId: null },
           orderBy: { respondedAt: "desc" },
           take: 1,
+        },
+        parentGuest: {
+          select: { id: true, firstName: true, lastName: true },
+        },
+        plusOnes: {
+          select: { id: true, firstName: true, lastName: true },
         },
         _count: {
           select: {
             rsvpResponses: true,
+            plusOnes: true,
           },
         },
       },
       orderBy: [
-        { createdAt: "desc" }, // Show newest first to see recently added guests
+        { createdAt: "desc" },
         { lastName: "asc" },
         { firstName: "asc" },
       ],
@@ -160,39 +168,39 @@ export default async function GuestsPage({ searchParams }: GuestsPageProps) {
     }),
   ])
 
-  // Calculate total by summing maxGuestsAllowed for all guests
+  // Calculate total by summing maxGuestsAllowed for PRIMARY guests only
+  // Plus-ones are already included in their parent's allocation
   const totalGuestsWithQuantity = await prisma.guest.aggregate({
-    where: { coupleId: session.user.coupleId },
+    where: { 
+      coupleId: session.user.coupleId,
+      parentGuestId: null, // Only primary guests
+    },
     _sum: {
       maxGuestsAllowed: true,
     },
   })
 
-  // Calculate stats - RSVP status is now in RSVPResponse, not Guest
+  // Calculate stats using maxGuestsAllowed as the source of truth for totals
   const [attendingCount, declinedCount, pendingCount] = await Promise.all([
-    prisma.rSVPResponse.count({
-      where: {
-        coupleId: session.user.coupleId,
-        eventId: null,
-        status: "YES", // Prisma enum value
-      },
-    }),
-    prisma.rSVPResponse.count({
-      where: {
-        coupleId: session.user.coupleId,
-        eventId: null,
-        status: "NO", // Prisma enum value
-      },
-    }),
-    // Pending = guests without RSVP responses
     prisma.guest.count({
       where: {
         coupleId: session.user.coupleId,
-        rsvpResponses: {
-          none: {
-            eventId: null,
-          },
-        },
+        parentGuestId: null,
+        rsvpResponses: { some: { eventId: null, status: "YES" } },
+      },
+    }),
+    prisma.guest.count({
+      where: {
+        coupleId: session.user.coupleId,
+        parentGuestId: null,
+        rsvpResponses: { some: { eventId: null, status: "NO" } },
+      },
+    }),
+    prisma.guest.count({
+      where: {
+        coupleId: session.user.coupleId,
+        parentGuestId: null,
+        rsvpResponses: { none: { eventId: null } },
       },
     }),
   ])
@@ -231,9 +239,9 @@ export default async function GuestsPage({ searchParams }: GuestsPageProps) {
         <Card className="p-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium">Attending</span>
-            <UserCheck className="h-4 w-4 text-white" />
+            <UserCheck className="h-4 w-4 text-muted-foreground" />
           </div>
-          <div className="text-2xl font-bold text-white">{stats.attending}</div>
+          <div className="text-2xl font-bold text-black">{stats.attending}</div>
         </Card>
 
         <Card className="p-4">

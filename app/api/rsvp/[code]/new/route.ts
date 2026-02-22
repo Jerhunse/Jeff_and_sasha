@@ -108,10 +108,6 @@ export async function POST(
     // Check if guest already exists by email
     const normalizedEmail = email.toLowerCase().trim()
     
-    // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/6974ce6d-9584-4f07-a5a2-5f3775ab8144',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/api/rsvp/[code]/new/route.ts:107',message:'Checking for existing guest',data:{email:normalizedEmail,coupleId:wedding.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'K'})}).catch(()=>{});
-    // #endregion
-    
     let guest = await prisma.guest.findFirst({
       where: {
         coupleId: wedding.id,
@@ -119,15 +115,8 @@ export async function POST(
       },
     })
 
-    // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/6974ce6d-9584-4f07-a5a2-5f3775ab8144',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/api/rsvp/[code]/new/route.ts:115',message:'Guest lookup result',data:{found:!!guest,guestId:guest?.id,email:normalizedEmail},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'L'})}).catch(()=>{});
-    // #endregion
-
     if (guest) {
       // Update existing guest
-      // #region agent log
-      fetch('http://127.0.0.1:7243/ingest/6974ce6d-9584-4f07-a5a2-5f3775ab8144',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/api/rsvp/[code]/new/route.ts:120',message:'Updating existing guest',data:{guestId:guest.id,email:normalizedEmail},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'M'})}).catch(()=>{});
-      // #endregion
       guest = await prisma.guest.update({
         where: { id: guest.id },
         data: {
@@ -139,9 +128,6 @@ export async function POST(
       })
     } else {
       // Create new guest
-      // #region agent log
-      fetch('http://127.0.0.1:7243/ingest/6974ce6d-9584-4f07-a5a2-5f3775ab8144',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/api/rsvp/[code]/new/route.ts:133',message:'Creating new guest',data:{email:normalizedEmail,firstName,lastName,coupleId:wedding.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'N'})}).catch(()=>{});
-      // #endregion
       guest = await prisma.guest.create({
         data: {
           coupleId: wedding.id,
@@ -154,9 +140,6 @@ export async function POST(
           importSource: "shared_code",
         },
       })
-      // #region agent log
-      fetch('http://127.0.0.1:7243/ingest/6974ce6d-9584-4f07-a5a2-5f3775ab8144',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/api/rsvp/[code]/new/route.ts:144',message:'New guest created successfully',data:{guestId:guest.id,email:guest.email},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'O'})}).catch(()=>{});
-      // #endregion
     }
 
     // Also save to Supabase rsvp table for compatibility

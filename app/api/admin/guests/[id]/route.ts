@@ -28,6 +28,12 @@ export async function GET(request: NextRequest, context: RouteContext) {
         },
         household: true,
         address: true,
+        parentGuest: {
+          select: { id: true, firstName: true, lastName: true }
+        },
+        plusOnes: {
+          select: { id: true, firstName: true, lastName: true, email: true, phone: true }
+        },
       },
     })
 
@@ -79,6 +85,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       doNotContact,
       isPrimaryContact,
       relationship,
+      parentGuestId,
     } = body
 
     // Validate required fields
@@ -120,6 +127,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     if (doNotContact !== undefined) updateData.doNotContact = doNotContact
     if (isPrimaryContact !== undefined) updateData.isPrimaryContact = isPrimaryContact
     if (relationship !== undefined) updateData.relationship = relationship?.trim() || null
+    if (parentGuestId !== undefined) updateData.parentGuestId = parentGuestId || null
 
     // Update the guest
     const updatedGuest = await prisma.guest.update({
@@ -133,6 +141,12 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
         },
         household: true,
         address: true,
+        parentGuest: {
+          select: { id: true, firstName: true, lastName: true }
+        },
+        plusOnes: {
+          select: { id: true, firstName: true, lastName: true, email: true, phone: true }
+        },
       },
     })
 

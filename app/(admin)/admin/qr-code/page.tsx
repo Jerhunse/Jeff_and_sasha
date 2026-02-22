@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { PrintableRsvpQrCode } from "@/components/wedding/printable-rsvp-qr"
+import { PrintablePhotoShareQrCode } from "@/components/wedding/printable-photo-share-qr"
 
 export default async function AdminQrCodePage() {
   const session = await auth()
@@ -25,23 +26,26 @@ export default async function AdminQrCodePage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
       {/* Header */}
       <div>
         <h1 className="font-serif text-4xl font-bold mb-2">
-          RSVP QR Code
+          QR Codes
         </h1>
         <p className="text-muted-foreground">
-          Download your custom QR code to include on invitations or display at your venue
+          Download and print QR codes for RSVP and for guests to share photos and videos
         </p>
       </div>
 
-      {/* QR Code Component */}
+      {/* RSVP QR Code */}
       <PrintableRsvpQrCode
         weddingSlug={couple.slug}
         partner1Name={couple.partner1Name}
         partner2Name={couple.partner2Name}
       />
+
+      {/* Share photos QR code — links to Google Photos album */}
+      <PrintablePhotoShareQrCode />
     </div>
   )
 }

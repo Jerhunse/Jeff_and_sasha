@@ -34,6 +34,12 @@ export async function GET(request: NextRequest) {
           take: 1,
         },
         address: true,
+        parentGuest: {
+          select: { id: true, firstName: true, lastName: true },
+        },
+        plusOnes: {
+          select: { id: true, firstName: true, lastName: true },
+        },
       },
       orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
     })
@@ -108,6 +114,8 @@ export async function GET(request: NextRequest) {
       "City",
       "State",
       "ZIP",
+      "Parent Guest",
+      "Plus Ones",
     ]
 
     const rows = guests.map((guest) => {
@@ -136,6 +144,8 @@ export async function GET(request: NextRequest) {
         escapeCSV(guest.address?.city),
         escapeCSV(guest.address?.state),
         escapeCSV(guest.address?.postal),
+        escapeCSV(guest.parentGuest ? `${guest.parentGuest.firstName} ${guest.parentGuest.lastName}` : ""),
+        escapeCSV(guest.plusOnes.map((po) => `${po.firstName} ${po.lastName}`).join("; ")),
       ].join(",")
     })
 

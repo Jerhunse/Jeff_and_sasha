@@ -70,6 +70,12 @@ export async function GET(
             },
           },
         },
+        parentGuest: {
+          select: { id: true, firstName: true, lastName: true },
+        },
+        plusOnes: {
+          select: { id: true, firstName: true, lastName: true, email: true },
+        },
       },
     })
 
