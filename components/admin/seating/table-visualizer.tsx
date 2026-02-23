@@ -531,7 +531,7 @@ function RectangularTableView({ table, onRemoveGuest, onSwapSeats, onMoveSeatToP
 
             {/* Interior bottom row - 3 seats facing bride/groom */}
             {bottomInteriorCount > 0 && (
-              <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full mt-8">
+              <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full" style={{ marginTop: '80px' }}>
                 <div className="flex justify-center items-start gap-1">
                   {Array.from({ length: bottomInteriorCount }, (_, i) => {
                     const expandedSeat = bottomInteriorSeats[i]
