@@ -351,16 +351,19 @@ function RectangularTableView({ table, onRemoveGuest, onSwapSeats, onMoveSeatToP
   // Top: 8 seats (3 + groom + bride + 3)
   // Left side: 5 seats on outside AND 5 seats on inside = 10 seats
   // Right side: 5 seats on outside AND 5 seats on inside = 10 seats
-  // Total: 8 + 10 + 10 = 28 seats
+  // Interior bottom: 3 seats (facing bride/groom from inside the U)
+  // Total: 8 + 10 + 10 + 3 = 31 seats
   const topCount = 8
   const leftOuterCount = 5  // Seats on outside of left arm
   const rightOuterCount = 5 // Seats on outside of right arm
+  const bottomInteriorCount = 3 // Seats in interior bottom row
 
   const topSeats = expandedSeats.slice(0, Math.min(topCount, expandedSeats.length))
   const leftOuterSeats = expandedSeats.slice(topCount, topCount + leftOuterCount)
   const rightOuterSeats = expandedSeats.slice(topCount + leftOuterCount, topCount + leftOuterCount + rightOuterCount)
   const leftInnerSeats = expandedSeats.slice(topCount + leftOuterCount + rightOuterCount, topCount + leftOuterCount + rightOuterCount + leftOuterCount)
   const rightInnerSeats = expandedSeats.slice(topCount + leftOuterCount + rightOuterCount + leftOuterCount, topCount + leftOuterCount + rightOuterCount + leftOuterCount + rightOuterCount)
+  const bottomInteriorSeats = expandedSeats.slice(topCount + leftOuterCount + rightOuterCount + leftOuterCount + rightOuterCount, topCount + leftOuterCount + rightOuterCount + leftOuterCount + rightOuterCount + bottomInteriorCount)
 
   const renderSeat = (
     expandedSeat: {
@@ -371,7 +374,7 @@ function RectangularTableView({ table, onRemoveGuest, onSwapSeats, onMoveSeatToP
       initials: string
     } | undefined,
     index: number,
-    position: 'top' | 'left-outer' | 'right-outer' | 'left-inner' | 'right-inner',
+    position: 'top' | 'left-outer' | 'right-outer' | 'left-inner' | 'right-inner' | 'bottom-interior',
     positionIndex: number
   ) => {
     // Check if this seat has BRIDE or GROOM in notes
