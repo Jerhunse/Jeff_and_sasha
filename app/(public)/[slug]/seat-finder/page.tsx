@@ -106,7 +106,7 @@ export default async function SeatFinderPage({ params }: SeatFinderPageProps) {
                 Find Your Seat
               </h1>
               <p className="font-sans text-sm text-muted-foreground uppercase tracking-[0.2em]">
-                Enter your name to view your table
+                Enter your name or phone number to view your table
               </p>
             </div>
             <SearchForm slug={wedding.slug} />

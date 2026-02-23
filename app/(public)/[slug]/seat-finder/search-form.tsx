@@ -46,7 +46,7 @@ export function SearchForm({ slug }: SearchFormProps) {
       <form onSubmit={handleSearch} className="relative group">
         <input
           className="w-full bg-transparent border-0 border-b border-border py-4 px-0 font-heading text-2xl italic focus:ring-0 focus:border-primary placeholder:text-muted-foreground transition-all disabled:opacity-50"
-          placeholder="First or Last Name"
+          placeholder="First name, last name, or phone number"
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
