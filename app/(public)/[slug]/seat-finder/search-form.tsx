@@ -1,8 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { Search, MapPin, Loader2 } from "lucide-react"
 import { searchGuestSeat, SearchResult } from "./actions"
+import { FloorPlanModal } from "./floor-plan-modal"
 
 interface SearchFormProps {
   slug: string
@@ -13,6 +13,7 @@ export function SearchForm({ slug }: SearchFormProps) {
   const [isSearching, setIsSearching] = useState(false)
   const [result, setResult] = useState<SearchResult | null>(null)
   const [hasSearched, setHasSearched] = useState(false)
+  const [showFloorPlan, setShowFloorPlan] = useState(false)
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault()
@@ -39,105 +40,114 @@ export function SearchForm({ slug }: SearchFormProps) {
     setSearchQuery("")
     setResult(null)
     setHasSearched(false)
+    setShowFloorPlan(false)
   }
 
   return (
-    <div className="w-full space-y-12">
-      <form onSubmit={handleSearch} className="relative group">
-        <input
-          className="w-full bg-transparent border-0 border-b border-border py-4 px-0 font-heading text-2xl italic focus:ring-0 focus:border-primary placeholder:text-muted-foreground transition-all disabled:opacity-50"
-          placeholder="First name, last name, or phone number"
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          disabled={isSearching}
-        />
-        <button
-          type="submit"
-          className="absolute right-0 bottom-4 text-primary hover:scale-110 transition-transform disabled:opacity-50"
-          disabled={isSearching}
-        >
-          {isSearching ? (
-            <Loader2 className="h-6 w-6 animate-spin" />
-          ) : (
-            <Search className="h-6 w-6" />
-          )}
-        </button>
-      </form>
+    <>
+      <div className="w-full space-y-12">
+        <form onSubmit={handleSearch} className="relative group">
+          <input
+            className="w-full bg-transparent border-0 border-b border-charcoal/10 py-4 px-0 font-display text-2xl italic focus:ring-0 focus:border-gold-leaf placeholder:text-charcoal/20 transition-all disabled:opacity-50"
+            placeholder="First name, last name, or phone number"
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            disabled={isSearching}
+          />
+          <button
+            type="submit"
+            className="absolute right-0 bottom-4 text-gold-leaf hover:scale-110 transition-transform disabled:opacity-50"
+            disabled={isSearching}
+          >
+            <span className="material-symbols-outlined">
+              {isSearching ? "progress_activity" : "search"}
+            </span>
+          </button>
+        </form>
 
-      {hasSearched && (
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-          {result ? (
-            <div className="pt-12 border-t border-border/50 space-y-10">
-              <div className="text-center space-y-2">
-                <span className="font-sans text-[10px] uppercase tracking-[0.5em] text-primary font-bold">
-                  Assigned Table
-                </span>
-                <div className="font-cursive text-7xl md:text-8xl text-primary pt-4">
-                  {result.table.name}
-                </div>
-                {result.seatingChart.description && (
-                  <p className="font-heading italic text-muted-foreground text-lg">
-                    {result.seatingChart.description}
-                  </p>
-                )}
-              </div>
-
-              {result.tablemates.length > 0 && (
-                <div className="bg-muted/50 p-8 rounded-lg space-y-6">
-                  <h4 className="font-sans text-[10px] uppercase tracking-[0.3em] text-muted-foreground text-center mb-4">
-                    Your Tablemates
-                  </h4>
-                  <div className="grid grid-cols-2 gap-y-3 gap-x-8 text-sm font-sans text-muted-foreground">
-                    {result.tablemates.map((mate, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 bg-primary rounded-full shrink-0" />
-                        <span>
-                          {mate.firstName} {mate.lastName}
-                        </span>
-                      </div>
-                    ))}
+        {hasSearched && (
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {result ? (
+              <div className="pt-12 border-t border-charcoal/5 space-y-10">
+                <div className="text-center space-y-2">
+                  <span className="font-sans text-[10px] uppercase tracking-[0.5em] text-gold-leaf font-bold">
+                    Assigned Table
+                  </span>
+                  <div className="font-script text-7xl md:text-8xl text-gold-leaf pt-4">
+                    {result.table.name}
                   </div>
+                  {result.seatingChart.description && (
+                    <p className="font-display italic text-charcoal/60 text-lg">
+                      {result.seatingChart.description}
+                    </p>
+                  )}
                 </div>
-              )}
 
-              <div className="flex flex-col gap-4">
+                {result.tablemates.length > 0 && (
+                  <div className="bg-ivory/50 p-8 rounded-sm space-y-6">
+                    <h4 className="font-sans text-[10px] uppercase tracking-[0.3em] text-charcoal/40 text-center mb-4">
+                      Your Tablemates
+                    </h4>
+                    <div className="grid grid-cols-2 gap-y-3 gap-x-8 text-sm font-sans text-charcoal/70">
+                      {result.tablemates.map((mate, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <div className="w-1 h-1 bg-gold-leaf rounded-full" />
+                          <span>
+                            {mate.firstName} {mate.lastName}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex flex-col gap-4">
+                  <button
+                    type="button"
+                    className="w-full bg-charcoal text-white py-5 px-8 font-sans text-xs uppercase tracking-[0.3em] hover:bg-gold-leaf transition-colors flex items-center justify-center gap-3"
+                    onClick={() => setShowFloorPlan(true)}
+                  >
+                    <span className="material-symbols-outlined text-sm">map</span>
+                    View Floor Plan
+                  </button>
+                  <button
+                    type="button"
+                    className="w-full border border-charcoal/10 py-4 font-sans text-[10px] uppercase tracking-[0.2em] text-charcoal/40 hover:bg-ivory transition-colors"
+                    onClick={handleReset}
+                  >
+                    Search Different Name
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="pt-12 border-t border-charcoal/5 text-center space-y-4">
+                <p className="font-sans text-charcoal/60">
+                  No seating assignment found
+                </p>
+                <p className="font-sans text-sm text-charcoal/40">
+                  Please check your spelling or try searching by phone number
+                </p>
                 <button
                   type="button"
-                  className="w-full bg-foreground text-background py-5 px-8 font-sans text-xs uppercase tracking-[0.3em] hover:bg-primary transition-colors flex items-center justify-center gap-3"
-                  onClick={() => alert("Floor plan coming soon!")}
-                >
-                  <MapPin className="h-4 w-4" />
-                  View Floor Plan
-                </button>
-                <button
-                  type="button"
-                  className="w-full border border-border py-4 font-sans text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:bg-muted transition-colors"
+                  className="mt-6 border border-charcoal/10 py-4 px-8 font-sans text-[10px] uppercase tracking-[0.2em] text-charcoal/40 hover:bg-ivory transition-colors"
                   onClick={handleReset}
                 >
-                  Search Different Name
+                  Try Again
                 </button>
               </div>
-            </div>
-          ) : (
-            <div className="pt-12 border-t border-border/50 text-center space-y-4">
-              <p className="font-sans text-muted-foreground">
-                No seating assignment found
-              </p>
-              <p className="font-sans text-sm text-muted-foreground/80">
-                Please check your spelling or try searching by phone number
-              </p>
-              <button
-                type="button"
-                className="mt-6 border border-border py-4 px-8 font-sans text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:bg-muted transition-colors"
-                onClick={handleReset}
-              >
-                Try Again
-              </button>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {result && (
+        <FloorPlanModal
+          isOpen={showFloorPlan}
+          onClose={() => setShowFloorPlan(false)}
+          tableName={result.table.name}
+        />
       )}
-    </div>
+    </>
   )
 }

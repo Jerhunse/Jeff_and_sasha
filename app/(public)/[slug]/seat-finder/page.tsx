@@ -85,13 +85,13 @@ export default async function SeatFinderPage({ params }: SeatFinderPageProps) {
         {/* Header */}
         <header className="p-8 flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <span className="text-primary text-xl">✦</span>
-            <span className="font-heading tracking-widest uppercase text-xs text-foreground">
+            <span className="material-symbols-outlined text-gold-leaf">flare</span>
+            <span className="font-display tracking-widest uppercase text-xs text-charcoal">
               The {lastName}s
             </span>
           </div>
           <a
-            className="text-xs uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
+            className="text-xs uppercase tracking-widest text-charcoal/60 hover:text-gold-leaf transition-colors"
             href={`/${wedding.slug}`}
           >
             Back to home
@@ -102,10 +102,10 @@ export default async function SeatFinderPage({ params }: SeatFinderPageProps) {
         <div className="flex-1 flex flex-col items-center justify-center px-8 md:px-20 py-12">
           <div className="w-full max-w-md space-y-12">
             <div className="space-y-4 text-center">
-              <h1 className="font-heading text-4xl md:text-5xl text-foreground">
+              <h1 className="font-display text-4xl md:text-5xl text-charcoal">
                 Find Your Seat
               </h1>
-              <p className="font-sans text-sm text-muted-foreground uppercase tracking-[0.2em]">
+              <p className="font-sans text-sm text-charcoal/50 uppercase tracking-[0.2em]">
                 Enter your name or phone number to view your table
               </p>
             </div>
@@ -115,7 +115,7 @@ export default async function SeatFinderPage({ params }: SeatFinderPageProps) {
 
         {/* Footer */}
         <footer className="p-8 text-center">
-          <p className="font-heading italic text-muted-foreground text-sm">
+          <p className="font-display italic text-charcoal/30 text-sm">
             {new Date(wedding.weddingDate).toLocaleDateString("en-US", {
               month: "long",
               day: "numeric",

@@ -80,13 +80,20 @@ export function GuestListDirectory({ guests, tables, onDragStart }: GuestListDir
     return acc
   }, {} as Record<string, { name: string; guests: Guest[] }>)
 
-  // Sort households: those with multiple guests first, then single guests
+  // Whether a primary guest has a plus one (record or name-only from RSVP)
+  const hasPlusOne = (guest: Guest) =>
+    (guest.plusOnes?.length ?? 0) > 0 ||
+    (guest.rsvpResponses[0]?.plusOneName?.trim() ?? "").length > 0
+
+  // Sort: guests with plus one first, then single guests; within each group keep multi-guest households first, then alphabetically
   const sortedHouseholds = Object.entries(guestsByHousehold).sort(([, a], [, b]) => {
-    // Multi-guest households come first
+    const aHasPlusOne = a.guests.some(hasPlusOne)
+    const bHasPlusOne = b.guests.some(hasPlusOne)
+    if (aHasPlusOne && !bHasPlusOne) return -1
+    if (!aHasPlusOne && bHasPlusOne) return 1
+    // Same category: multi-guest households first
     if (a.guests.length > 1 && b.guests.length === 1) return -1
     if (a.guests.length === 1 && b.guests.length > 1) return 1
-    
-    // Within same category, sort alphabetically by household name
     return a.name.localeCompare(b.name)
   })
 
