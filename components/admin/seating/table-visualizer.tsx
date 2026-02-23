@@ -513,7 +513,19 @@ function RectangularTableView({ table, onRemoveGuest, onSwapSeats, onMoveSeatToP
             </div>
 
             {/* Center space (open area) */}
-            <div className="flex items-center justify-center px-2" style={{ minWidth: '120px', maxWidth: '140px' }}>
+            <div className="flex items-center justify-center px-2 relative" style={{ minWidth: '120px', maxWidth: '140px' }}>
+              {/* Interior bottom row - 3 seats above the bride/groom area */}
+              {bottomInteriorCount > 0 && (
+                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-full" style={{ marginTop: '-32px' }}>
+                  <div className="flex justify-center items-start gap-1">
+                    {Array.from({ length: bottomInteriorCount }, (_, i) => {
+                      const expandedSeat = bottomInteriorSeats[i]
+                      const seatIndex = topCount + leftOuterCount + rightOuterCount + leftOuterCount + rightOuterCount + i
+                      return renderSeat(expandedSeat, seatIndex, 'bottom-interior', i)
+                    })}
+                  </div>
+                </div>
+              )}
               <div className="text-center">
                 <div className="flex gap-2 justify-center mb-1">
                   <p className="text-[10px] font-serif tracking-wider text-primary/60">GROOM</p>
@@ -565,17 +577,6 @@ function RectangularTableView({ table, onRemoveGuest, onSwapSeats, onMoveSeatToP
               })}
             </div>
           </div>
-
-          {/* Interior bottom row - 3 seats between back row and bride/groom row */}
-          {bottomInteriorCount > 0 && (
-            <div className="flex justify-center items-start gap-1 my-4">
-              {Array.from({ length: bottomInteriorCount }, (_, i) => {
-                const expandedSeat = bottomInteriorSeats[i]
-                const seatIndex = topCount + leftOuterCount + rightOuterCount + leftOuterCount + rightOuterCount + i
-                return renderSeat(expandedSeat, seatIndex, 'bottom-interior', i)
-              })}
-            </div>
-          )}
         </div>
       </div>
     </div>
