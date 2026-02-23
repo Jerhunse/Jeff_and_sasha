@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { Metadata } from "next"
+import { SearchForm } from "./search-form"
 
 interface SeatFinderPageProps {
   params: Promise<{ slug: string }>
@@ -108,9 +109,7 @@ export default async function SeatFinderPage({ params }: SeatFinderPageProps) {
                 Enter your name to view your table
               </p>
             </div>
-            <div className="text-center text-muted-foreground">
-              Search form coming soon...
-            </div>
+            <SearchForm slug={wedding.slug} />
           </div>
         </div>
 
