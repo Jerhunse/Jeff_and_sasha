@@ -490,7 +490,7 @@ function RectangularTableView({ table, onRemoveGuest, onSwapSeats, onMoveSeatToP
         {/* U-shaped table (open at bottom) with all seats */}
         <div className="flex flex-col items-center w-full">
           {/* Middle section with left arm, center space, and right arm - render first to get width */}
-          <div className="flex items-stretch justify-center" style={{ marginBottom: '-2px' }}>
+          <div className="relative flex items-stretch justify-center" style={{ marginBottom: '-2px' }}>
             {/* Left side - seats on both sides */}
             <div className="flex gap-0">
               {/* Outer seats (left side) */}
@@ -528,6 +528,19 @@ function RectangularTableView({ table, onRemoveGuest, onSwapSeats, onMoveSeatToP
                 </p>
               </div>
             </div>
+
+            {/* Interior bottom row - 3 seats facing bride/groom */}
+            {bottomInteriorCount > 0 && (
+              <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full mt-2">
+                <div className="flex justify-center items-start gap-1">
+                  {Array.from({ length: bottomInteriorCount }, (_, i) => {
+                    const expandedSeat = bottomInteriorSeats[i]
+                    const seatIndex = topCount + leftOuterCount + rightOuterCount + leftOuterCount + rightOuterCount + i
+                    return renderSeat(expandedSeat, seatIndex, 'bottom-interior', i)
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Right side - seats on both sides */}
             <div className="flex gap-0">
