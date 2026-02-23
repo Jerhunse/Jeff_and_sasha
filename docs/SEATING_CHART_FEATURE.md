@@ -9,7 +9,11 @@ A comprehensive wedding seating chart management system that allows administrato
 ### 1. **Visual Floor Plan**
 - Display of all tables with current occupancy
 - 18 round tables (capacity: 10 guests each)
-- 1 U-shaped rectangular head table (capacity: 18 guests)
+- 1 U-shaped rectangular head table (capacity: 31 guests)
+  - 8 seats across the top
+  - 10 seats on left arm (5 outer + 5 inner)
+  - 10 seats on right arm (5 outer + 5 inner)
+  - 3 seats in interior bottom area (facing bride/groom)
 - Color-coded capacity indicators (full vs available)
 - Click to select and view table details
 
@@ -113,7 +117,7 @@ The feature uses existing Prisma models:
 
 ### Features to Note
 - Automatic seating chart creation on first visit
-- Tables created with predefined capacities (18x10 + 1x18)
+- Tables created with predefined capacities (18x10 + 1x31)
 - Guest household grouping for easier organization
 - RSVP status integration
 - Plus one support
