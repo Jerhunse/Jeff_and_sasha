@@ -97,13 +97,13 @@ export default async function SeatingPage() {
       },
     })
 
-    // Create 18 round tables (capacity 10) and 1 head table (capacity 28)
+    // Create 18 round tables (capacity 10) and 1 head table (capacity 31)
     const tablesToCreate = [
       // Head table
       {
         seatingChartId: createdChart.id,
         name: "Head Table",
-        capacity: 28,
+        capacity: 31,
         shape: "rectangular",
       },
       // Round tables 1-18

@@ -3,18 +3,18 @@ import { PrismaClient } from "@prisma/client"
 const prisma = new PrismaClient()
 
 async function main() {
-  console.log("🔧 Fixing Head Table capacity to 28...")
+  console.log("🔧 Fixing Head Table capacity to 31...")
 
   const result = await prisma.table.updateMany({
     where: {
       name: "Head Table",
     },
     data: {
-      capacity: 28,
+      capacity: 31,
     },
   })
 
-  console.log(`✅ Updated ${result.count} Head Table(s) to capacity 28`)
+  console.log(`✅ Updated ${result.count} Head Table(s) to capacity 31`)
 
   // Verify the update
   const headTables = await prisma.table.findMany({
