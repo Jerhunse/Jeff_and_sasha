@@ -564,17 +564,18 @@ function RectangularTableView({ table, onRemoveGuest, onSwapSeats, onMoveSeatToP
                 return renderSeat(expandedSeat, i, 'top', i)
               })}
             </div>
-            {/* Interior bottom row - 3 seats in back row */}
-            {bottomInteriorCount > 0 && (
-              <div className="flex justify-center items-start gap-1 mt-4">
-                {Array.from({ length: bottomInteriorCount }, (_, i) => {
-                  const expandedSeat = bottomInteriorSeats[i]
-                  const seatIndex = topCount + leftOuterCount + rightOuterCount + leftOuterCount + rightOuterCount + i
-                  return renderSeat(expandedSeat, seatIndex, 'bottom-interior', i)
-                })}
-              </div>
-            )}
           </div>
+
+          {/* Interior bottom row - 3 seats between back row and bride/groom row */}
+          {bottomInteriorCount > 0 && (
+            <div className="flex justify-center items-start gap-1 my-4">
+              {Array.from({ length: bottomInteriorCount }, (_, i) => {
+                const expandedSeat = bottomInteriorSeats[i]
+                const seatIndex = topCount + leftOuterCount + rightOuterCount + leftOuterCount + rightOuterCount + i
+                return renderSeat(expandedSeat, seatIndex, 'bottom-interior', i)
+              })}
+            </div>
+          )}
         </div>
       </div>
     </div>
