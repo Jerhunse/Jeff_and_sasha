@@ -513,19 +513,7 @@ function RectangularTableView({ table, onRemoveGuest, onSwapSeats, onMoveSeatToP
             </div>
 
             {/* Center space (open area) */}
-            <div className="flex items-center justify-center px-2 relative" style={{ minWidth: '120px', maxWidth: '140px' }}>
-              {/* Interior bottom row - 3 seats above the bride/groom area */}
-              {bottomInteriorCount > 0 && (
-                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-full" style={{ marginTop: '-32px' }}>
-                  <div className="flex justify-center items-start gap-1">
-                    {Array.from({ length: bottomInteriorCount }, (_, i) => {
-                      const expandedSeat = bottomInteriorSeats[i]
-                      const seatIndex = topCount + leftOuterCount + rightOuterCount + leftOuterCount + rightOuterCount + i
-                      return renderSeat(expandedSeat, seatIndex, 'bottom-interior', i)
-                    })}
-                  </div>
-                </div>
-              )}
+            <div className="flex items-center justify-center px-2" style={{ minWidth: '120px', maxWidth: '140px' }}>
               <div className="text-center">
                 <div className="flex gap-2 justify-center mb-1">
                   <p className="text-[10px] font-serif tracking-wider text-primary/60">GROOM</p>
@@ -564,16 +552,31 @@ function RectangularTableView({ table, onRemoveGuest, onSwapSeats, onMoveSeatToP
             </div>
           </div>
 
-          {/* Top section - 8 seats attached to top of table - width matches the middle section */}
+          {/* Top section - 8 seats + 3 interior seats in back row - width matches the middle section */}
           <div className="flex flex-col items-center">
             {/* Top table bar - width matches exactly the width of arms */}
             <div className="bg-primary/10 border-2 border-b-0 border-primary/30 rounded-t-lg" style={{ height: '32px', width: 'calc(100% - 2px)' }}>
             </div>
-            {/* Top seats */}
+            {/* Top seats - split to insert 3 interior seats in the middle */}
             <div className="flex justify-center items-start gap-1 mt-0">
-              {Array.from({ length: topCount }, (_, i) => {
+              {/* First half of top seats (left side) */}
+              {Array.from({ length: Math.floor(topCount / 2) }, (_, i) => {
                 const expandedSeat = topSeats[i]
                 return renderSeat(expandedSeat, i, 'top', i)
+              })}
+              
+              {/* Interior bottom row - 3 seats in the middle of back row */}
+              {bottomInteriorCount > 0 && Array.from({ length: bottomInteriorCount }, (_, i) => {
+                const expandedSeat = bottomInteriorSeats[i]
+                const seatIndex = topCount + leftOuterCount + rightOuterCount + leftOuterCount + rightOuterCount + i
+                return renderSeat(expandedSeat, seatIndex, 'bottom-interior', i)
+              })}
+              
+              {/* Second half of top seats (right side) */}
+              {Array.from({ length: Math.ceil(topCount / 2) }, (_, i) => {
+                const actualIndex = Math.floor(topCount / 2) + i
+                const expandedSeat = topSeats[actualIndex]
+                return renderSeat(expandedSeat, actualIndex, 'top', actualIndex)
               })}
             </div>
           </div>
