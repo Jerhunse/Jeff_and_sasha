@@ -46,6 +46,46 @@ Example: `https://yoursite.com/thompson-wedding/seat-finder`
   - Handles runtime errors gracefully
   - Retry functionality
 
+## QR Code Access
+
+### Admin: Generate QR Code
+
+Couples can download a QR code for the seat-finder page:
+
+1. Go to Admin Dashboard → QR Codes
+2. Scroll to "Seat Finder QR Code" section
+3. Adjust size using slider (200-600px)
+4. Download SVG (for print) or PNG (for digital)
+5. Copy URL with one-click button
+
+### Usage Ideas
+
+**Print Materials:**
+- Wedding programs
+- Place cards  
+- Table number cards
+- Menu cards
+
+**Venue Signage:**
+- Welcome sign at entrance
+- Directional signs to reception
+- Displays near coat check
+
+**Digital:**
+- Wedding website
+- Email reminders
+- Social media
+
+### Guest Experience
+
+1. Guest sees QR code on signage/program
+2. Opens phone camera
+3. Points at QR code
+4. Taps notification to open URL
+5. Automatically opens seat-finder page
+6. Searches for their name/phone
+7. Views table assignment
+
 ## Usage
 
 ### For Guests
@@ -141,9 +181,11 @@ Guests must have:
    - Zoom and pan capabilities for large floor plans
    - Mobile-optimized version
 
-2. **QR Code Integration**
-   - Generate unique QR codes for each guest
-   - Scan to auto-fill search
+2. **QR Code Integration** ✅ **COMPLETED**
+   - Generate QR codes linking to seat-finder page
+   - Downloadable SVG/PNG formats for printing
+   - Available in Admin QR Code management page
+   - Display on signage, programs, and venue materials
 
 3. **Multi-Event Support**
    - Select which event (ceremony, reception, etc.)

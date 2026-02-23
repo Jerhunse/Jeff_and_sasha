@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { PrintableRsvpQrCode } from "@/components/wedding/printable-rsvp-qr"
+import { PrintableSeatFinderQrCode } from "@/components/wedding/printable-seat-finder-qr"
 import { PrintablePhotoShareQrCode } from "@/components/wedding/printable-photo-share-qr"
 
 export default async function AdminQrCodePage() {
@@ -33,12 +34,19 @@ export default async function AdminQrCodePage() {
           QR Codes
         </h1>
         <p className="text-muted-foreground">
-          Download and print QR codes for RSVP and for guests to share photos and videos
+          Download and print QR codes for RSVP, seat finding, and photo sharing
         </p>
       </div>
 
       {/* RSVP QR Code */}
       <PrintableRsvpQrCode
+        weddingSlug={couple.slug}
+        partner1Name={couple.partner1Name}
+        partner2Name={couple.partner2Name}
+      />
+
+      {/* Seat Finder QR Code */}
+      <PrintableSeatFinderQrCode
         weddingSlug={couple.slug}
         partner1Name={couple.partner1Name}
         partner2Name={couple.partner2Name}
