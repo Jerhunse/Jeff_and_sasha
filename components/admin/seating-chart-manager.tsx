@@ -622,7 +622,10 @@ export function SeatingChartManager({ seatingChart: initialChart, guests: initia
                             U-Shaped Rectangular • Capacity: {table.capacity}
                           </p>
                         </div>
-                        <Badge variant={table._count.seats >= table.capacity ? "destructive" : "secondary"}>
+                        <Badge 
+                          variant={table._count.seats >= table.capacity ? "default" : "secondary"}
+                          className={table._count.seats >= table.capacity ? "bg-green-600 hover:bg-green-700" : ""}
+                        >
                           {table._count.seats} / {table.capacity}
                         </Badge>
                       </div>
@@ -659,7 +662,10 @@ export function SeatingChartManager({ seatingChart: initialChart, guests: initia
                         <div className="size-16 rounded-full border-2 border-primary/20 bg-primary/5 flex items-center justify-center">
                           <span className="text-xl font-bold font-serif">{table.name.replace("Table ", "")}</span>
                         </div>
-                        <Badge variant={table._count.seats >= table.capacity ? "destructive" : "secondary"}>
+                        <Badge 
+                          variant={table._count.seats >= table.capacity ? "default" : "secondary"}
+                          className={table._count.seats >= table.capacity ? "bg-green-600 hover:bg-green-700" : ""}
+                        >
                           {table._count.seats} / {table.capacity}
                         </Badge>
                       </div>
