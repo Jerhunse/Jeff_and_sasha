@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { PrintableRsvpQrCode } from "@/components/wedding/printable-rsvp-qr"
 import { PrintableSeatFinderQrCode } from "@/components/wedding/printable-seat-finder-qr"
 import { PrintablePhotoShareQrCode } from "@/components/wedding/printable-photo-share-qr"
+import { PrintableGalleryQrCode } from "@/components/wedding/printable-gallery-qr"
 
 export default async function AdminQrCodePage() {
   const session = await auth()
@@ -34,7 +35,7 @@ export default async function AdminQrCodePage() {
           QR Codes
         </h1>
         <p className="text-muted-foreground">
-          Download and print QR codes for RSVP, seat finding, and photo sharing
+          Download and print QR codes for RSVP, seat finding, guest gallery, and photo sharing
         </p>
       </div>
 
@@ -51,6 +52,9 @@ export default async function AdminQrCodePage() {
         partner1Name={couple.partner1Name}
         partner2Name={couple.partner2Name}
       />
+
+      {/* Guest Gallery QR Code - New Google Drive integration */}
+      <PrintableGalleryQrCode />
 
       {/* Share photos QR code — links to Google Photos album */}
       <PrintablePhotoShareQrCode />

@@ -796,3 +796,22 @@ enum WeddingPartyRole {
   READER
   OTHER
 }
+
+model PhotoboothSession {
+  id        String            @id @default(cuid())
+  stripUrl  String?
+  createdAt DateTime          @default(now())
+  photos    PhotoboothPhoto[]
+}
+
+model PhotoboothPhoto {
+  id        String            @id @default(cuid())
+  sessionId String
+  filename  String
+  url       String
+  order     Int
+  createdAt DateTime          @default(now())
+  session   PhotoboothSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+}

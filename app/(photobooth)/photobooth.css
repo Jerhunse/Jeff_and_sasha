@@ -1,0 +1,43 @@
+:root {
+  --pb-forest-green: #1b2e21;
+  --pb-olive-green: #556b2f;
+  --pb-espresso: #3d2b1f;
+  --pb-terracotta: #c05a35;
+  --pb-soft-cream: #f5f1e8;
+  --pb-champagne: #e7dcc5;
+  --pb-mocha: #a0522d;
+}
+
+.photobooth-page {
+  font-family: var(--font-quicksand);
+  background-color: var(--pb-forest-green);
+  color: var(--pb-soft-cream);
+}
+
+.photobooth-header-font {
+  font-family: var(--font-crimson-pro);
+}
+
+.photobooth-serif {
+  font-family: var(--font-playfair);
+}
+
+.photobooth-script {
+  font-family: var(--font-great-vibes);
+}
+
+@keyframes flash {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.animate-flash {
+  animation: flash 0.2s ease-out;
+}

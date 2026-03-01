@@ -1,292 +1,166 @@
-# Vercel Deployment Guide for jeffandsasha.com
+# 🚀 Vercel Deployment Guide
 
-## Quick Start - Run the Automated Script
+## Step 1: Login to Vercel
 
-I've created an automated deployment script for you. Just run:
-
-```bash
-./scripts/deploy-to-vercel.sh
-```
-
-This script will:
-1. Check if Vercel CLI is installed
-2. Authenticate you with Vercel (opens browser)
-3. Deploy your wedding platform
-4. Configure environment variables
-5. Add your custom domain (jeffandsasha.com)
-6. Show you the DNS records to configure
-
-## Manual Deployment (If Script Doesn't Work)
-
-### Step 1: Authenticate with Vercel
-
+Run this command:
 ```bash
 vercel login
 ```
 
 This will open your browser to authenticate.
 
-### Step 2: Deploy the Project
+## Step 2: Set Environment Variables
 
+**IMPORTANT:** Before deploying, you need to add these environment variables to your Vercel project.
+
+### Required Environment Variables:
+
+**1. Google Drive Folder ID:**
+```
+GOOGLE_DRIVE_FOLDER_ID=1jxvGRgOjRrfcszuSPWWQMbj2_AWCQ2LM
+```
+
+**2. Google Service Account Key (Base64):**
+
+Your base64-encoded service account key has been generated at:
+```
+/tmp/service-account-base64.txt
+```
+
+Copy this value and use it for:
+```
+GOOGLE_SERVICE_ACCOUNT_KEY_BASE64=<paste_the_base64_value>
+```
+
+To view the base64 key, run:
+```bash
+cat /tmp/service-account-base64.txt
+```
+
+**3. Other Required Variables:**
+
+You'll also need to set these (use your existing values from `.env.local`):
+```
+DATABASE_URL=<your_database_url>
+NEXTAUTH_URL=https://your-project.vercel.app
+NEXTAUTH_SECRET=<your_nextauth_secret>
+```
+
+## Step 3: Two Options to Deploy
+
+### Option A: Deploy via Vercel Dashboard (Recommended)
+
+1. Go to https://vercel.com/new
+2. Import your GitHub repository
+3. Click "Environment Variables"
+4. Add all the variables listed above
+5. Click "Deploy"
+
+**Vercel will automatically:**
+- Install dependencies
+- Build your Next.js app
+- Deploy to production
+- Give you a URL
+
+### Option B: Deploy via CLI
+
+Once logged in, run:
+```bash
+cd /Users/jefferyerhunse/GitRepos/wedding-platform
+vercel
+```
+
+Follow the prompts:
+- Link to existing project or create new? → Create new
+- Project name? → wedding-platform (or your choice)
+- Directory? → Press Enter (current directory)
+- Want to override settings? → N (no)
+
+Then add environment variables:
+```bash
+# Add Google Drive variables
+vercel env add GOOGLE_DRIVE_FOLDER_ID production
+# Paste: 1jxvGRgOjRrfcszuSPWWQMbj2_AWCQ2LM
+
+vercel env add GOOGLE_SERVICE_ACCOUNT_KEY_BASE64 production
+# Paste the base64 key from /tmp/service-account-base64.txt
+```
+
+Finally, deploy to production:
 ```bash
 vercel --prod
 ```
 
-Answer the prompts:
-- Set up and deploy? **Yes**
-- Which scope? (Select your account)
-- Link to existing project? **No**
-- What's your project's name? **wedding-platform**
-- In which directory is your code located? **./**
-- Want to modify settings? **No**
+## Step 4: Update NEXTAUTH_URL
 
-### Step 3: Add Environment Variables
+After first deployment, you'll get a URL like:
+```
+https://wedding-platform-xxxx.vercel.app
+```
 
+Go to your Vercel project settings → Environment Variables → Update `NEXTAUTH_URL` to match your production URL.
+
+Then redeploy:
 ```bash
-# Add environment variables one by one
-vercel env add DATABASE_URL
-# Paste: postgresql://neondb_owner:npg_C4XrWdVZGF9v@ep-jolly-sea-ad7e77n2-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require
-
-vercel env add NEXTAUTH_SECRET
-# Paste: wedding-platform-secret-key-change-in-production-12345
-
-vercel env add NEXTAUTH_URL
-# Paste: https://jeffandsasha.com
-
-vercel env add RESEND_API_KEY
-# Paste: re_jeRbAhNE_KdGiYPsKrnvPtwhRwcTRsxFy
-
-vercel env add EMAIL_FROM
-# Paste: onboarding@resend.dev
-
-vercel env add EMAIL_PROVIDER
-# Paste: resend
-
-vercel env add NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
-# Paste: AIzaSyDeheppcr-SwDtFoKw-f5uNEC78thuI0GQ
-
-# Select: Production, Preview, Development for each
+vercel --prod
 ```
 
-### Step 4: Add Custom Domain
+## Step 5: Test Your Deployment
 
-```bash
-vercel domains add jeffandsasha.com
-vercel domains add www.jeffandsasha.com
-```
+1. Visit your Vercel URL
+2. Go to `/gallery`
+3. Test uploading a photo
+4. Verify it appears in your Google Drive folder
 
-### Step 5: Configure DNS at IONOS
+## Step 6: Custom Domain (Optional)
 
-**CRITICAL: Deactivate Domain Guard First!**
-
-1. Go to https://my.ionos.com
-2. Navigate to **Domains & SSL**
-3. Click on `jeffandsasha.com`
-4. Scroll to **Domain Guard**
-5. Click **Deactivate** (this is required!)
-
-**Then add these DNS records:**
-
-#### Record 1: Root Domain
-```
-Type: A
-Name: @ (or leave blank)
-Value: 76.76.21.21
-TTL: 3600 (or Auto)
-```
-
-#### Record 2: WWW Subdomain
-```
-Type: CNAME
-Name: www
-Value: cname.vercel-dns.com
-TTL: 3600 (or Auto)
-```
-
-### Step 6: Verify Domain
-
-Wait 5-10 minutes, then run:
-
-```bash
-vercel domains verify jeffandsasha.com
-```
-
-Or check in browser: https://jeffandsasha.com
-
-## Vercel Dashboard Configuration
-
-Alternatively, you can configure everything in the Vercel dashboard:
-
-1. Go to https://vercel.com/dashboard
-2. Click on your `wedding-platform` project
-3. Go to **Settings** → **Domains**
-4. Click **Add Domain**
-5. Enter: `jeffandsasha.com`
-6. Also add: `www.jeffandsasha.com`
-7. Follow DNS configuration instructions
-
-## Environment Variables via Dashboard
-
-1. Go to **Settings** → **Environment Variables**
-2. Add each variable:
-   - `DATABASE_URL`
-   - `NEXTAUTH_SECRET`
-   - `NEXTAUTH_URL` = `https://jeffandsasha.com`
-   - `RESEND_API_KEY`
-   - `EMAIL_FROM`
-   - `EMAIL_PROVIDER` = `resend`
-   - `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`
-3. Select **Production**, **Preview**, and **Development** for each
-4. Save
-
-## Verify Deployment
-
-### Check DNS Propagation
-```bash
-# Check if DNS is configured correctly
-nslookup jeffandsasha.com
-
-# Or use online tool
-open https://dnschecker.org/#A/jeffandsasha.com
-```
-
-### Test Site
-```bash
-# Test if site is responding
-curl -I https://jeffandsasha.com
-
-# Or open in browser
-open https://jeffandsasha.com
-```
-
-### View Logs
-```bash
-vercel logs --follow
-```
+In Vercel dashboard:
+1. Go to your project → Settings → Domains
+2. Add your custom domain
+3. Follow DNS instructions
+4. Update `NEXTAUTH_URL` to your custom domain
 
 ## Troubleshooting
 
-### Error: Domain Already Added to Another Project
+**If gallery shows "Gallery not configured":**
+- Verify `GOOGLE_DRIVE_FOLDER_ID` is set correctly
+- Verify `GOOGLE_SERVICE_ACCOUNT_KEY_BASE64` is set correctly
+- Check Vercel deployment logs for errors
 
-If you get an error that the domain is already in use:
+**If you see "Permission denied" errors:**
+- Make sure your Google Drive folder is shared with:
+  `wedding-gallery-uploader@wedding-gallery-488717.iam.gserviceaccount.com`
+- Ensure the service account has Editor permissions
 
-```bash
-# Remove domain from old project
-vercel domains rm jeffandsasha.com
-
-# Add to new project
-vercel domains add jeffandsasha.com
-```
-
-### Error: DNS Verification Failed
-
-1. Double-check DNS records at IONOS
-2. Wait longer (DNS can take up to 48 hours)
-3. Try flushing DNS cache:
-   ```bash
-   sudo dscacheutil -flushcache
-   sudo killall -HUP mDNSResponder
-   ```
-
-### Error: Build Failed
-
-Check build logs:
+**To view deployment logs:**
 ```bash
 vercel logs
 ```
 
-Common fixes:
-- Make sure all dependencies are in `package.json`
-- Check that `npm run build` works locally
-- Verify environment variables are set
+## Quick Deploy Checklist
 
-### SSL Certificate Not Provisioning
+- [ ] Run `vercel login`
+- [ ] Push latest code to Git (if using GitHub import)
+- [ ] Add environment variables to Vercel
+- [ ] Deploy with `vercel --prod` or via dashboard
+- [ ] Test `/gallery` page
+- [ ] Test photo upload
+- [ ] Verify files appear in Google Drive
+- [ ] Generate QR code at `/admin/qr-code`
+- [ ] Test QR code on mobile device
 
-- Wait 10-15 minutes after DNS configuration
-- Verify DNS records are correct
-- Check domain verification status:
-  ```bash
-  vercel domains ls
-  ```
+## Environment Variables Summary
 
-## Updating Your Site
+Copy these into Vercel (Settings → Environment Variables):
 
-After initial deployment, updates are simple:
-
-```bash
-# Make your changes, then:
-git add .
-git commit -m "Update site"
-git push
-
-# Or deploy directly:
-vercel --prod
 ```
-
-## Useful Commands
-
-```bash
-# Deploy to production
-vercel --prod
-
-# Deploy to preview
-vercel
-
-# View deployments
-vercel ls
-
-# View logs
-vercel logs
-
-# View domains
-vercel domains ls
-
-# View environment variables
-vercel env ls
-
-# Pull environment variables locally
-vercel env pull
-
-# Remove deployment
-vercel rm wedding-platform
-
-# Get deployment URL
-vercel inspect
+GOOGLE_DRIVE_FOLDER_ID=1jxvGRgOjRrfcszuSPWWQMbj2_AWCQ2LM
+GOOGLE_SERVICE_ACCOUNT_KEY_BASE64=<from /tmp/service-account-base64.txt>
+DATABASE_URL=<your_existing_value>
+NEXTAUTH_URL=https://your-project.vercel.app
+NEXTAUTH_SECRET=<your_existing_value>
 ```
-
-## Next Steps After Deployment
-
-1. ✅ Visit https://jeffandsasha.com
-2. ✅ Test RSVP functionality
-3. ✅ Test admin login at https://jeffandsasha.com/admin
-4. ✅ Verify email sending works
-5. ✅ Test on mobile devices
-6. ✅ Share with friends to beta test
-7. ✅ Update social media with new domain
-8. ✅ Print QR codes (if using)
-
-## Cost Estimate
-
-- **Hobby Plan (Free)**: Good for testing and small weddings
-  - 100GB bandwidth
-  - Unlimited deployments
-  - Custom domains
-  - SSL certificates
-
-- **Pro Plan ($20/month)**: Better for production
-  - 1TB bandwidth
-  - Advanced analytics
-  - Priority support
-  - Password protection
-
-For most weddings, the **free Hobby plan is sufficient**!
-
-## Support
-
-- Vercel Docs: https://vercel.com/docs
-- Vercel Support: https://vercel.com/support
-- Project Issues: Check deployment logs
 
 ---
 
-**Your wedding website will be live at https://jeffandsasha.com!** 🎉💒
+**You're ready to deploy!** 🚀

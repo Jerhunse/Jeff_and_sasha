@@ -33,6 +33,13 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# Google Drive credentials
+credentials/
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+
 # vercel
 .vercel
 
@@ -42,3 +49,4 @@ next-env.d.ts
 
 /lib/generated/prisma
 .env*.local
+.cursor/

@@ -116,14 +116,11 @@ export function ScheduleSection({
           ) : (
             <div className="space-y-8 md:space-y-10">
               {events.map((event, index) => {
-                const isCakeCutting = event.name.toLowerCase().includes("cake cutting")
-                const time = isCakeCutting
-                  ? "AFTER SUNSET"
-                  : new Date(event.startTime).toLocaleTimeString("en-US", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      hour12: true,
-                    }).toUpperCase()
+                const time = new Date(event.startTime).toLocaleTimeString("en-US", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: true,
+                }).toUpperCase()
                 
                 return (
                   <div
