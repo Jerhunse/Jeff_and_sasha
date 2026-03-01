@@ -89,7 +89,7 @@ export function DownloadPageContent() {
 
   if (loading) {
     return (
-      <div className="photobooth-page min-h-screen flex items-center justify-center">
+      <div className="photobooth-page flex items-center justify-center" style={{ minHeight: '100dvh' }}>
         <Loader2 className="w-12 h-12 animate-spin text-[var(--pb-champagne)]" />
       </div>
     )
@@ -97,7 +97,7 @@ export function DownloadPageContent() {
 
   if (!session || error) {
     return (
-      <div className="photobooth-page min-h-screen flex items-center justify-center">
+      <div className="photobooth-page flex items-center justify-center" style={{ minHeight: '100dvh' }}>
         <div className="text-center">
           <p className="text-xl text-red-400 mb-4">{error || "Session not found"}</p>
           <Button onClick={() => router.push("/photobooth")}>Back to Home</Button>
@@ -107,7 +107,7 @@ export function DownloadPageContent() {
   }
 
   return (
-    <div className="photobooth-page min-h-screen flex flex-col">
+    <div className="photobooth-page flex flex-col" style={{ minHeight: '100dvh' }}>
       <header className="flex items-center justify-between whitespace-nowrap border-b border-[var(--pb-olive-green)]/20 px-6 py-6 lg:px-20 bg-[var(--pb-forest-green)]/80 backdrop-blur-md">
         <div className="flex items-center gap-3 text-[var(--pb-forest-green)]">
           <div className="size-6">
@@ -127,7 +127,7 @@ export function DownloadPageContent() {
         </div>
       </header>
 
-      <main className="flex-1 flex flex-col items-center justify-center p-6 lg:p-10 max-w-6xl mx-auto w-full">
+      <main className="flex-1 flex flex-col items-center p-6 lg:p-10 max-w-6xl mx-auto w-full">
         <div className="text-center mb-12">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--pb-olive-green)]/10 text-[var(--pb-olive-green)] mb-4">
             <Download className="w-8 h-8" />

@@ -122,9 +122,9 @@ export default function GalleryPage() {
   })
 
   return (
-    <div className="min-h-screen bg-[#101f22]">
+    <div className="bg-[#101f22]" style={{ minHeight: '100dvh' }}>
       {/* Mobile-optimized container */}
-      <div className="relative flex flex-col min-h-screen max-w-[480px] mx-auto bg-[#101f22] shadow-2xl">
+      <div className="relative flex flex-col max-w-[480px] mx-auto bg-[#101f22] shadow-2xl" style={{ minHeight: '100dvh' }}>
         {/* Header */}
         <header className="sticky top-0 z-50 w-full bg-[#101f22]/90 backdrop-blur-md border-b border-white/10 px-4 py-3">
           <div className="flex items-center justify-between">

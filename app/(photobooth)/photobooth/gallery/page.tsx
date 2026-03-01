@@ -47,7 +47,7 @@ export default function GalleryPage() {
   }, [])
 
   return (
-    <div className="photobooth-page min-h-screen">
+    <div className="photobooth-page" style={{ minHeight: '100dvh' }}>
       <header className="flex items-center justify-between border-b border-[var(--pb-soft-cream)]/10 bg-[var(--pb-forest-green)]/80 backdrop-blur-md px-6 md:px-12 py-4 sticky top-0 z-50">
         <div className="flex items-center gap-3">
           <div className="flex items-center justify-center size-10 rounded-full border border-[var(--pb-champagne)]/30 text-[var(--pb-champagne)]">

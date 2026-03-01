@@ -61,10 +61,10 @@ export default function SessionPage() {
   }
 
   return (
-    <div className="photobooth-page relative min-h-screen w-full">
+    <div className="photobooth-page relative w-full" style={{ minHeight: '100dvh' }}>
       {showInstructions ? (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="w-full max-w-2xl bg-[var(--pb-soft-cream)] rounded-2xl shadow-2xl overflow-hidden border-[12px] border-[var(--pb-olive-green)]/10 relative">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto -webkit-overflow-scrolling-touch">
+          <div className="w-full max-w-2xl bg-[var(--pb-soft-cream)] rounded-2xl shadow-2xl overflow-hidden border-[12px] border-[var(--pb-olive-green)]/10 relative my-auto">
             <div className="absolute top-0 left-0 p-4 opacity-40 pointer-events-none">
               <span className="text-[var(--pb-olive-green)] text-7xl">🌿</span>
             </div>

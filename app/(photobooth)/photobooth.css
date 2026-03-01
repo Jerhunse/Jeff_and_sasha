@@ -12,6 +12,8 @@
   font-family: var(--font-quicksand);
   background-color: var(--pb-forest-green);
   color: var(--pb-soft-cream);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .photobooth-header-font {

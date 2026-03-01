@@ -9,7 +9,7 @@ export default function PhotoboothHomePage() {
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null)
 
   return (
-    <div className="photobooth-page relative flex min-h-screen w-full flex-col overflow-x-hidden">
+    <div className="photobooth-page relative flex w-full flex-col" style={{ minHeight: '100dvh' }}>
       <style jsx global>{`
         .botanical-pattern {
           background-image: radial-gradient(
