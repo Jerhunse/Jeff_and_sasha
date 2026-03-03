@@ -1,8 +1,8 @@
 # Vercel Environment Variable Setup
 
-## Required Action: Update EMAIL_FROM on Vercel
+## ✅ Action Required: Update EMAIL_FROM on Vercel
 
-Your Resend domain (jeffandsasha.com) is now verified, but you need to update the environment variable on Vercel for emails to work in production.
+Your Resend domain (jeffandsasha.com) is now verified. You need to update the environment variable on Vercel for emails to work in production.
 
 ### Steps:
 
@@ -22,7 +22,7 @@ Your Resend domain (jeffandsasha.com) is now verified, but you need to update th
 
 5. Click "Save"
 
-6. Redeploy the site (or it will auto-deploy on next push)
+6. The app will auto-deploy on the next push
 
 ### Why This Matters
 
@@ -31,7 +31,7 @@ Your Resend domain (jeffandsasha.com) is now verified, but you need to update th
 
 ### Testing
 
-Once deployed, try the photobooth email feature with any email address. You should receive:
+Once the env var is set and deployed, try the photobooth email feature with any email address. You should receive:
 - Wedding-themed email with photo thumbnails
 - "Download All Photos" button
 - Professional sender: "Lumina Booth <photos@jeffandsasha.com>"
@@ -39,6 +39,7 @@ Once deployed, try the photobooth email feature with any email address. You shou
 ### Current Status
 
 ✅ Local .env updated  
-⏳ Vercel environment variable (needs manual update)  
+⚠️ Vercel environment variable (needs manual update - see step 1 above)  
 ✅ Resend domain verified  
 ✅ Code updated to use EMAIL_FROM env var
+
