@@ -29,14 +29,17 @@ export async function sendEmail(options: SendEmailOptions) {
   // Try Resend first (if configured and preferred)
   if (useResend && resend) {
     try {
-      const { data, error } = await resend.emails.send({
+      const emailPayload = {
         from: options.from || process.env.EMAIL_FROM || "noreply@wedding.app",
         to: options.to,
         subject: options.subject,
         html: options.html,
         text: options.text,
         replyTo: options.replyTo,
-      })
+      }
+      console.log("Sending email via Resend:", { from: emailPayload.from, to: emailPayload.to, subject: emailPayload.subject })
+      
+      const { data, error } = await resend.emails.send(emailPayload)
 
       if (error) {
         console.error("Resend email send error:", error)
@@ -55,6 +58,7 @@ export async function sendEmail(options: SendEmailOptions) {
         return { success: false, error: error.message }
       }
 
+      console.log("Resend email send success:", { id: data?.id })
       return { success: true, data }
     } catch (error: any) {
       console.error("Resend email send exception:", error)

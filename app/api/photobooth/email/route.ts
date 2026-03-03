@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { Resend } from "resend"
+import { sendEmail } from "@/lib/email"
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+const BASE_URL = process.env.VERCEL_URL
+  ? `https://${process.env.VERCEL_URL}`
+  : process.env.NEXTAUTH_URL && !process.env.NEXTAUTH_URL.includes('localhost')
+    ? new URL(process.env.NEXTAUTH_URL).origin
+    : "https://jeffandsasha.com"
 const EMAIL_FROM = process.env.EMAIL_FROM || "onboarding@resend.dev"
 
 export async function POST(req: NextRequest) {
@@ -49,7 +53,22 @@ export async function POST(req: NextRequest) {
       )
       .join("")
 
-    const downloadPageUrl = `https://jeffandsasha.com/photobooth/download?id=${sessionId}`
+    // Include photo strip if available
+    const photoStripSection = session.stripUrl
+      ? `
+          <table width="100%" cellpadding="0" cellspacing="0" style="background: #faf8f5; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+            <tr>
+              <td style="padding: 8px; text-align: center;">
+                <h3 style="font-family: Georgia, serif; color: #3d2b1f; font-size: 20px; margin: 0 0 12px;">Your Photo Strip</h3>
+                <a href="${session.stripUrl}" target="_blank" style="display: block; text-decoration: none;">
+                  <img src="${session.stripUrl}" alt="Photo Strip" width="260" style="border-radius: 8px; display: block; width: 100%; max-width: 260px; margin: 0 auto;" />
+                </a>
+              </td>
+            </tr>
+          </table>`
+      : ""
+
+    const downloadPageUrl = `${BASE_URL.replace(/\/$/, "")}/photobooth/download?id=${sessionId}`
 
     const emailHtml = `
       <!DOCTYPE html>
@@ -73,6 +92,7 @@ export async function POST(req: NextRequest) {
                     <td style="padding: 40px 30px;">
                       <h2 style="font-family: Georgia, serif; color: #3d2b1f; font-size: 24px; margin: 0 0 16px;">Your Photobooth Memories</h2>
                       <p style="color: #555; line-height: 1.6; margin: 0 0 24px;">Thank you for capturing special moments with us! Here are your photos:</p>
+                      ${photoStripSection}
                       <table width="100%" cellpadding="0" cellspacing="0" style="background: #faf8f5; border-radius: 8px; padding: 16px;">
                         ${photoGrid}
                       </table>
@@ -98,21 +118,24 @@ export async function POST(req: NextRequest) {
       </html>
     `
 
-    const result = await resend.emails.send({
+    const result = await sendEmail({
       from: `Lumina Booth <${EMAIL_FROM}>`,
       to: email,
       subject: "Your Wedding Photobooth Photos - Jeff & Sasha",
       html: emailHtml,
     })
 
-    console.log("[Email] Sent successfully to:", email, "Result:", result)
+    if (!result.success) {
+      const message = "error" in result ? result.error : "Failed to send email"
+      console.error("[Photobooth email] Send failed:", message, "to:", email)
+      return NextResponse.json({ error: message }, { status: 500 })
+    }
 
+    console.log("[Photobooth email] Sent successfully to:", email)
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error("[Email] Send error:", error)
-    return NextResponse.json(
-      { error: "Failed to send email" },
-      { status: 500 }
-    )
+    console.error("[Photobooth email] Error:", error)
+    const message = error instanceof Error ? error.message : "Failed to send email"
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
