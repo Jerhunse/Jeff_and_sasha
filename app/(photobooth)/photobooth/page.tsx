@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { CameraSelector } from "@/components/photobooth/camera-selector"
+import { RecentSessionsGrid } from "@/components/photobooth/recent-sessions"
 import { useState } from "react"
 import { Camera, Image } from "lucide-react"
 
@@ -177,25 +178,7 @@ export default function PhotoboothHomePage() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {[1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className="rounded-3xl overflow-hidden bg-white/5 border border-white/5 aspect-[4/5] relative group cursor-pointer transition-transform duration-500 hover:-translate-y-2"
-              >
-                <div className="w-full h-full bg-gradient-to-br from-[var(--pb-mocha)]/20 to-[var(--pb-espresso)]/40" />
-                <div className="absolute inset-0 bg-gradient-to-t from-[var(--pb-forest-green)] via-transparent to-transparent opacity-90"></div>
-                <div className="absolute bottom-0 left-0 right-0 p-6">
-                  <p className="text-base font-medium photobooth-header-font text-[var(--pb-soft-cream)]">
-                    Session {i}
-                  </p>
-                  <p className="text-[9px] text-[var(--pb-champagne)]/60 uppercase tracking-[0.2em] mt-1">
-                    {new Date().toLocaleDateString()}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
+          <RecentSessionsGrid />
         </div>
       </main>
 

@@ -7,28 +7,34 @@ interface HomePageProps {
 }
 
 async function getAllWeddingData(slug: string) {
-  const wedding = await prisma.couple.findUnique({
-    where: { slug },
-    include: {
-      events: {
-        where: { visibility: "PUBLIC" },
-        orderBy: { startTime: "asc" },
+  let wedding = null
+  try {
+    wedding = await prisma.couple.findUnique({
+      where: { slug },
+      include: {
+        events: {
+          where: { visibility: "PUBLIC" },
+          orderBy: { startTime: "asc" },
+        },
+        hotels: {
+          orderBy: { order: "asc" },
+        },
+        registryLinks: {
+          orderBy: { order: "asc" },
+        },
+        cashFunds: {
+          where: { isActive: true },
+          orderBy: { createdAt: "asc" },
+        },
+        faqs: {
+          orderBy: { order: "asc" },
+        },
       },
-      hotels: {
-        orderBy: { order: "asc" },
-      },
-      registryLinks: {
-        orderBy: { order: "asc" },
-      },
-      cashFunds: {
-        where: { isActive: true },
-        orderBy: { createdAt: "asc" },
-      },
-      faqs: {
-        orderBy: { order: "asc" },
-      },
-    },
-  })
+    })
+  } catch (error) {
+    console.error("[WeddingHomePage] Failed to load wedding data", { slug, error })
+    return null
+  }
 
   if (!wedding || !wedding.isPublished) {
     return null

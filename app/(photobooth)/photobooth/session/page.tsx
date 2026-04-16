@@ -4,30 +4,41 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { CameraSelector } from "@/components/photobooth/camera-selector"
 import { SessionCapture } from "@/components/photobooth/session-capture"
+import { TetheredSessionCapture } from "@/components/photobooth/tethered-session-capture"
 import { Button } from "@/components/ui/button"
-import { Loader2 } from "lucide-react"
+import { Loader2, Camera, Aperture } from "lucide-react"
+
+type CameraMode = "webcam" | "tethered" | null
+type PhotoStyle = "color" | "bw"
 
 export default function SessionPage() {
   const router = useRouter()
+  const [cameraMode, setCameraMode] = useState<CameraMode>(null)
+  const [tetheredAvailable, setTetheredAvailable] = useState(false)
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null)
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [showInstructions, setShowInstructions] = useState(true)
   const [isCreatingSession, setIsCreatingSession] = useState(false)
+  const [photoStyle, setPhotoStyle] = useState<PhotoStyle>("color")
 
-  // Auto-select first available camera on mount
   useEffect(() => {
-    if (!selectedDeviceId) {
-      navigator.mediaDevices.enumerateDevices().then((devices) => {
-        const videoDevice = devices.find((d) => d.kind === "videoinput")
-        if (videoDevice) {
-          setSelectedDeviceId(videoDevice.deviceId)
+    fetch("/api/photobooth/tethered-status")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.available) {
+          setTetheredAvailable(true)
+          setCameraMode("tethered")
+        } else {
+          setCameraMode("webcam")
         }
       })
-    }
+      .catch(() => {
+        setCameraMode("webcam")
+      })
   }, [])
 
   const handleBeginSession = async () => {
-    if (!selectedDeviceId) {
+    if (cameraMode === "webcam" && !selectedDeviceId) {
       alert("Please select a camera first")
       return
     }
@@ -59,6 +70,8 @@ export default function SessionPage() {
       router.push(`/photobooth/complete?id=${sessionId}`)
     }
   }
+
+  const canBegin = cameraMode === "tethered" || (cameraMode === "webcam" && !!selectedDeviceId)
 
   return (
     <div className="photobooth-page relative w-full" style={{ minHeight: '100dvh' }}>
@@ -132,24 +145,92 @@ export default function SessionPage() {
                 <div className="w-full aspect-video bg-[var(--pb-espresso)]/90 rounded-2xl relative overflow-hidden border-4 border-[var(--pb-champagne)] shadow-xl flex items-center justify-center">
                   <span className="text-[var(--pb-champagne)]/20 text-9xl">📷</span>
                   <div className="absolute bottom-6 left-6 flex items-center gap-3 bg-black/40 px-4 py-2 rounded-full border border-white/10 backdrop-blur-md">
-                    <div className="size-2.5 bg-red-500 rounded-full animate-pulse"></div>
+                    <div className={`size-2.5 rounded-full animate-pulse ${cameraMode === "tethered" ? "bg-blue-500" : "bg-red-500"}`}></div>
                     <span className="text-white text-xs font-bold uppercase tracking-[0.2em]">
-                      Ready to Capture
+                      {cameraMode === "tethered" ? "Sony A7 IV Connected" : "Ready to Capture"}
                     </span>
                   </div>
                 </div>
 
                 <div className="w-full pt-4">
+                  {tetheredAvailable && (
+                    <div className="mb-4 flex gap-2">
+                      <button
+                        onClick={() => setCameraMode("tethered")}
+                        className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 transition-all text-sm font-bold uppercase tracking-wider ${
+                          cameraMode === "tethered"
+                            ? "border-[var(--pb-forest-green)] bg-[var(--pb-forest-green)]/10 text-[var(--pb-forest-green)]"
+                            : "border-[var(--pb-champagne)]/30 text-[var(--pb-mocha)]/60 hover:border-[var(--pb-forest-green)]/50"
+                        }`}
+                      >
+                        <Aperture className="w-4 h-4" />
+                        Sony Camera
+                      </button>
+                      <button
+                        onClick={() => setCameraMode("webcam")}
+                        className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 transition-all text-sm font-bold uppercase tracking-wider ${
+                          cameraMode === "webcam"
+                            ? "border-[var(--pb-forest-green)] bg-[var(--pb-forest-green)]/10 text-[var(--pb-forest-green)]"
+                            : "border-[var(--pb-champagne)]/30 text-[var(--pb-mocha)]/60 hover:border-[var(--pb-forest-green)]/50"
+                        }`}
+                      >
+                        <Camera className="w-4 h-4" />
+                        Webcam
+                      </button>
+                    </div>
+                  )}
+
+                  {cameraMode === "webcam" && (
+                    <div className="mb-4">
+                      <CameraSelector
+                        selectedDeviceId={selectedDeviceId}
+                        onDeviceSelect={setSelectedDeviceId}
+                      />
+                    </div>
+                  )}
+
+                  {cameraMode === "tethered" && (
+                    <div className="mb-4 rounded-2xl border border-[var(--pb-forest-green)]/20 bg-[var(--pb-forest-green)]/5 px-4 py-3 text-[var(--pb-forest-green)]">
+                      <div className="flex items-center justify-center gap-2">
+                        <Aperture className="w-4 h-4" />
+                        <span className="text-xs font-bold uppercase tracking-wider">
+                          Tethered Mode — Trigger shutter from Imaging Edge
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="mb-4">
-                    <CameraSelector
-                      selectedDeviceId={selectedDeviceId}
-                      onDeviceSelect={setSelectedDeviceId}
-                    />
+                    <p className="text-xs font-bold uppercase tracking-widest text-[var(--pb-olive-green)] mb-2">
+                      Photo Style
+                    </p>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setPhotoStyle("color")}
+                        className={`flex-1 px-4 py-3 rounded-xl border-2 transition-all text-sm font-bold uppercase tracking-wider ${
+                          photoStyle === "color"
+                            ? "border-[var(--pb-forest-green)] bg-[var(--pb-forest-green)]/10 text-[var(--pb-forest-green)]"
+                            : "border-[var(--pb-champagne)]/30 text-[var(--pb-mocha)]/60 hover:border-[var(--pb-forest-green)]/50"
+                        }`}
+                      >
+                        Color
+                      </button>
+                      <button
+                        onClick={() => setPhotoStyle("bw")}
+                        className={`flex-1 px-4 py-3 rounded-xl border-2 transition-all text-sm font-bold uppercase tracking-wider ${
+                          photoStyle === "bw"
+                            ? "border-[var(--pb-forest-green)] bg-[var(--pb-forest-green)]/10 text-[var(--pb-forest-green)]"
+                            : "border-[var(--pb-champagne)]/30 text-[var(--pb-mocha)]/60 hover:border-[var(--pb-forest-green)]/50"
+                        }`}
+                      >
+                        Black & White
+                      </button>
+                    </div>
                   </div>
 
                   <Button
                     onClick={handleBeginSession}
-                    disabled={!selectedDeviceId || isCreatingSession}
+                    disabled={!canBegin || isCreatingSession}
                     className="w-full bg-[var(--pb-terracotta)] hover:bg-[#b34a2c] text-white text-2xl font-bold py-6 rounded-2xl transition-all shadow-lg"
                   >
                     {isCreatingSession ? (
@@ -182,11 +263,20 @@ export default function SessionPage() {
             </div>
           </div>
         </div>
+      ) : sessionId && cameraMode === "tethered" ? (
+        <div className="fixed inset-0 bg-[var(--pb-forest-green)]">
+          <TetheredSessionCapture
+            sessionId={sessionId}
+            photoStyle={photoStyle}
+            onComplete={handleSessionComplete}
+          />
+        </div>
       ) : sessionId && selectedDeviceId ? (
         <div className="fixed inset-0 bg-[var(--pb-forest-green)]">
           <SessionCapture
             sessionId={sessionId}
             deviceId={selectedDeviceId}
+            photoStyle={photoStyle}
             onComplete={handleSessionComplete}
           />
         </div>

@@ -60,11 +60,17 @@ interface GuestListDirectoryProps {
   guests: Guest[]
   tables: Table[]
   onDragStart: (e: React.DragEvent, guestId: string) => void
+  hideDeclined?: boolean
 }
 
-export function GuestListDirectory({ guests, tables, onDragStart }: GuestListDirectoryProps) {
+export function GuestListDirectory({ guests, tables, onDragStart, hideDeclined = false }: GuestListDirectoryProps) {
+  // When hideDeclined is true, exclude guests who RSVP'd NO
+  const visibleGuests = hideDeclined
+    ? guests.filter(g => g.rsvpResponses[0]?.status !== "NO")
+    : guests
+
   // Group guests by household, keeping household members together
-  const guestsByHousehold = guests.reduce((acc, guest) => {
+  const guestsByHousehold = visibleGuests.reduce((acc, guest) => {
     // Use household ID if available, otherwise create individual entry
     const householdId = guest.household?.id || `individual-${guest.id}`
     const householdName = guest.household?.name || `${guest.firstName} ${guest.lastName}`

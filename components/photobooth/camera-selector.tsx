@@ -15,6 +15,42 @@ interface CameraSelectorProps {
   onDeviceSelect: (deviceId: string) => void
 }
 
+const PREFERRED_CAMERA_PATTERNS = [
+  /sony/i,
+  /imaging edge/i,
+  /usb video/i,
+  /mirrorless/i,
+  /dslr/i,
+  /external/i,
+]
+
+const DEPRIORITIZED_CAMERA_PATTERNS = [
+  /integrated/i,
+  /built-?in/i,
+  /facetime/i,
+  /internal/i,
+]
+
+function scoreDevice(device: MediaDeviceInfo): number {
+  const label = device.label || ""
+  if (!label) return 0
+
+  let score = 0
+  for (const pattern of PREFERRED_CAMERA_PATTERNS) {
+    if (pattern.test(label)) score += 5
+  }
+  for (const pattern of DEPRIORITIZED_CAMERA_PATTERNS) {
+    if (pattern.test(label)) score -= 3
+  }
+  return score
+}
+
+function pickPreferredDevice(devices: MediaDeviceInfo[]): MediaDeviceInfo | null {
+  if (devices.length === 0) return null
+  const ranked = [...devices].sort((a, b) => scoreDevice(b) - scoreDevice(a))
+  return ranked[0] || null
+}
+
 export function CameraSelector({
   selectedDeviceId,
   onDeviceSelect,
@@ -32,8 +68,15 @@ export function CameraSelector({
         )
         setDevices(videoDevices)
 
-        if (videoDevices.length > 0 && !selectedDeviceId) {
-          onDeviceSelect(videoDevices[0].deviceId)
+        const currentDeviceStillExists = selectedDeviceId
+          ? videoDevices.some((device) => device.deviceId === selectedDeviceId)
+          : false
+
+        if (!currentDeviceStillExists) {
+          const preferred = pickPreferredDevice(videoDevices)
+          if (preferred) {
+            onDeviceSelect(preferred.deviceId)
+          }
         }
       } catch (error) {
         console.error("Error loading camera devices:", error)
@@ -43,7 +86,17 @@ export function CameraSelector({
     }
 
     loadDevices()
-  }, [])
+
+    const handleDeviceChange = () => {
+      loadDevices()
+    }
+
+    navigator.mediaDevices.addEventListener("devicechange", handleDeviceChange)
+
+    return () => {
+      navigator.mediaDevices.removeEventListener("devicechange", handleDeviceChange)
+    }
+  }, [selectedDeviceId, onDeviceSelect])
 
   if (loading) {
     return (

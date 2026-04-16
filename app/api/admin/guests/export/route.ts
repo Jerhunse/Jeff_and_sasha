@@ -44,6 +44,28 @@ export async function GET(request: NextRequest) {
       orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
     })
 
+    // Plus-ones do not always have their own RSVP record. For exports, inherit
+    // status from the primary guest when a child record has no direct response.
+    const latestRsvpByGuestId = new Map(
+      guests.map((guest) => [guest.id, guest.rsvpResponses[0]])
+    )
+    const statusMap: Record<string, string> = {
+      YES: "Attending",
+      NO: "Declined",
+      MAYBE: "Maybe",
+    }
+    const resolveExportRsvpStatus = (guest: (typeof guests)[number]) => {
+      const direct = latestRsvpByGuestId.get(guest.id)
+      if (direct) return statusMap[direct.status] || "Pending"
+
+      if (guest.parentGuestId) {
+        const parent = latestRsvpByGuestId.get(guest.parentGuestId)
+        if (parent) return statusMap[parent.status] || "Pending"
+      }
+
+      return "Pending"
+    }
+
     if (format === "rsvp") {
       // RSVP Summary export
       const headers = [
@@ -62,18 +84,13 @@ export async function GET(request: NextRequest) {
 
       const rows = guests.map((guest) => {
         const rsvp = guest.rsvpResponses[0]
-        const statusMap: Record<string, string> = {
-          YES: "Attending",
-          NO: "Declined",
-          MAYBE: "Maybe",
-        }
 
         return [
           escapeCSV(guest.firstName),
           escapeCSV(guest.lastName),
           escapeCSV(guest.email),
           escapeCSV(guest.phone),
-          rsvp ? statusMap[rsvp.status] || "Pending" : "Pending",
+          resolveExportRsvpStatus(guest),
           rsvp?.respondedAt
             ? new Date(rsvp.respondedAt).toLocaleDateString()
             : "",
@@ -119,13 +136,6 @@ export async function GET(request: NextRequest) {
     ]
 
     const rows = guests.map((guest) => {
-      const rsvp = guest.rsvpResponses[0]
-      const statusMap: Record<string, string> = {
-        YES: "Attending",
-        NO: "Declined",
-        MAYBE: "Maybe",
-      }
-
       return [
         escapeCSV(guest.firstName),
         escapeCSV(guest.lastName),
@@ -136,7 +146,7 @@ export async function GET(request: NextRequest) {
         guest.isVIP ? "Yes" : "No",
         guest.allowPlusOne ? "Yes" : "No",
         String(guest.maxGuestsAllowed),
-        rsvp ? statusMap[rsvp.status] || "Pending" : "Pending",
+        resolveExportRsvpStatus(guest),
         escapeCSV(guest.tags.map((t) => t.tag.name).join("; ")),
         escapeCSV(guest.inviteToken),
         escapeCSV(guest.notes),

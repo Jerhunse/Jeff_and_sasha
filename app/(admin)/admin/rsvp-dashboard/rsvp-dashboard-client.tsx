@@ -44,7 +44,9 @@ import {
   UserX,
   Send,
   Eye,
-  Filter
+  Filter,
+  Music,
+  MessageSquare
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -162,6 +164,43 @@ export function RSVPDashboardClient({ initialGuests, couple }: Props) {
       return matchesSearch && matchesStatus
     })
   }, [guests, searchTerm, statusFilter])
+
+  // Aggregate all song requests from attending guests
+  const songRequests = useMemo(() => {
+    const requests: { song: string; guestName: string }[] = []
+    guests.forEach(guest => {
+      const latestResponse = guest.rsvpResponses[0]
+      if (latestResponse?.status !== "YES" || !latestResponse.answersJSON) return
+      try {
+        const answers = JSON.parse(latestResponse.answersJSON)
+        const song = answers.songRequest?.trim()
+        if (song) {
+          requests.push({
+            song,
+            guestName: `${guest.firstName} ${guest.lastName}`,
+          })
+        }
+      } catch {
+        // ignore parse errors
+      }
+    })
+    return requests
+  }, [guests])
+
+  // Aggregate all guest comments/messages from RSVP forms
+  const guestComments = useMemo(() => {
+    const comments: { message: string; guestName: string; respondedAt: Date }[] = []
+    guests.forEach(guest => {
+      const latestResponse = guest.rsvpResponses[0]
+      if (!latestResponse?.message?.trim()) return
+      comments.push({
+        message: latestResponse.message.trim(),
+        guestName: `${guest.firstName} ${guest.lastName}`,
+        respondedAt: latestResponse.respondedAt,
+      })
+    })
+    return comments.sort((a, b) => new Date(b.respondedAt).getTime() - new Date(a.respondedAt).getTime())
+  }, [guests])
 
   const getRSVPStatus = (guest: Guest) => {
     if (guest.rsvpResponses.length === 0) {
@@ -331,6 +370,64 @@ export function RSVPDashboardClient({ initialGuests, couple }: Props) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Song Requests - All Together */}
+      {songRequests.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Music className="h-5 w-5" />
+              Song Requests
+            </CardTitle>
+            <CardDescription>
+              All song requests from attending guests in one place
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-3">
+              {songRequests.map((req, i) => (
+                <li
+                  key={`${req.guestName}-${req.song}-${i}`}
+                  className="flex items-center justify-between gap-4 rounded-lg border bg-muted/30 px-4 py-3"
+                >
+                  <span className="font-medium">{req.song}</span>
+                  <span className="text-sm text-muted-foreground">{req.guestName}</span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Guest Comments - All Together */}
+      {guestComments.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MessageSquare className="h-5 w-5" />
+              Guest Comments
+            </CardTitle>
+            <CardDescription>
+              All messages from guest RSVP forms in one place
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-3">
+              {guestComments.map((c, i) => (
+                <li
+                  key={`${c.guestName}-${i}`}
+                  className="rounded-lg border bg-muted/30 px-4 py-3"
+                >
+                  <p className="text-sm italic">&quot;{c.message}&quot;</p>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    — {c.guestName} · {new Date(c.respondedAt).toLocaleDateString()}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Filters and Actions */}
       <Card>

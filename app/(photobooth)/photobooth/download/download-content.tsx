@@ -17,6 +17,7 @@ interface Session {
   id: string
   createdAt: string
   photos: Photo[]
+  stripUrl?: string | null
 }
 
 export function DownloadPageContent() {
@@ -56,24 +57,35 @@ export function DownloadPageContent() {
     loadSession()
   }, [sessionId, router])
 
+  // Trigger a same-origin download through our proxy route.
+  // Using a real anchor navigation (rather than fetch+blob) is the most
+  // reliable approach across mobile browsers — especially iOS Safari,
+  // which frequently ignores the `download` attribute on cross-origin
+  // blob URLs and can fail CORS preflight for Supabase public URLs.
+  const triggerDownload = (href: string, filename: string) => {
+    const a = document.createElement("a")
+    a.href = href
+    a.download = filename
+    a.rel = "noopener"
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+  }
+
   const downloadPhoto = async (photo: Photo) => {
     setDownloading(photo.id)
     try {
-      const response = await fetch(photo.url)
-      const blob = await response.blob()
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement("a")
-      a.href = url
-      a.download = photo.filename
-      document.body.appendChild(a)
-      a.click()
-      window.URL.revokeObjectURL(url)
-      document.body.removeChild(a)
+      const baseName = photo.filename?.split("/").pop() || `photo-${photo.order + 1}.jpg`
+      triggerDownload(
+        `/api/photobooth/download?photoId=${encodeURIComponent(photo.id)}`,
+        baseName
+      )
     } catch (error) {
       console.error("Download error:", error)
       setError("Failed to download photo")
     } finally {
-      setDownloading(null)
+      // Small delay so the UI reflects the click before clearing state
+      setTimeout(() => setDownloading(null), 600)
     }
   }
 
@@ -83,7 +95,24 @@ export function DownloadPageContent() {
     for (const photo of session.photos) {
       await downloadPhoto(photo)
       // Small delay between downloads to prevent browser blocking
-      await new Promise((resolve) => setTimeout(resolve, 300))
+      await new Promise((resolve) => setTimeout(resolve, 800))
+    }
+  }
+
+  const downloadStrip = async () => {
+    if (!session?.stripUrl || !sessionId) return
+
+    setDownloading("strip")
+    try {
+      triggerDownload(
+        `/api/photobooth/download?sessionId=${encodeURIComponent(sessionId)}&type=strip`,
+        `photobooth-strip-${sessionId}.jpg`
+      )
+    } catch (error) {
+      console.error("Download error:", error)
+      setError("Failed to download photo strip")
+    } finally {
+      setTimeout(() => setDownloading(null), 600)
     }
   }
 
@@ -141,12 +170,32 @@ export function DownloadPageContent() {
         </div>
 
         <div className="w-full max-w-2xl mb-12">
+          {session.stripUrl && (
+            <Button
+              onClick={downloadStrip}
+              disabled={downloading === "strip"}
+              className="w-full bg-[var(--pb-olive-green)] text-white py-6 rounded-full font-bold text-lg hover:brightness-110 transition-all shadow-lg mb-4"
+            >
+              {downloading === "strip" ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                  Downloading...
+                </>
+              ) : (
+                <>
+                  <Download className="w-5 h-5 mr-2" />
+                  Download Photo Strip
+                </>
+              )}
+            </Button>
+          )}
+
           <Button
             onClick={downloadAllPhotos}
             disabled={!!downloading}
             className="w-full bg-[var(--pb-terracotta)] text-white py-6 rounded-full font-bold text-lg hover:brightness-110 transition-all shadow-lg mb-8"
           >
-            {downloading ? (
+            {downloading && downloading !== "strip" ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin mr-2" />
                 Downloading...
@@ -202,23 +251,28 @@ export function DownloadPageContent() {
             Preview
           </p>
 
-          {session.photos.length > 0 && (
+          {session.stripUrl ? (
+            <div className="flex justify-center">
+              <img 
+                src={session.stripUrl} 
+                alt="Photo strip preview" 
+                className="max-w-md w-full rounded-lg shadow-2xl border-4 border-white"
+              />
+            </div>
+          ) : session.photos.length > 0 && (
             <div className="flex justify-center">
               <PhotoboothStrip photos={session.photos} />
             </div>
           )}
         </div>
 
-        <div className="mt-12 mb-8">
-          <button
+        <div className="mt-12 mb-8 w-full max-w-2xl">
+          <Button
             onClick={() => router.push("/photobooth")}
-            className="flex items-center gap-1 px-8 py-2 text-[var(--pb-mocha)] hover:text-[var(--pb-soft-cream)] transition-colors group"
+            className="w-full bg-red-600 hover:bg-red-700 text-white py-8 rounded-full font-extrabold text-2xl md:text-3xl uppercase tracking-wide shadow-xl border-4 border-red-700 transition-all hover:scale-[1.02]"
           >
-            <span className="photobooth-script text-4xl leading-none transition-transform group-hover:-translate-x-2">
-              ←
-            </span>
-            <span className="photobooth-script text-3xl pb-1">Back to Home</span>
-          </button>
+            ← Back to Home
+          </Button>
         </div>
       </main>
 

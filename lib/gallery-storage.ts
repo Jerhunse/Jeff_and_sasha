@@ -170,6 +170,24 @@ export async function deleteGalleryMedia(path: string): Promise<void> {
 }
 
 /**
+ * Delete multiple files from the gallery bucket (admin only)
+ * Batches requests to avoid payload limits
+ */
+export async function deleteGalleryMediaBatch(paths: string[]): Promise<void> {
+  if (paths.length === 0) return
+  const supabase = getSupabaseClient()
+  const BATCH_SIZE = 100
+  for (let i = 0; i < paths.length; i += BATCH_SIZE) {
+    const batch = paths.slice(i, i + BATCH_SIZE)
+    const { error } = await supabase.storage.from(BUCKET_NAME).remove(batch)
+    if (error) {
+      console.error("Delete gallery batch error:", error)
+      throw error
+    }
+  }
+}
+
+/**
  * Get public URL for a file
  */
 export function getPublicUrl(path: string): string {

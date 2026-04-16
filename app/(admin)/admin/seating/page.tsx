@@ -231,8 +231,14 @@ export default async function SeatingPage() {
     ],
   })
 
+  // Exclude guests who RSVP'd NO (they don't need seating)
+  const activeGuests = primaryGuests.filter(guest => {
+    const rsvpStatus = guest.rsvpResponses[0]?.status
+    return rsvpStatus !== "NO"
+  })
+
   // Flatten plus-ones into the main guests array so they can be found during drag-and-drop
-  const guests = primaryGuests.flatMap(guest => {
+  const guests = activeGuests.flatMap(guest => {
     const plusOnesAsGuests = (guest.plusOnes || []).map(plusOne => ({
       ...plusOne,
       maxGuestsAllowed: 1,

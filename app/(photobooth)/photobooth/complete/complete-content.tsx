@@ -31,6 +31,7 @@ export function CompletePageContent() {
   const [email, setEmail] = useState("")
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(false)
+  const [emailError, setEmailError] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -66,7 +67,7 @@ export function CompletePageContent() {
     if (!email || !sessionId) return
 
     setSending(true)
-    setError(null)
+    setEmailError(null)
 
     try {
       const response = await fetch("/api/photobooth/email", {
@@ -75,14 +76,15 @@ export function CompletePageContent() {
         body: JSON.stringify({ email, sessionId }),
       })
 
+      const data = await response.json().catch(() => ({}))
       if (!response.ok) {
-        throw new Error("Failed to send email")
+        throw new Error(data.error || "Failed to send email")
       }
 
       setSent(true)
-    } catch (error) {
-      console.error("Error sending email:", error)
-      setError("Failed to send email. Please try again.")
+    } catch (err) {
+      console.error("Error sending email:", err)
+      setEmailError(err instanceof Error ? err.message : "Failed to send email. Please try again.")
     } finally {
       setSending(false)
     }
@@ -182,6 +184,9 @@ export function CompletePageContent() {
                     "Send Photos"
                   )}
                 </Button>
+                {emailError && (
+                  <p className="text-sm text-red-400 mt-2 text-center">{emailError}</p>
+                )}
               </div>
             </form>
           </div>
@@ -219,16 +224,13 @@ export function CompletePageContent() {
           )}
         </div>
 
-        <div className="mt-12 mb-8">
-          <button
+        <div className="mt-12 mb-8 w-full max-w-2xl">
+          <Button
             onClick={() => router.push("/photobooth")}
-            className="flex items-center gap-1 px-8 py-2 text-[var(--pb-mocha)] hover:text-[var(--pb-soft-cream)] transition-colors group"
+            className="w-full bg-red-600 hover:bg-red-700 text-white py-8 rounded-full font-extrabold text-2xl md:text-3xl uppercase tracking-wide shadow-xl border-4 border-red-700 transition-all hover:scale-[1.02]"
           >
-            <span className="photobooth-script text-4xl leading-none transition-transform group-hover:-translate-x-2">
-              ←
-            </span>
-            <span className="photobooth-script text-3xl pb-1">Back to Home</span>
-          </button>
+            ← Back to Home
+          </Button>
         </div>
       </main>
 

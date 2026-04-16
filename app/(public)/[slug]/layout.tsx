@@ -10,23 +10,29 @@ interface WeddingLayoutProps {
 }
 
 async function getWedding(slug: string) {
-  const wedding = await prisma.couple.findUnique({
-    where: { slug },
-    select: {
-      id: true,
-      slug: true,
-      partner1Name: true,
-      partner2Name: true,
-      weddingDate: true,
-      isPublished: true,
-      primaryColor: true,
-      secondaryColor: true,
-      heroImageUrl: true,
-      venueName: true,
-      venueCity: true,
-      venueState: true,
-    },
-  })
+  let wedding = null
+  try {
+    wedding = await prisma.couple.findUnique({
+      where: { slug },
+      select: {
+        id: true,
+        slug: true,
+        partner1Name: true,
+        partner2Name: true,
+        weddingDate: true,
+        isPublished: true,
+        primaryColor: true,
+        secondaryColor: true,
+        heroImageUrl: true,
+        venueName: true,
+        venueCity: true,
+        venueState: true,
+      },
+    })
+  } catch (error) {
+    console.error("[WeddingLayout] Failed to load wedding data", { slug, error })
+    return null
+  }
 
   if (!wedding || !wedding.isPublished) {
     return null

@@ -1,16 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { uploadToGallery, isGalleryConfigured } from "@/lib/gallery-storage"
+import { waitForNextCapture } from "@/lib/tethered-camera"
 import { prisma } from "@/lib/prisma"
 import { nanoid } from "nanoid"
 import sharp from "sharp"
-
-const SUPPORTED_IMAGE_TYPES = [
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-]
-
-const MAX_IMAGE_SIZE = 50 * 1024 * 1024 // 50MB
 
 export async function POST(req: NextRequest) {
   try {
@@ -21,28 +14,13 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const formData = await req.formData()
-    const file = formData.get("file") as File
-    const sessionId = formData.get("sessionId") as string
-    const order = parseInt(formData.get("order") as string, 10)
-    const photoStyle = (formData.get("photoStyle") as string) || "color"
+    const { sessionId, order, photoStyle = "color" } = await req.json()
 
-    if (!file || !sessionId || isNaN(order)) {
+    if (!sessionId || typeof order !== "number") {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: "Missing sessionId or order" },
         { status: 400 }
       )
-    }
-
-    if (!SUPPORTED_IMAGE_TYPES.includes(file.type)) {
-      return NextResponse.json(
-        { error: "Unsupported file type" },
-        { status: 400 }
-      )
-    }
-
-    if (file.size > MAX_IMAGE_SIZE) {
-      return NextResponse.json({ error: "File too large" }, { status: 400 })
     }
 
     if (photoStyle !== "color" && photoStyle !== "bw") {
@@ -52,8 +30,11 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
+    console.log(`[Tethered Capture] Waiting for photo ${order} (session: ${sessionId})`)
+
+    const { buffer, path: filePath } = await waitForNextCapture(30000)
+
+    console.log(`[Tethered Capture] Got file: ${filePath} (${buffer.length} bytes)`)
 
     const transformer = sharp(buffer).rotate()
     if (photoStyle === "bw") {
@@ -75,6 +56,8 @@ export async function POST(req: NextRequest) {
       },
     })
 
+    console.log(`[Tethered Capture] Photo ${order} saved: ${photo.url}`)
+
     return NextResponse.json(
       {
         success: true,
@@ -88,10 +71,8 @@ export async function POST(req: NextRequest) {
       { status: 201 }
     )
   } catch (error) {
-    console.error("Capture upload error:", error)
-    return NextResponse.json(
-      { error: "Upload failed" },
-      { status: 500 }
-    )
+    console.error("[Tethered Capture] Error:", error)
+    const message = error instanceof Error ? error.message : "Capture failed"
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

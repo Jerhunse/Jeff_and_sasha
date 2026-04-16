@@ -167,16 +167,28 @@ export function SeatingChartManager({ seatingChart: initialChart, guests: initia
   const stats = useMemo(() => {
     const totalCapacity = seatingChart.tables.reduce((sum, table) => sum + table.capacity, 0)
     
-    // Total invited = sum of maxGuestsAllowed from primary guests only
+    // Total seating needed = sum of maxGuestsAllowed from primary guests who are not RSVP NO
+    // This keeps "Total Guests" aligned with seating metrics (seated/unseated).
     const primaryGuests = guests.filter(g => !g.parentGuestId)
-    const totalGuests = primaryGuests.reduce((sum, g) => sum + (g.maxGuestsAllowed || 1), 0)
+    const totalGuests = primaryGuests.reduce((sum, g) => {
+      if (g.rsvpResponses[0]?.status === "NO") return sum
+      return sum + (g.maxGuestsAllowed || 1)
+    }, 0)
     
     // Attending = all guests (primary + plus-ones) who RSVP'd YES
     const attendingGuests = guests.filter(g => g.rsvpResponses[0]?.status === "YES").length
     
-    // Seated/unseated counts all guests in the system
+    // Seated/unseated counts - exclude RSVP NO from unseated (they won't need seating)
     const seatedGuests = guests.filter(g => g.seats.length > 0).length
-    const unseatedGuests = guests.filter(g => g.seats.length === 0).length
+    const unseatedGuests = guests.filter(g => {
+      if (g.seats.length > 0) return false
+      if (g.rsvpResponses[0]?.status === "NO") return false
+      if (g.parentGuestId) {
+        const parent = guests.find(p => p.id === g.parentGuestId)
+        if (parent?.rsvpResponses[0]?.status === "NO") return false
+      }
+      return true
+    }).length
     
     return {
       totalCapacity,
@@ -205,7 +217,15 @@ export function SeatingChartManager({ seatingChart: initialChart, guests: initia
     if (filterStatus === "seated") {
       filtered = filtered.filter(g => g.seats.length > 0)
     } else if (filterStatus === "unseated") {
-      filtered = filtered.filter(g => g.seats.length === 0)
+      filtered = filtered.filter(g => {
+        if (g.seats.length > 0) return false
+        if (g.rsvpResponses[0]?.status === "NO") return false
+        if (g.parentGuestId) {
+          const parent = guests.find(p => p.id === g.parentGuestId)
+          if (parent?.rsvpResponses[0]?.status === "NO") return false
+        }
+        return true
+      })
     }
 
     return filtered
@@ -335,7 +355,12 @@ export function SeatingChartManager({ seatingChart: initialChart, guests: initia
       })
 
       if (!response.ok) {
-        throw new Error("Failed to remove guest")
+        const errBody = await response.json().catch(() => null)
+        const msg =
+          typeof errBody?.error === "string"
+            ? errBody.error
+            : `Failed to remove guest (${response.status})`
+        throw new Error(msg)
       }
 
       // Update local state
@@ -538,6 +563,92 @@ export function SeatingChartManager({ seatingChart: initialChart, guests: initia
     e.dataTransfer.dropEffect = "move"
   }
 
+  const handleExportPdf = () => {
+    try {
+      const printWindow = window.open("", "_blank", "width=1200,height=900")
+      if (!printWindow) {
+        toast.error("Popup blocked. Please allow popups to export PDF.")
+        return
+      }
+
+      const generatedAt = new Date().toLocaleString()
+      const tablesHtml = seatingChart.tables
+        .slice()
+        .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))
+        .map((table) => {
+          const seats = table.seats
+            .slice()
+            .sort((a, b) => (a.seatNumber ?? 999) - (b.seatNumber ?? 999))
+
+          const rows = seats.length
+            ? seats
+                .map((seat) => {
+                  const fullName = `${seat.guest.firstName} ${seat.guest.lastName}`.trim()
+                  return `<tr><td>${seat.seatNumber ?? "-"}</td><td>${fullName}</td></tr>`
+                })
+                .join("")
+            : `<tr><td colspan="2">No guests assigned</td></tr>`
+
+          return `
+            <section class="table-block">
+              <h2>${table.name}</h2>
+              <p>Capacity ${table.capacity} • Seated ${table.seats.length}</p>
+              <table>
+                <thead>
+                  <tr><th>Seat</th><th>Guest</th></tr>
+                </thead>
+                <tbody>${rows}</tbody>
+              </table>
+            </section>
+          `
+        })
+        .join("")
+
+      const html = `
+        <!doctype html>
+        <html>
+          <head>
+            <meta charset="utf-8" />
+            <title>${seatingChart.name} Seating Chart</title>
+            <style>
+              body { font-family: Arial, sans-serif; margin: 24px; color: #111; }
+              h1 { margin: 0 0 6px 0; font-size: 24px; }
+              .meta { color: #555; margin-bottom: 20px; font-size: 12px; }
+              .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+              .table-block { border: 1px solid #ddd; border-radius: 8px; padding: 12px; break-inside: avoid; }
+              .table-block h2 { margin: 0 0 4px 0; font-size: 16px; }
+              .table-block p { margin: 0 0 10px 0; color: #666; font-size: 12px; }
+              table { width: 100%; border-collapse: collapse; }
+              th, td { border: 1px solid #e5e5e5; padding: 6px 8px; font-size: 12px; text-align: left; }
+              th { background: #f8f8f8; }
+              @media print {
+                .no-print { display: none; }
+                body { margin: 12px; }
+              }
+            </style>
+          </head>
+          <body>
+            <h1>${seatingChart.name} Seating Chart</h1>
+            <div class="meta">Generated ${generatedAt}</div>
+            <div class="grid">${tablesHtml}</div>
+            <script>
+              window.onload = function () {
+                window.print();
+              };
+            </script>
+          </body>
+        </html>
+      `
+
+      printWindow.document.open()
+      printWindow.document.write(html)
+      printWindow.document.close()
+    } catch (error) {
+      console.error("Export PDF error:", error)
+      toast.error("Failed to export PDF")
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Stats Overview */}
@@ -590,7 +701,7 @@ export function SeatingChartManager({ seatingChart: initialChart, guests: initia
           <Card className="p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-serif font-bold">Floor Plan</h2>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={handleExportPdf}>
                 <Download className="h-4 w-4 mr-2" />
                 Export PDF
               </Button>
@@ -807,6 +918,7 @@ export function SeatingChartManager({ seatingChart: initialChart, guests: initia
                 guests={filteredGuests}
                 tables={seatingChart.tables}
                 onDragStart={handleDragStart}
+                hideDeclined={filterStatus === "unseated"}
               />
             </ScrollArea>
           </Card>

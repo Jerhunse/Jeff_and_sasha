@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { QRCodeSVG } from "qrcode.react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -8,17 +8,33 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Download, Camera, Copy, Check } from "lucide-react"
 
-const DEFAULT_PHOTO_SHARE_URL =
-  process.env.NEXT_PUBLIC_PHOTO_SHARE_URL || "https://photos.app.goo.gl/7at8RubLEtQE8QDi7"
+const ENV_PHOTO_SHARE_URL = process.env.NEXT_PUBLIC_PHOTO_SHARE_URL || ""
 
 interface PrintablePhotoShareQrCodeProps {
   /** Google Photos (or other) album URL for guests to share photos. Override via NEXT_PUBLIC_PHOTO_SHARE_URL env. */
   photoShareUrl?: string
 }
 
-export function PrintablePhotoShareQrCode({ photoShareUrl = DEFAULT_PHOTO_SHARE_URL }: PrintablePhotoShareQrCodeProps) {
+export function PrintablePhotoShareQrCode({ photoShareUrl }: PrintablePhotoShareQrCodeProps) {
   const [qrSize, setQrSize] = useState(300)
   const [copied, setCopied] = useState(false)
+  const [resolvedPhotoShareUrl, setResolvedPhotoShareUrl] = useState(photoShareUrl || ENV_PHOTO_SHARE_URL)
+
+  useEffect(() => {
+    if (photoShareUrl) {
+      setResolvedPhotoShareUrl(photoShareUrl)
+      return
+    }
+
+    if (ENV_PHOTO_SHARE_URL) {
+      setResolvedPhotoShareUrl(ENV_PHOTO_SHARE_URL)
+      return
+    }
+
+    if (typeof window !== "undefined") {
+      setResolvedPhotoShareUrl(`${window.location.origin}/gallery`)
+    }
+  }, [photoShareUrl])
 
   const handleDownloadSVG = () => {
     const svg = document.getElementById("printable-photo-share-qr-code")
@@ -65,7 +81,7 @@ export function PrintablePhotoShareQrCode({ photoShareUrl = DEFAULT_PHOTO_SHARE_
 
   const handleCopyUrl = async () => {
     try {
-      await navigator.clipboard.writeText(photoShareUrl)
+      await navigator.clipboard.writeText(resolvedPhotoShareUrl)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch (err) {
@@ -97,7 +113,7 @@ export function PrintablePhotoShareQrCode({ photoShareUrl = DEFAULT_PHOTO_SHARE_
             </div>
             <QRCodeSVG
               id="printable-photo-share-qr-code"
-              value={photoShareUrl}
+              value={resolvedPhotoShareUrl}
               size={qrSize}
               level="H"
               includeMargin={true}
@@ -136,7 +152,7 @@ export function PrintablePhotoShareQrCode({ photoShareUrl = DEFAULT_PHOTO_SHARE_
           <Label>Photo share link</Label>
           <div className="flex gap-2">
             <Input
-              value={photoShareUrl}
+              value={resolvedPhotoShareUrl}
               readOnly
               className="font-mono text-sm"
             />
