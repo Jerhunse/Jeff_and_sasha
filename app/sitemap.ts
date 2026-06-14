@@ -68,6 +68,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "yearly",
       priority: 0.5,
     },
+    {
+      url: `${baseUrl}/virtual`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
   ]
 
   return [...rootPages, ...weddingSitemapEntries]
