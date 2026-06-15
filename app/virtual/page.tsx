@@ -1,10 +1,27 @@
 import type { Metadata } from "next"
 import { prisma } from "@/lib/prisma"
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://jeffandsasha.com"
+
 export const metadata: Metadata = {
+  metadataBase: new URL(BASE_URL),
   title: "Jeffery & Sasha's Wedding — Join Us Virtually",
   description:
     "Join our wedding live on Zoom, June 26, 2026 at 3:00 PM ET. View our registry.",
+  openGraph: {
+    title: "Jeffery & Sasha's Wedding — Join Us Virtually",
+    description:
+      "Join our wedding live on Zoom, June 26, 2026 at 3:00 PM ET. View our registry.",
+    url: "/virtual",
+    type: "website",
+    siteName: "Jeffery & Sasha's Wedding",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Jeffery & Sasha's Wedding — Join Us Virtually",
+    description:
+      "Join our wedding live on Zoom, June 26, 2026 at 3:00 PM ET. View our registry.",
+  },
 }
 
 const ZOOM_JOIN_URL =

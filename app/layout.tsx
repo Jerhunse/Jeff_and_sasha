@@ -37,6 +37,9 @@ const dancingScript = Dancing_Script({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_BASE_URL || "https://jeffandsasha.com"
+  ),
   title: "Our Wedding | Jeff & Sasha",
   description: "Join us in celebrating our special day",
   viewport: {
