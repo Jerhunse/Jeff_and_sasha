@@ -22,6 +22,24 @@ export interface SearchResult {
   }>
 }
 
+/**
+ * Normalizes a string for forgiving comparison: strips diacritics/accents
+ * (so "Saraí" matches "Sarai"), lowercases, and collapses whitespace.
+ */
+function normalizeName(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim()
+}
+
+/** Keeps only digits, so phone searches ignore spaces, dashes, and parens. */
+function digitsOnly(value: string): string {
+  return value.replace(/\D/g, "")
+}
+
 export async function searchGuestSeat(
   slug: string,
   searchQuery: string
@@ -41,39 +59,60 @@ export async function searchGuestSeat(
     return null
   }
 
-  const guests = await prisma.guest.findMany({
+  // Pull all seated guests for this wedding (small dataset) and match in
+  // application code. This lets a guest find themselves by typing their full
+  // name in any order, with or without accents, or by phone number — none of
+  // which a single Prisma `contains` clause handles reliably.
+  const seatedGuests = await prisma.guest.findMany({
     where: {
       coupleId: wedding.id,
-      AND: [
-        {
-          seats: {
-            some: {},
-          },
-        },
-        {
-          OR: [
-            {
-              firstName: {
-                contains: trimmedQuery,
-                mode: "insensitive",
-              },
-            },
-            {
-              lastName: {
-                contains: trimmedQuery,
-                mode: "insensitive",
-              },
-            },
-            {
-              phone: {
-                contains: trimmedQuery,
-                mode: "insensitive",
-              },
-            },
-          ],
-        },
-      ],
+      seats: { some: {} },
     },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      phone: true,
+    },
+  })
+
+  const normalizedQuery = normalizeName(trimmedQuery)
+  const queryTokens = normalizedQuery.split(" ").filter(Boolean)
+  const queryDigits = digitsOnly(trimmedQuery)
+
+  const matched = seatedGuests
+    .map((g) => {
+      const fullName = normalizeName(`${g.firstName ?? ""} ${g.lastName ?? ""}`)
+      const guestDigits = digitsOnly(g.phone ?? "")
+
+      const phoneMatch =
+        queryDigits.length >= 4 &&
+        guestDigits.length > 0 &&
+        guestDigits.includes(queryDigits)
+
+      // Every word the guest typed must appear somewhere in their full name.
+      const nameMatch =
+        queryTokens.length > 0 &&
+        queryTokens.every((token) => fullName.includes(token))
+
+      if (!phoneMatch && !nameMatch) {
+        return null
+      }
+
+      // Rank exact full-name matches highest so the right person wins when
+      // multiple guests share part of a name.
+      const score = fullName === normalizedQuery ? 2 : phoneMatch ? 1 : 0
+      return { id: g.id, score }
+    })
+    .filter((m): m is { id: string; score: number } => m !== null)
+    .sort((a, b) => b.score - a.score)
+
+  if (matched.length === 0) {
+    return null
+  }
+
+  const guest = await prisma.guest.findUnique({
+    where: { id: matched[0].id },
     include: {
       seats: {
         include: {
@@ -101,14 +140,12 @@ export async function searchGuestSeat(
         },
       },
     },
-    take: 1,
   })
 
-  if (guests.length === 0 || !guests[0].seats[0]) {
+  if (!guest || !guest.seats[0]) {
     return null
   }
 
-  const guest = guests[0]
   const seat = guest.seats[0]
   const table = seat.table
 
